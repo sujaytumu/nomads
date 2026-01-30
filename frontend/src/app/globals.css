@@ -1,0 +1,33 @@
+@import "mapbox-gl/dist/mapbox-gl.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900;
+}
+
+.section {
+  @apply max-w-6xl mx-auto px-6;
+}
+
+.card {
+  @apply rounded-2xl bg-white shadow-sm border border-slate-100;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl bg-brand-600 text-white px-5 py-3 font-semibold hover:bg-brand-700 transition;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-100 transition;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full bg-brand-100 text-brand-800 text-xs font-semibold px-3 py-1;
+}
