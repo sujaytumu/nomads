@@ -34,7 +34,7 @@ export default function PackageCard({ pkg }: Props) {
 
   return (
     <div className="card p-4">
-      <img src={pkg.imageUrl || '/images/package-placeholder.jpg'} alt={pkg.name} className="h-40 w-full object-cover rounded-md" />
+      <img src={pkg.imageUrl || '/images/package-placeholder.svg'} alt={pkg.name} className="h-40 w-full object-cover rounded-md" />
       <div className="py-3">
         <h3 className="text-lg font-semibold">{pkg.name}</h3>
         <p className="text-sm text-slate-600">{pkg.shortDescription}</p>
