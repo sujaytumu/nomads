@@ -49,7 +49,7 @@ export default function PlacesList() {
         }
 
         // Try reverse-geocoding on the client (Mapbox) to get a consistent city for the coords.
-        async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+        const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
           try {
             const token = (
               process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
@@ -66,7 +66,7 @@ export default function PlacesList() {
           } catch (err) {
             return null;
           }
-        }
+        };
 
         const resolvedCity = await reverseGeocode(latitude, longitude);
         if (resolvedCity) city = resolvedCity;

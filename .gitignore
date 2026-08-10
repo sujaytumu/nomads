@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment / secrets ###
+frontend/.env.local
+frontend/.env*.local
+.env
+*.env
+!.env.example
+logs/
+
+### Next.js build output ###
+frontend/.next/
+frontend/out/
+frontend/node_modules/

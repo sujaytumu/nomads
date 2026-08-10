@@ -3,11 +3,19 @@
 import ProtectedPage from "@/components/ProtectedPage";
 import { createPayment, verifyPayment } from "@/lib/paymentApi";
 import { loadRazorpayScript, RazorpayHandlerResponse } from "@/lib/razorpay";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 
 export default function PaymentPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentPageInner />
+    </Suspense>
+  );
+}
+
+function PaymentPageInner() {
   const [tripId, setTripId] = useState("");
   const [amount, setAmount] = useState("");
   const [trips, setTrips] = useState<any[]>([]);
