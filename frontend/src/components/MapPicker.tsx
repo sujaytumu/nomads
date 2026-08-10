@@ -17,17 +17,18 @@ export default function MapPicker({ initialCenter = [72.8777, 19.076], onSet }: 
 
   useEffect(() => {
     if (!containerRef.current) return;
-    mapRef.current = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
       container: containerRef.current,
       style: "mapbox://styles/mapbox/streets-v11",
       center: initialCenter,
       zoom: 12,
     });
+    mapRef.current = map;
 
-    mapRef.current.on("click", (e) => {
+    map.on("click", (e: mapboxgl.MapMouseEvent) => {
       const { lng, lat } = e.lngLat;
       if (!markerRef.current) {
-        markerRef.current = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(mapRef.current!);
+        markerRef.current = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
       } else {
         markerRef.current.setLngLat([lng, lat]);
       }
