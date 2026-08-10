@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
+import org.springframework.security.core.AuthenticationException;
 import com.tripfactory.nomad.service.exception.BadRequestException;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
 
@@ -53,6 +54,16 @@ public class GlobalExceptionHandler {
         body.put("status", 404);
         body.put("timestamp", LocalDateTime.now().toString());
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Object> handleAuthFailure(AuthenticationException ex) {
+        log.warn("Authentication failed: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", "Invalid email or password");
+        body.put("status", 401);
+        body.put("timestamp", LocalDateTime.now().toString());
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)

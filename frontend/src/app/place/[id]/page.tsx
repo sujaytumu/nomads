@@ -55,7 +55,7 @@ export default function PlaceDetailsPage() {
     <div className="section py-8">
       <div className="grid md:grid-cols-3 gap-6">
         <div className="col-span-2">
-          <img src={place.imageUrl || "https://via.placeholder.com/800x400?text=Place"} alt={place.name} className="w-full h-72 object-cover rounded-md" />
+          <img src={place.imageUrl || "/images/place-placeholder.svg"} alt={place.name} className="w-full h-72 object-cover rounded-md" />
           <h2 className="text-2xl font-bold mt-4">{place.name}</h2>
           <p className="text-slate-600 mt-2">{place.description || place.shortDescription}</p>
         </div>
