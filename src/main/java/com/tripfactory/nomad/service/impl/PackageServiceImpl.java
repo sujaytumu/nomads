@@ -34,19 +34,18 @@ public class PackageServiceImpl implements PackageService {
         List<Place> mumbai = placeRepository.findByCityIgnoreCase("Mumbai");
         List<Place> delhi = placeRepository.findByCityIgnoreCase("Delhi");
 
-        packages.add(buildSummary("Weekend in Bengaluru", "A curated 2-day Bengaluru weekend with food, parks and nightlife.", new BigDecimal("4999"), bengaluru));
-        packages.add(buildSummary("Mumbai Shoreline", "Explore beaches, bazaars and local cuisine in Mumbai.", new BigDecimal("5999"), mumbai));
-        packages.add(buildSummary("Delhi Heritage Trip", "Historical walks, markets and cultural experiences in Delhi.", new BigDecimal("5499"), delhi));
+        packages.add(buildSummary("Weekend in Bengaluru", "A curated 2-day Bengaluru weekend with food, parks and nightlife.", new BigDecimal("4999"), bengaluru, "https://picsum.photos/seed/nomad-bengaluru/600/400"));
+        packages.add(buildSummary("Mumbai Shoreline", "Explore beaches, bazaars and local cuisine in Mumbai.", new BigDecimal("5999"), mumbai, "https://picsum.photos/seed/nomad-mumbai/600/400"));
+        packages.add(buildSummary("Delhi Heritage Trip", "Historical walks, markets and cultural experiences in Delhi.", new BigDecimal("5499"), delhi, "https://picsum.photos/seed/nomad-delhi/600/400"));
     }
 
-    private PackageSummaryResponse buildSummary(String name, String desc, BigDecimal price, List<Place> fromPlaces) {
+    private PackageSummaryResponse buildSummary(String name, String desc, BigDecimal price, List<Place> fromPlaces, String imageUrl) {
         PackageSummaryResponse s = new PackageSummaryResponse();
         s.setId(idGenerator.getAndIncrement());
         s.setName(name);
         s.setShortDescription(desc);
         s.setPrice(price);
-        // Places do not currently have an image field; leave imageUrl null for now
-        s.setImageUrl(null);
+        s.setImageUrl(imageUrl);
         return s;
     }
 
@@ -92,6 +91,7 @@ public class PackageServiceImpl implements PackageService {
             pr.setLongitude(p.getLongitude());
             pr.setCategory(p.getCategory());
             pr.setRating(p.getRating());
+            pr.setImageUrl(p.getImageUrl());
             return pr;
         }).collect(Collectors.toList());
 
