@@ -60,6 +60,7 @@ public class PlaceServiceImpl implements PlaceService {
         response.setLongitude(place.getLongitude());
         response.setCategory(place.getCategory());
         response.setRating(place.getRating());
+        response.setImageUrl(place.getImageUrl());
         response.setDistanceKm(GeoUtils.haversineKm(userLat, userLon, place.getLatitude(), place.getLongitude()));
         return response;
     }

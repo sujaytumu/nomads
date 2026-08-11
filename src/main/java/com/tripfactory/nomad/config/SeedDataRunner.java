@@ -35,11 +35,24 @@ public class SeedDataRunner implements CommandLineRunner {
 
         if (placeRepository.count() == 0) {
             placeRepository.saveAll(buildPlaces());
+        } else {
+            backfillMissingImageUrls();
         }
 
         if (vehicleRepository.count() == 0) {
             vehicleRepository.saveAll(buildVehicles());
         }
+    }
+
+    private void backfillMissingImageUrls() {
+        List<Place> withoutImages = placeRepository.findAll().stream()
+                .filter(p -> p.getImageUrl() == null || p.getImageUrl().isBlank())
+                .toList();
+        if (withoutImages.isEmpty()) {
+            return;
+        }
+        withoutImages.forEach(p -> p.setImageUrl("https://picsum.photos/seed/" + slugify(p.getName()) + "/600/400"));
+        placeRepository.saveAll(withoutImages);
     }
 
     private List<Place> buildPlaces() {
@@ -83,7 +96,12 @@ public class SeedDataRunner implements CommandLineRunner {
         place.setLongitude(lon);
         place.setCategory(category);
         place.setRating(rating);
+        place.setImageUrl("https://picsum.photos/seed/" + slugify(name) + "/600/400");
         return place;
+    }
+
+    private String slugify(String name) {
+        return name.toLowerCase().replaceAll("[^a-z0-9]+", "-");
     }
 
     private Vehicle createVehicle(VehicleType type, int capacity, String driver, String number) {

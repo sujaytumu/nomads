@@ -43,4 +43,6 @@ public class Place {
 
     @Column(nullable = false)
     private Double rating;
+
+    private String imageUrl;
 }
