@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ProtectedPage from "@/components/ProtectedPage";
 import { createTrip } from "@/lib/tripApi";
-import { fetchUser } from "@/lib/userApi";
+import { fetchMe } from "@/lib/authApi";
 
 export default function TripPlannerPage() {
   const [form, setForm] = useState({
@@ -19,10 +19,28 @@ export default function TripPlannerPage() {
     groupSize: "",
   });
   const [result, setResult] = useState<string | null>(null);
-  const [loadingUser, setLoadingUser] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(true);
   const [loadingTrip, setLoadingTrip] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cityLocked, setCityLocked] = useState(false);
+
+  useEffect(() => {
+    fetchMe()
+      .then((user) => {
+        setForm((prev) => ({
+          ...prev,
+          userId: String(user.id),
+          city: user.city ?? "",
+          userLatitude: user.latitude?.toString() ?? "",
+          userLongitude: user.longitude?.toString() ?? "",
+          interest: user.interestType ?? prev.interest,
+          travelMode: user.travelPreference ?? prev.travelMode,
+        }));
+        setCityLocked(true);
+      })
+      .catch(() => setError("Failed to load your profile"))
+      .finally(() => setLoadingUser(false));
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -63,31 +81,6 @@ export default function TripPlannerPage() {
     }
   };
 
-  const handleLoadUser = async () => {
-    if (!form.userId) {
-      setError("User ID is required");
-      return;
-    }
-    setError(null);
-    setLoadingUser(true);
-    try {
-      const user = await fetchUser(Number(form.userId));
-      setForm((prev) => ({
-        ...prev,
-        city: user.city ?? "",
-        userLatitude: user.latitude?.toString() ?? "",
-        userLongitude: user.longitude?.toString() ?? "",
-        interest: user.interestType ?? prev.interest,
-        travelMode: user.travelPreference ?? prev.travelMode,
-      }));
-      setCityLocked(true);
-    } catch (err) {
-      setError("Failed to load user");
-    } finally {
-      setLoadingUser(false);
-    }
-  };
-
   return (
     <ProtectedPage>
       <div className="section py-12">
@@ -99,12 +92,9 @@ export default function TripPlannerPage() {
 
         <div className="grid md:grid-cols-2 gap-4">
           <label className="space-y-2">
-            <span className="text-sm font-semibold">User ID</span>
-            <div className="flex gap-3">
-              <input name="userId" value={form.userId} onChange={handleChange} className="w-full border rounded-xl px-4 py-2" />
-              <button className="btn-outline" type="button" onClick={handleLoadUser} disabled={loadingUser}>
-                {loadingUser ? "Loading..." : "Load"}
-              </button>
+            <span className="text-sm font-semibold">Your Account</span>
+            <div className="w-full border rounded-xl px-4 py-2 bg-gray-50 text-slate-600 text-sm">
+              {loadingUser ? "Loading your profile…" : form.userId ? `Logged in (user #${form.userId})` : "Not loaded"}
             </div>
           </label>
           <label className="space-y-2">
@@ -182,7 +172,7 @@ export default function TripPlannerPage() {
           </label>
         </div>
 
-        <button className="btn-primary" onClick={handleSubmit} disabled={loadingTrip}>
+        <button className="btn-primary" onClick={handleSubmit} disabled={loadingTrip || loadingUser}>
           {loadingTrip ? "Creating..." : "Create Trip"}
         </button>
         {result && <p className="text-sm text-slate-600">{result}</p>}

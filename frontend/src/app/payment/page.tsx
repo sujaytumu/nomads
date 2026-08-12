@@ -99,6 +99,22 @@ function PaymentPageInner() {
     setOrderId(data.razorpayOrderId);
     setStatus(data.paymentStatus);
 
+    // Dev-mode fake order (backend NOMAD_DEV_PAYMENTS=true) - no real Razorpay
+    // involved, complete the booking directly instead of opening real checkout
+    if (data.razorpayOrderId?.startsWith("dev_order_")) {
+      try {
+        const verified = await verifyPayment({
+          razorpayOrderId: data.razorpayOrderId,
+          razorpayPaymentId: "dev_payment_" + Date.now(),
+          razorpaySignature: "dev_signature",
+        });
+        setStatus(verified.paymentStatus);
+      } catch (e: any) {
+        setError(e?.response?.data?.message || e?.message || "Payment confirmation failed");
+      }
+      return;
+    }
+
     const loaded = await loadRazorpayScript();
     if (!loaded) {
       setError("Razorpay SDK failed to load");

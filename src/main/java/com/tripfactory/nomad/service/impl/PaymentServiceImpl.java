@@ -101,8 +101,14 @@ public class PaymentServiceImpl implements PaymentService {
             throw new AccessDeniedException("Not authorized to verify this payment");
         }
 
-        boolean valid = verifySignature(request.getRazorpayOrderId(), request.getRazorpayPaymentId(),
-            request.getRazorpaySignature());
+        boolean valid;
+        if (devPayments && payment.getRazorpayOrderId() != null && payment.getRazorpayOrderId().startsWith("dev_order_")) {
+            log.info("devPayments enabled - skipping real signature check for fake order {}", payment.getRazorpayOrderId());
+            valid = true;
+        } else {
+            valid = verifySignature(request.getRazorpayOrderId(), request.getRazorpayPaymentId(),
+                request.getRazorpaySignature());
+        }
         if (!valid) {
             payment.setPaymentStatus(PaymentStatus.FAILED);
             paymentRepository.save(payment);
