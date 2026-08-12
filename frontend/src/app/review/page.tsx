@@ -9,16 +9,27 @@ export default function ReviewPage() {
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
   const [reviews, setReviews] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCreate = async () => {
-    await createReview({ tripRequestId: Number(tripId), rating: Number(rating), comment });
-    const data = await fetchReviews(Number(tripId));
-    setReviews(data);
+    setError(null);
+    try {
+      await createReview({ tripRequestId: Number(tripId), rating: Number(rating), comment });
+      const data = await fetchReviews(Number(tripId));
+      setReviews(data);
+    } catch (err) {
+      setError("Failed to submit review");
+    }
   };
 
   const handleFetch = async () => {
-    const data = await fetchReviews(Number(tripId));
-    setReviews(data);
+    setError(null);
+    try {
+      const data = await fetchReviews(Number(tripId));
+      setReviews(data);
+    } catch (err) {
+      setError("Failed to fetch reviews");
+    }
   };
 
   return (
@@ -35,6 +46,7 @@ export default function ReviewPage() {
           <button className="btn-primary" onClick={handleCreate}>Submit Review</button>
           <button className="btn-outline" onClick={handleFetch}>Fetch Reviews</button>
         </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
 
         <div className="grid gap-4">
