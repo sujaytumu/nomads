@@ -74,8 +74,8 @@ export default function TripPlannerPage() {
     try {
       const data = await createTrip(payload);
       setResult(`Trip created with id ${data.tripRequestId}`);
-    } catch (error) {
-      setError("Failed to create trip");
+    } catch (error: any) {
+      setError(error?.response?.data?.message || "Failed to create trip");
     } finally {
       setLoadingTrip(false);
     }
