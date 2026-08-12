@@ -27,6 +27,8 @@ import com.tripfactory.nomad.config.RazorpayProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.tripfactory.nomad.security.AuthorizationService;
+import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final RazorpayClient razorpayClient;
     private final RazorpayProperties razorpayProperties;
     private final NotificationService notificationService;
+    private final AuthorizationService authorizationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
     @Value("${nomad.dev-payments:false}")
@@ -93,6 +96,10 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentCreateResponse verifyPayment(PaymentVerifyRequest request) {
         Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+
+        if (!authorizationService.canAccessTrip(payment.getTripRequest().getId())) {
+            throw new AccessDeniedException("Not authorized to verify this payment");
+        }
 
         boolean valid = verifySignature(request.getRazorpayOrderId(), request.getRazorpayPaymentId(),
             request.getRazorpaySignature());
