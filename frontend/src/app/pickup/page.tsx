@@ -16,14 +16,22 @@ export default function PickupPage() {
 
   const handleAssign = async () => {
     setError(null);
-    const result = await assignTravel(Number(tripId));
-    setData(result);
+    try {
+      const result = await assignTravel(Number(tripId));
+      setData(result);
+    } catch (err) {
+      setError("Assign failed");
+    }
   };
 
   const handleFetch = async () => {
     setError(null);
-    const result = await fetchTravel(Number(tripId));
-    setData(result);
+    try {
+      const result = await fetchTravel(Number(tripId));
+      setData(result);
+    } catch (err) {
+      setError("Fetch failed - no pickup assigned yet for this trip");
+    }
   };
 
   const handleUpdate = async () => {
