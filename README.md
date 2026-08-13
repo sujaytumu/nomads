@@ -17,7 +17,7 @@ Hosted on Railway (Postgres + backend + frontend as separate services in one pro
 - Explore travel packages
 - Enroll and pay for packages (Razorpay integration)
 - View and manage your bookings
-- Map/location features (Mapbox)
+- Map/location features (OpenStreetMap via Leaflet, free/no signup)
 - Admin and user roles
 
 ---
@@ -62,7 +62,7 @@ mvn spring-boot:run
 ```
 The backend starts on `http://localhost:8080` by default (`PORT` env var overrides this).
 
-Optional env vars: `MAPBOX_ACCESS_TOKEN`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `MAIL_*`, `TWILIO_*`, `NOMAD_DEV_PAYMENTS=true` (skips real Razorpay calls, useful for local dev).
+Optional env vars: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `MAIL_*`, `TWILIO_*`, `NOMAD_DEV_PAYMENTS=true` (skips real Razorpay calls, useful for local dev).
 
 ### 3. Frontend Setup (Next.js)
 ```sh
@@ -73,7 +73,6 @@ Create `frontend/.env.local` (gitignored, never commit real keys here):
 ```
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key
-NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
 ```
 ```sh
 npm run dev
@@ -88,7 +87,7 @@ The live deployment above runs as three Railway services in one project: `postgr
 
 Required env vars on `backend`: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS` (set to the frontend's public URL), plus the optional integrations above.
 
-Required env vars on `frontend`: `NEXT_PUBLIC_API_BASE_URL` (set to the backend's public URL), plus `NEXT_PUBLIC_MAPBOX_TOKEN`/`NEXT_PUBLIC_RAZORPAY_KEY_ID` if you want maps/payments working.
+Required env vars on `frontend`: `NEXT_PUBLIC_API_BASE_URL` (set to the backend's public URL), plus `NEXT_PUBLIC_RAZORPAY_KEY_ID` if you want real payments working (maps work with zero config - OpenStreetMap needs no API key).
 
 **Note:** auto-deploy on push isn't currently enabled on this project. To redeploy after pushing to `main`, go to the service in the Railway dashboard → Deployments → Redeploy, or enable auto-deploy in the service's Settings.
 

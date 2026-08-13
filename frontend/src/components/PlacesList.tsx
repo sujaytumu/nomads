@@ -48,21 +48,15 @@ export default function PlacesList() {
           longitude = 77.5946;
         }
 
-        // Try reverse-geocoding on the client (Mapbox) to get a consistent city for the coords.
+        // Reverse-geocode on the client via OpenStreetMap's free Nominatim API
+        // (no key, no signup) to get a consistent city name for the coords.
         const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
           try {
-            const token = (
-              process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
-              process.env.NEXT_PUBLIC_MAPBOX_TOKEN ||
-              (window as any).__NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
-              (window as any).__NEXT_PUBLIC_MAPBOX_TOKEN
-            ) as string | undefined;
-            if (!token) return null;
-            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lon},${lat}.json?types=place&limit=1&access_token=${token}`;
-            const r = await fetch(url);
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=10`;
+            const r = await fetch(url, { headers: { Accept: "application/json" } });
             if (!r.ok) return null;
             const j = await r.json();
-            return j.features?.[0]?.text ?? null;
+            return j.address?.city || j.address?.town || j.address?.state_district || null;
           } catch (err) {
             return null;
           }

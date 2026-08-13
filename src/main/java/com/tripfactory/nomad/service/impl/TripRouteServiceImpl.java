@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -35,8 +34,11 @@ public class TripRouteServiceImpl implements TripRouteService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${mapbox.access-token:}")
-    private String mapboxAccessToken;
+    // OSRM's free public demo server (FOSSGIS-sponsored) - no API key, no signup,
+    // no payment method ever required. Rate-limited to reasonable/non-commercial
+    // use (~1 req/sec) with no uptime guarantee, which is fine for a demo app.
+    // Only the "driving" profile is reliably supported on this shared server.
+    private static final String OSRM_BASE_URL = "https://router.project-osrm.org/route/v1/driving/";
 
     @Override
     public TripRouteResponse getOrCreateRoute(Long tripRequestId, Integer dayNumber, String mode) {
@@ -58,17 +60,11 @@ public class TripRouteServiceImpl implements TripRouteService {
             throw new BadRequestException("Not enough places to build a route");
         }
 
-        if (mapboxAccessToken == null || mapboxAccessToken.isBlank()) {
-            throw new BadRequestException("Mapbox access token not configured");
-        }
-
         String coordinates = plans.stream()
                 .map(plan -> plan.getPlace().getLongitude() + "," + plan.getPlace().getLatitude())
                 .collect(Collectors.joining(";"));
 
-        String url = String.format(
-                "https://api.mapbox.com/directions/v5/mapbox/%s/%s?geometries=geojson&access_token=%s",
-                mode, coordinates, mapboxAccessToken);
+        String url = OSRM_BASE_URL + coordinates + "?geometries=geojson&overview=full";
 
         try {
             RequestEntity<Void> request = RequestEntity.get(URI.create(url)).build();
@@ -76,7 +72,7 @@ public class TripRouteServiceImpl implements TripRouteService {
             JsonNode root = objectMapper.readTree(response.getBody());
             JsonNode routes = root.get("routes");
             if (routes == null || !routes.isArray() || routes.isEmpty()) {
-                throw new BadRequestException("No routes returned from Mapbox");
+                throw new BadRequestException("No routes returned from OSRM");
             }
 
             JsonNode geometry = routes.get(0).get("geometry");
@@ -87,8 +83,10 @@ public class TripRouteServiceImpl implements TripRouteService {
             tripRoute.setGeoJson(geometry.toString());
             TripRoute saved = tripRouteRepository.save(tripRoute);
             return toResponse(saved);
+        } catch (BadRequestException ex) {
+            throw ex;
         } catch (Exception ex) {
-            throw new BadRequestException("Failed to fetch route from Mapbox");
+            throw new BadRequestException("Failed to fetch route from OSRM");
         }
     }
 

@@ -1,38 +1,39 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
-import mapboxgl from "mapbox-gl";
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "@/lib/leafletIconFix";
 
 type Props = {
-  initialCenter?: [number, number];
+  initialCenter?: [number, number]; // [lng, lat] to match the old Mapbox-style call sites
   onSet: (coords: { latitude: number; longitude: number }) => void;
 };
 
+// Uses OpenStreetMap tiles via Leaflet - completely free, no API key, no signup,
+// no payment method ever required. Replaces the previous Mapbox GL implementation.
 export default function MapPicker({ initialCenter = [72.8777, 19.076], onSet }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
-  const mapToken = useMemo(() => process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "", []);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current || !mapToken || mapRef.current) return;
+    if (!containerRef.current || mapRef.current) return;
 
-    mapboxgl.accessToken = mapToken;
-
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/streets-v11",
-      center: initialCenter,
-      zoom: 12,
-    });
+    const [lng, lat] = initialCenter;
+    const map = L.map(containerRef.current).setView([lat, lng], 12);
     mapRef.current = map;
 
-    map.on("click", (e: mapboxgl.MapMouseEvent) => {
-      const { lng, lat } = e.lngLat;
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(map);
+
+    map.on("click", (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
       if (!markerRef.current) {
-        markerRef.current = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
+        markerRef.current = L.marker([lat, lng]).addTo(map);
       } else {
-        markerRef.current.setLngLat([lng, lat]);
+        markerRef.current.setLatLng([lat, lng]);
       }
       onSet({ latitude: lat, longitude: lng });
     });
@@ -42,15 +43,7 @@ export default function MapPicker({ initialCenter = [72.8777, 19.076], onSet }: 
       mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapToken]);
-
-  if (!mapToken) {
-    return (
-      <div className="border rounded-xl p-4 text-sm text-slate-500 bg-gray-50">
-        Map picker needs NEXT_PUBLIC_MAPBOX_TOKEN to be set. Use the &quot;Use my location&quot; button above instead for now.
-      </div>
-    );
-  }
+  }, []);
 
   return <div ref={containerRef} style={{ width: "100%", height: 320 }} />;
 }

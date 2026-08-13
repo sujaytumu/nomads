@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 
-import MapView from "@/components/MapView";
+const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 import { fetchNearbyPlaces, PlaceNearby } from "@/lib/placeApi";
 
 export default function MapPage() {
@@ -35,7 +36,7 @@ export default function MapPage() {
     <div className="section py-12 space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Map View</h2>
-        <p className="text-slate-600">Visualize places and route suggestions (Mapbox Directions).</p>
+        <p className="text-slate-600">Visualize places and route suggestions (OpenStreetMap).</p>
       </div>
       <div className="card p-6 space-y-4">
         <div className="grid md:grid-cols-4 gap-4">
