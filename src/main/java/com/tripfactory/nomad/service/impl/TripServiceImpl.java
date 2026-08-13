@@ -33,6 +33,7 @@ import com.tripfactory.nomad.service.TripService;
 import com.tripfactory.nomad.service.exception.BadRequestException;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
 import com.tripfactory.nomad.service.util.GeoUtils;
+import com.tripfactory.nomad.service.util.CityAliasResolver;
 
 import lombok.RequiredArgsConstructor;
 
@@ -64,7 +65,7 @@ public class TripServiceImpl implements TripService {
             throw new BadRequestException("Trips are limited to the user's city only");
         }
 
-        String city = user.getCity();
+        String city = CityAliasResolver.canonicalize(user.getCity());
         Double userLat = request.getUserLatitude() != null ? request.getUserLatitude() : user.getLatitude();
         Double userLon = request.getUserLongitude() != null ? request.getUserLongitude() : user.getLongitude();
 

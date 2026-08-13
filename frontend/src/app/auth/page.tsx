@@ -82,7 +82,12 @@ export default function AuthPage() {
           <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" className="border rounded-xl px-4 py-2" />
           {mode === "register" && (
             <>
-              <input name="city" value={form.city} onChange={handleChange} placeholder="City" className="border rounded-xl px-4 py-2" />
+              <select name="city" value={form.city} onChange={handleChange} className="border rounded-xl px-4 py-2 bg-transparent">
+                <option value="">Select city</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Delhi">Delhi</option>
+              </select>
               <input name="phoneNumber" value={form.phoneNumber} onChange={handleChange} placeholder="Phone Number (+91...)" className="border rounded-xl px-4 py-2" />
               <div className="col-span-2">
                 <div className="flex gap-2 mb-2">
