@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 
-import MapView from "@/components/MapView";
+const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 import ProtectedPage from "@/components/ProtectedPage";
 import { fetchRoute } from "@/lib/routeApi";
 import { fetchTrip } from "@/lib/tripApi";
