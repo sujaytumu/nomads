@@ -60,6 +60,11 @@ public class TripRequest {
     @Column(nullable = false)
     private Boolean pickupRequired;
 
+    // How many people the user said they're personally bringing on this trip
+    // (distinct from the auto-matched trip-group headcount tracked via `group`
+    // below) - used to size vehicle/pickup assistance appropriately.
+    private Integer requestedGroupSize;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TripStatus status;

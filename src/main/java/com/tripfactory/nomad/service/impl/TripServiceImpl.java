@@ -81,6 +81,7 @@ public class TripServiceImpl implements TripService {
         tripRequest.setTravelMode(Objects.requireNonNullElseGet(request.getTravelMode(),
             () -> com.tripfactory.nomad.domain.enums.TravelMode.valueOf(user.getTravelPreference().name())));
         tripRequest.setPickupRequired(Boolean.TRUE.equals(request.getPickupRequired()));
+        tripRequest.setRequestedGroupSize(request.getGroupSize());
         tripRequest.setStatus(TripStatus.REQUESTED);
 
         if (tripRequest.getTravelMode() == TravelMode.GROUP) {

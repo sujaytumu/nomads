@@ -50,7 +50,7 @@ public class TravelAssistanceServiceImpl implements TravelAssistanceService {
             throw new BadRequestException("Travel assistance already assigned");
         });
 
-        int groupSize = tripRequest.getTravelMode() == TravelMode.GROUP ? 4 : 1;
+        int groupSize = resolveGroupSizeForVehicle(tripRequest);
         List<VehicleType> vehicleTypes = resolveVehicleTypes(groupSize);
         List<Vehicle> candidates = vehicleRepository.findByAvailabilityStatusAndVehicleTypeIn(
                 AvailabilityStatus.AVAILABLE, vehicleTypes);
@@ -151,6 +151,21 @@ public class TravelAssistanceServiceImpl implements TravelAssistanceService {
                 "NOMAD: Pickup updated for trip " + saved.getTripRequest().getId());
         }
         return toResponse(saved);
+    }
+
+    /**
+     * Uses the group size the user actually entered on Trip Planner (requestedGroupSize)
+     * when they provided one, since that's the real number of people needing a seat.
+     * Falls back to the old TravelMode-based default (4 for GROUP, 1 for SOLO) only
+     * when no requestedGroupSize was given, for trips created before this field existed
+     * or where the user left it blank.
+     */
+    private int resolveGroupSizeForVehicle(TripRequest tripRequest) {
+        Integer requested = tripRequest.getRequestedGroupSize();
+        if (requested != null && requested > 0) {
+            return requested;
+        }
+        return tripRequest.getTravelMode() == TravelMode.GROUP ? 4 : 1;
     }
 
     private List<VehicleType> resolveVehicleTypes(int groupSize) {

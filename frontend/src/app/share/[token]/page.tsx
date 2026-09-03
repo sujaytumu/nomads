@@ -27,6 +27,9 @@ export default function ShareTripPage({ params }: { params: { token: string } })
                 <div key={`${plan.placeId}-${index}`} className="border rounded-xl p-4">
                   <p className="font-semibold">Day {plan.dayNumber} - {plan.placeName}</p>
                   <p className="text-sm text-slate-600">{plan.startTime} - {plan.endTime}</p>
+                  {typeof plan.distanceFromPrevious === "number" && (
+                    <p className="text-xs text-slate-500">{plan.distanceFromPrevious.toFixed(1)} km from previous stop</p>
+                  )}
                 </div>
               ))}
             </div>
