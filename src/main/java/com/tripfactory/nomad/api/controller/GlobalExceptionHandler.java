@@ -16,6 +16,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.dao.DataIntegrityViolationException;
 import com.tripfactory.nomad.service.exception.BadRequestException;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
 
@@ -75,6 +76,16 @@ public class GlobalExceptionHandler {
         body.put("status", 403);
         body.put("timestamp", LocalDateTime.now().toString());
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", "Cannot complete this action - the record is still referenced elsewhere (e.g. an existing trip or booking)");
+        body.put("status", 409);
+        body.put("timestamp", LocalDateTime.now().toString());
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(Exception.class)
