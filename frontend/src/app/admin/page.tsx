@@ -70,8 +70,8 @@ export default function AdminPage() {
         rating: Number(placeForm.rating),
       });
       await loadData();
-    } catch (err) {
-      setError("Create place failed");
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Create place failed");
     }
   };
 
@@ -86,8 +86,8 @@ export default function AdminPage() {
         availabilityStatus: vehicleForm.availabilityStatus,
       });
       await loadData();
-    } catch (err) {
-      setError("Create vehicle failed");
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Create vehicle failed");
     }
   };
 
@@ -232,8 +232,13 @@ export default function AdminPage() {
                   <button
                     className="btn-outline"
                     onClick={async () => {
-                      await deletePlace(place.id);
-                      await loadData();
+                      setError(null);
+                      try {
+                        await deletePlace(place.id);
+                        await loadData();
+                      } catch (err: any) {
+                        setError(err?.response?.data?.message || "Failed to delete place");
+                      }
                     }}
                   >
                     Delete
@@ -262,8 +267,13 @@ export default function AdminPage() {
                   <button
                     className="btn-outline"
                     onClick={async () => {
-                      await deleteVehicle(vehicle.id);
-                      await loadData();
+                      setError(null);
+                      try {
+                        await deleteVehicle(vehicle.id);
+                        await loadData();
+                      } catch (err: any) {
+                        setError(err?.response?.data?.message || "Failed to delete vehicle");
+                      }
                     }}
                   >
                     Delete
