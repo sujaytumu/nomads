@@ -1,5 +1,6 @@
 package com.tripfactory.nomad.service.impl;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -48,7 +49,19 @@ public class AuthServiceImpl implements AuthService {
         user.setTravelPreference(request.getTravelPreference());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
-        User saved = userRepository.save(user);
+        User saved;
+        try {
+            saved = userRepository.save(user);
+        } catch (DataIntegrityViolationException ex) {
+            // The findByEmail check above and this save aren't atomic, so two
+            // near-simultaneous register calls for the same email (e.g. a
+            // double-click before the button disables) can both pass the check
+            // and race to insert. The DB's unique constraint on email correctly
+            // rejects the second one - translate that into the same clean
+            // message as the check above, instead of letting the raw SQL
+            // constraint violation surface as a confusing generic error.
+            throw new BadRequestException("Email already registered");
+        }
         String token = jwtService.generateToken(saved.getEmail());
 
         AuthResponse response = new AuthResponse();

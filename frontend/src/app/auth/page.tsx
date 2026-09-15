@@ -23,6 +23,7 @@ export default function AuthPage() {
     travelPreference: "SOLO",
   });
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -31,6 +32,8 @@ export default function AuthPage() {
   };
 
   const handleSubmit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
     setError(null);
     try {
       if (mode === "register") {
@@ -60,6 +63,7 @@ export default function AuthPage() {
       // try to read server message
       const message = (err as any)?.response?.data?.message || (err as any)?.message || "Auth failed";
       setError(String(message));
+      setSubmitting(false);
     }
   };
 
@@ -109,7 +113,9 @@ export default function AuthPage() {
             </>
           )}
         </div>
-        <button className="btn-primary" onClick={handleSubmit}>{mode === "register" ? "Register" : "Login"}</button>
+        <button className="btn-primary" onClick={handleSubmit} disabled={submitting}>
+          {submitting ? "Please wait…" : mode === "register" ? "Register" : "Login"}
+        </button>
         {token && <p className="text-sm text-slate-600">Token saved (copy manually for now)</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
