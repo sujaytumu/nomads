@@ -47,7 +47,7 @@ export default function PlaceDetailsPage() {
     }
   }
 
-  if (loading) return <div>Loading place…</div>;
+  if (loading) return <div className="text-sm text-slate-500">Loading place… (may take up to a minute on first load if the server was asleep)</div>;
   if (error) return <div className="text-red-600">{error}</div>;
   if (!place) return <div>Place not found.</div>;
 

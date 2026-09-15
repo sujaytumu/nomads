@@ -111,7 +111,11 @@ export default function PlacesList() {
     }
   }
 
-  if (loading) return <div>Loading nearby places…</div>;
+  if (loading) return (
+    <div className="text-sm text-slate-500">
+      Loading nearby places… (may take up to a minute on first load if the server was asleep)
+    </div>
+  );
   if (error) return (
     <div>
       <div className="text-red-600">{error}</div>
