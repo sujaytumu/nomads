@@ -94,7 +94,7 @@ export default function TripPlannerPage() {
           <label className="space-y-2">
             <span className="text-sm font-semibold">Your Account</span>
             <div className="w-full border rounded-xl px-4 py-2 bg-gray-50 text-slate-600 text-sm">
-              {loadingUser ? "Loading your profile…" : form.userId ? `Logged in (user #${form.userId})` : "Not loaded"}
+              {loadingUser ? "Loading your profile… (may take up to a minute if the server was asleep)" : form.userId ? `Logged in (user #${form.userId})` : "Not loaded"}
             </div>
           </label>
           <label className="space-y-2">
