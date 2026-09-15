@@ -4,11 +4,11 @@ A full-stack travel package booking platform built with Spring Boot (Java) for t
 
 ## Live deployment
 
-- Frontend: https://frontend-production-a5e76.up.railway.app
-- Backend API: https://backend-production-d3de.up.railway.app
-- Health check: https://backend-production-d3de.up.railway.app/actuator/health
+- Frontend: https://nomads-frontend-sujays-projects-c5bb1f58.vercel.app/
+- Backend API: https://nomads-backend-ea1a.onrender.com/
 
-Hosted on Railway (Postgres + backend + frontend as separate services in one project).
+
+Hosted on render && vercel (Postgres + backend + frontend as separate services in one project).
 
 ---
 
@@ -81,15 +81,8 @@ The frontend starts on `http://localhost:3000`.
 
 ---
 
-## Deploying (Railway)
+## Deploying (Render && Vercel)
 
-The live deployment above runs as three Railway services in one project: `postgres` (image `postgres:16`), `backend` (root directory `/`, auto-detects the Maven/Java build), and `frontend` (root directory `/frontend`, auto-detects Next.js).
-
-Required env vars on `backend`: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS` (set to the frontend's public URL), plus the optional integrations above.
-
-Required env vars on `frontend`: `NEXT_PUBLIC_API_BASE_URL` (set to the backend's public URL), plus `NEXT_PUBLIC_RAZORPAY_KEY_ID` if you want real payments working (maps work with zero config - OpenStreetMap needs no API key).
-
-**Note:** auto-deploy on push isn't currently enabled on this project. To redeploy after pushing to `main`, go to the service in the Railway dashboard → Deployments → Redeploy, or enable auto-deploy in the service's Settings.
 
 ---
 
