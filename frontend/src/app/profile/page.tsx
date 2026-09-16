@@ -17,8 +17,12 @@ export default function ProfilePage() {
     travelPreference: "SOLO",
   });
   const [status, setStatus] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
+  const loadProfile = () => {
+    setLoading(true);
+    setLoadError(false);
     fetchMe().then((data) => {
       setForm({
         id: String(data.id),
@@ -30,7 +34,12 @@ export default function ProfilePage() {
         interestType: data.interestType ?? "CULTURE",
         travelPreference: data.travelPreference ?? "SOLO",
       });
-    }).catch(() => setStatus("Failed to load profile"));
+    }).catch(() => setLoadError(true))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadProfile();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -61,6 +70,17 @@ export default function ProfilePage() {
       <div className="section py-12 space-y-6">
         <div className="card p-6 space-y-4">
         <h2 className="text-2xl font-bold">Profile</h2>
+        {loading && (
+          <p className="text-sm text-slate-500">Loading your profile… (may take up to a minute if the server was asleep)</p>
+        )}
+        {!loading && loadError && (
+          <div className="space-y-2">
+            <p className="text-sm text-red-600">Couldn't load your profile - the server may still be waking up.</p>
+            <button className="btn-outline" onClick={loadProfile}>Retry</button>
+          </div>
+        )}
+        {!loading && !loadError && (
+        <>
         <div className="grid md:grid-cols-2 gap-4">
           <input name="name" value={form.name} onChange={handleChange} placeholder="Name" className="border rounded-xl px-4 py-2" />
           <input name="phoneNumber" value={form.phoneNumber} onChange={handleChange} placeholder="Phone Number (+91...)" className="border rounded-xl px-4 py-2" />
@@ -84,6 +104,8 @@ export default function ProfilePage() {
         </div>
         <button className="btn-primary" onClick={handleSave}>Save</button>
         {status && <p className="text-sm text-slate-600">{status}</p>}
+        </>
+        )}
         </div>
       </div>
     </ProtectedPage>
