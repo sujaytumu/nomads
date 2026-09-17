@@ -7,6 +7,7 @@ const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 import ProtectedPage from "@/components/ProtectedPage";
 import { fetchRoute } from "@/lib/routeApi";
 import { fetchTrip } from "@/lib/tripApi";
+import { fetchTripWeather, WeatherForecast } from "@/lib/weatherApi";
 
 export default function TripSummaryPage() {
   const [tripId, setTripId] = useState("");
@@ -14,12 +15,18 @@ export default function TripSummaryPage() {
   const [dayNumber, setDayNumber] = useState("1");
   const [routeGeoJson, setRouteGeoJson] = useState<string | null>(null);
   const [routeError, setRouteError] = useState<string | null>(null);
+  const [weather, setWeather] = useState<WeatherForecast | null>(null);
 
   const loadTrip = async () => {
     try {
       const data = await fetchTrip(Number(tripId));
       setSummary(data);
       setRouteGeoJson(null);
+      setWeather(null);
+      // Weather is a nice-to-have - if it fails, the trip summary itself
+      // still loaded fine, so fail quietly rather than showing an error
+      // for something that isn't core to the booking.
+      fetchTripWeather(Number(tripId)).then(setWeather).catch(() => setWeather(null));
     } catch (error) {
       setSummary(null);
     }
@@ -93,6 +100,21 @@ export default function TripSummaryPage() {
               {routeError && <p className="text-sm text-red-600">{routeError}</p>}
               <MapView routeGeoJson={routeGeoJson} />
             </div>
+            {weather && weather.days.length > 0 && (
+              <div className="card p-4">
+                <p className="font-semibold mb-2">Weather in {weather.city}</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {weather.days.map((day) => (
+                    <div key={day.date} className="border rounded-xl p-3 text-center">
+                      <p className="text-xs text-slate-500">{day.date}</p>
+                      <p className="text-sm font-semibold mt-1">{day.description}</p>
+                      <p className="text-sm text-slate-600">{Math.round(day.minTempC)}°–{Math.round(day.maxTempC)}°C</p>
+                      <p className="text-xs text-slate-500">{day.precipitationChance}% rain</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="grid gap-3">
               {summary.plans?.map((plan: any, index: number) => (
                 <div key={`${plan.placeId}-${index}`} className="card p-4">

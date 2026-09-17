@@ -20,7 +20,9 @@ import jakarta.validation.Valid;
 
 import com.tripfactory.nomad.api.dto.TripCreateRequest;
 import com.tripfactory.nomad.api.dto.TripResponse;
+import com.tripfactory.nomad.api.dto.WeatherForecastResponse;
 import com.tripfactory.nomad.service.TripService;
+import com.tripfactory.nomad.service.WeatherService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +33,7 @@ public class TripController {
 
     private final TripService tripService;
     private final UserRepository userRepository;
+    private final WeatherService weatherService;
 
     @PostMapping("/create")
     public ResponseEntity<TripResponse> createTrip(@Valid @RequestBody TripCreateRequest request) {
@@ -55,5 +58,11 @@ public class TripController {
     @PreAuthorize("@authz.canAccessUser(#userId)")
     public ResponseEntity<List<TripResponse>> getTripsByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(tripService.getTripsByUser(userId));
+    }
+
+    @GetMapping("/{id}/weather")
+    @PreAuthorize("@authz.canAccessTrip(#id)")
+    public ResponseEntity<WeatherForecastResponse> getWeather(@PathVariable Long id) {
+        return ResponseEntity.ok(weatherService.getForecastForTrip(id));
     }
 }
