@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tripfactory.nomad.api.dto.ChatMessageResponse;
 import com.tripfactory.nomad.api.dto.TripGroupMemberResponse;
 import com.tripfactory.nomad.api.dto.TripGroupResponse;
+import com.tripfactory.nomad.chat.ChatWebSocketHandler;
+import com.tripfactory.nomad.repository.ChatMessageRepository;
 import com.tripfactory.nomad.service.TripGroupService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class TripGroupController {
 
     private final TripGroupService tripGroupService;
+    private final ChatMessageRepository chatMessageRepository;
 
     @GetMapping("/{groupId}")
     @PreAuthorize("@authz.canAccessGroup(#groupId)")
@@ -32,5 +36,13 @@ public class TripGroupController {
     @PreAuthorize("@authz.canAccessGroup(#groupId)")
     public ResponseEntity<List<TripGroupMemberResponse>> getGroupMembers(@PathVariable Long groupId) {
         return ResponseEntity.ok(tripGroupService.getGroupMembers(groupId));
+    }
+
+    @GetMapping("/{groupId}/messages")
+    @PreAuthorize("@authz.canAccessGroup(#groupId)")
+    public ResponseEntity<List<ChatMessageResponse>> getGroupMessages(@PathVariable Long groupId) {
+        List<ChatMessageResponse> messages = chatMessageRepository.findByGroupIdOrderByCreatedAtAsc(groupId)
+                .stream().map(ChatWebSocketHandler::toResponse).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(messages);
     }
 }

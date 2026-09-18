@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
+const GroupChat = dynamic(() => import("@/components/GroupChat"), { ssr: false });
 import ProtectedPage from "@/components/ProtectedPage";
 import { fetchRoute } from "@/lib/routeApi";
 import { fetchTrip } from "@/lib/tripApi";
@@ -115,6 +116,7 @@ export default function TripSummaryPage() {
                 </div>
               </div>
             )}
+            {summary.groupId && <GroupChat groupId={summary.groupId} />}
             <div className="grid gap-3">
               {summary.plans?.map((plan: any, index: number) => (
                 <div key={`${plan.placeId}-${index}`} className="card p-4">

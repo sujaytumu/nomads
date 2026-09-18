@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/auth/register", "/api/auth/login", "/api/packages/**", "/api/places/**", "/api/places/nearby", "/api/payment/webhook",
                         "/api/share/**", "/actuator/health", "/actuator/info",
-                        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/ws/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
