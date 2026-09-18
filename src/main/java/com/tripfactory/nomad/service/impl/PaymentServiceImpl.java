@@ -44,6 +44,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final RazorpayProperties razorpayProperties;
     private final NotificationService notificationService;
     private final AuthorizationService authorizationService;
+    private final ReceiptPdfGenerator receiptPdfGenerator;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
     @Value("${nomad.dev-payments:false}")
@@ -123,14 +124,32 @@ public class PaymentServiceImpl implements PaymentService {
         tripRequest.setStatus(TripStatus.CONFIRMED);
         tripRequestRepository.save(tripRequest);
 
-        notificationService.sendEmail(tripRequest.getUser().getEmail(), "NOMAD Payment Confirmed",
-            "Payment confirmed for trip " + tripRequest.getId());
+        sendConfirmationEmail(saved, tripRequest);
         String phone = tripRequest.getUser().getPhoneNumber();
         if (phone != null && !phone.isBlank()) {
             notificationService.sendSms(phone, "NOMAD: Payment confirmed for trip " + tripRequest.getId());
         }
 
         return toResponse(saved);
+    }
+
+    /**
+     * Generating the PDF receipt is a nice-to-have on top of an already-successful
+     * payment - if it fails for any reason, that failure must never propagate and
+     * roll back the @Transactional payment confirmation that already succeeded.
+     */
+    private void sendConfirmationEmail(Payment payment, TripRequest tripRequest) {
+        try {
+            byte[] pdf = receiptPdfGenerator.generate(payment, tripRequest);
+            notificationService.sendEmailWithAttachment(tripRequest.getUser().getEmail(), "NOMAD Payment Confirmed",
+                "Payment confirmed for trip " + tripRequest.getId() + ". Your receipt is attached.",
+                "nomad-receipt-" + tripRequest.getId() + ".pdf", pdf);
+        } catch (Exception ex) {
+            log.warn("Receipt PDF generation failed for trip {}, sending plain confirmation instead: {}",
+                tripRequest.getId(), ex.getMessage());
+            notificationService.sendEmail(tripRequest.getUser().getEmail(), "NOMAD Payment Confirmed",
+                "Payment confirmed for trip " + tripRequest.getId());
+        }
     }
 
     @Override
@@ -164,8 +183,7 @@ public class PaymentServiceImpl implements PaymentService {
                 tripRequest.setStatus(TripStatus.CONFIRMED);
                 tripRequestRepository.save(tripRequest);
 
-                notificationService.sendEmail(tripRequest.getUser().getEmail(), "NOMAD Payment Confirmed",
-                    "Payment confirmed for trip " + tripRequest.getId());
+                sendConfirmationEmail(payment, tripRequest);
                 String phone = tripRequest.getUser().getPhoneNumber();
                 if (phone != null && !phone.isBlank()) {
                     notificationService.sendSms(phone,

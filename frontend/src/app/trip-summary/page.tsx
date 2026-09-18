@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -11,27 +12,47 @@ import { fetchTrip } from "@/lib/tripApi";
 import { fetchTripWeather, WeatherForecast } from "@/lib/weatherApi";
 
 export default function TripSummaryPage() {
+  return (
+    <Suspense fallback={null}>
+      <TripSummaryPageInner />
+    </Suspense>
+  );
+}
+
+function TripSummaryPageInner() {
   const [tripId, setTripId] = useState("");
   const [summary, setSummary] = useState<any>(null);
   const [dayNumber, setDayNumber] = useState("1");
   const [routeGeoJson, setRouteGeoJson] = useState<string | null>(null);
   const [routeError, setRouteError] = useState<string | null>(null);
   const [weather, setWeather] = useState<WeatherForecast | null>(null);
+  const searchParams = useSearchParams();
 
-  const loadTrip = async () => {
+  const loadTrip = async (idOverride?: string) => {
+    const id = idOverride ?? tripId;
     try {
-      const data = await fetchTrip(Number(tripId));
+      const data = await fetchTrip(Number(id));
       setSummary(data);
       setRouteGeoJson(null);
       setWeather(null);
       // Weather is a nice-to-have - if it fails, the trip summary itself
       // still loaded fine, so fail quietly rather than showing an error
       // for something that isn't core to the booking.
-      fetchTripWeather(Number(tripId)).then(setWeather).catch(() => setWeather(null));
+      fetchTripWeather(Number(id)).then(setWeather).catch(() => setWeather(null));
     } catch (error) {
       setSummary(null);
     }
   };
+
+  // Auto-load when arriving via a link with ?tripId=X (e.g. from Booking History)
+  useEffect(() => {
+    const fromQuery = searchParams?.get("tripId");
+    if (fromQuery) {
+      setTripId(fromQuery);
+      loadTrip(fromQuery);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const loadRoute = async () => {
     setRouteError(null);
@@ -62,7 +83,7 @@ export default function TripSummaryPage() {
             placeholder="Trip Request ID"
             className="border rounded-xl px-4 py-2"
           />
-          <button className="btn-primary" onClick={loadTrip}>Fetch</button>
+          <button className="btn-primary" onClick={() => loadTrip()}>Fetch</button>
         </div>
         {summary && (
           <div className="space-y-4">
