@@ -38,23 +38,47 @@ export default function GroupChat({ groupId }: { groupId: number }) {
       return;
     }
 
-    const socket = new WebSocket(`${wsBaseUrl()}/ws/chat/${groupId}?token=${encodeURIComponent(token)}`);
-    socketRef.current = socket;
+    let cancelled = false;
+    let reconnectDelay = 1000;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
-    socket.onopen = () => setConnected(true);
-    socket.onclose = () => setConnected(false);
-    socket.onerror = () => setError("Chat connection failed - the server may still be waking up, try reopening this page in a bit");
-    socket.onmessage = (event) => {
-      try {
-        const msg: ChatMessage = JSON.parse(event.data);
-        setMessages((prev) => [...prev, msg]);
-      } catch {
-        // ignore malformed frames
-      }
+    const connect = () => {
+      const socket = new WebSocket(`${wsBaseUrl()}/ws/chat/${groupId}?token=${encodeURIComponent(token)}`);
+      socketRef.current = socket;
+
+      socket.onopen = () => {
+        setConnected(true);
+        setError(null);
+        reconnectDelay = 1000; // reset backoff after a successful connection
+      };
+      socket.onclose = () => {
+        setConnected(false);
+        if (cancelled) return;
+        // Render's free tier drops idle connections (service spin-down) or
+        // can briefly blip - reconnect with backoff instead of leaving the
+        // chat silently dead until the user manually refreshes the page.
+        reconnectTimer = setTimeout(connect, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2, 15000);
+      };
+      socket.onerror = () => {
+        setError("Chat connection issue - reconnecting…");
+      };
+      socket.onmessage = (event) => {
+        try {
+          const msg: ChatMessage = JSON.parse(event.data);
+          setMessages((prev) => [...prev, msg]);
+        } catch {
+          // ignore malformed frames
+        }
+      };
     };
 
+    connect();
+
     return () => {
-      socket.close();
+      cancelled = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      socketRef.current?.close();
     };
   }, [groupId]);
 
