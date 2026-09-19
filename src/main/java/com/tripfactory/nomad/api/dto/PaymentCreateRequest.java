@@ -2,7 +2,6 @@ package com.tripfactory.nomad.api.dto;
 
 import java.math.BigDecimal;
 
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.Getter;
@@ -17,7 +16,8 @@ public class PaymentCreateRequest {
     @NotNull
     private Long tripRequestId;
 
-    @NotNull
-    @DecimalMin("1.0")
+    // No longer trusted - the server always derives the real amount from
+    // the trip's own estimatedCost (see PaymentServiceImpl.createOrder).
+    // Kept only so older clients that still send it don't fail validation.
     private BigDecimal amount;
 }

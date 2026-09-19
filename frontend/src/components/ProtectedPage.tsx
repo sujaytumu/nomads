@@ -34,7 +34,7 @@ export default function ProtectedPage({ children, requiredRole }: ProtectedPageP
   if (!allowed) {
     return (
       <div className="section py-12">
-        <div className="card p-6 text-slate-600">Checking access…</div>
+        <div className="card p-6 text-slate-300">Checking access…</div>
       </div>
     );
   }

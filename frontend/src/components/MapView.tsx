@@ -119,9 +119,9 @@ export default function MapView({ places = [], center, routeGeoJson }: MapViewPr
   return (
     <div className="space-y-3">
       {routeError && (
-        <p className="text-sm text-red-600">{routeError}</p>
+        <p className="text-sm text-red-400">{routeError}</p>
       )}
-      <div className="h-[420px] rounded-xl overflow-hidden" ref={containerRef} />
+      <div className="h-[420px] rounded-xl overflow-hidden ring-1 ring-slate-700" ref={containerRef} />
     </div>
   );
 }

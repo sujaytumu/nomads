@@ -47,8 +47,8 @@ export default function PlaceDetailsPage() {
     }
   }
 
-  if (loading) return <div className="text-sm text-slate-500">Loading place… (may take up to a minute on first load if the server was asleep)</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (loading) return <div className="text-sm text-slate-400">Loading place… (may take up to a minute on first load if the server was asleep)</div>;
+  if (error) return <div className="text-red-400">{error}</div>;
   if (!place) return <div>Place not found.</div>;
 
   return (
@@ -57,17 +57,17 @@ export default function PlaceDetailsPage() {
         <div className="col-span-2">
           <img src={place.imageUrl || "/images/place-placeholder.svg"} alt={place.name} className="w-full h-72 object-cover rounded-md" />
           <h2 className="text-2xl font-bold mt-4">{place.name}</h2>
-          <p className="text-slate-600 mt-2">{place.description || place.shortDescription}</p>
+          <p className="text-slate-300 mt-2">{place.description || place.shortDescription}</p>
         </div>
         <div className="card p-4">
           <div className="space-y-3">
             <div>
               <h4 className="font-semibold">Details</h4>
-              <p className="text-sm text-slate-600 mt-1">{place.address || "Address not available"}</p>
+              <p className="text-sm text-slate-300 mt-1">{place.address || "Address not available"}</p>
             </div>
             <div>
               <h4 className="font-semibold">Timings</h4>
-              <p className="text-sm text-slate-600 mt-1">{place.timing || "Open daily"}</p>
+              <p className="text-sm text-slate-300 mt-1">{place.timing || "Open daily"}</p>
             </div>
             <div className="flex gap-2">
               <button className="btn-primary" onClick={handleAdd}>Add to tour</button>

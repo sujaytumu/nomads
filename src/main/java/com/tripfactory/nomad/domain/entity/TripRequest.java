@@ -1,5 +1,6 @@
 package com.tripfactory.nomad.domain.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.tripfactory.nomad.domain.enums.InterestType;
@@ -64,6 +65,11 @@ public class TripRequest {
     // (distinct from the auto-matched trip-group headcount tracked via `group`
     // below) - used to size vehicle/pickup assistance appropriately.
     private Integer requestedGroupSize;
+
+    // The server-computed cost of this trip - source of truth for the
+    // payment amount, never trusted from the client. Set once at creation
+    // (Trip Planner) or when a package is enrolled in.
+    private BigDecimal estimatedCost;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

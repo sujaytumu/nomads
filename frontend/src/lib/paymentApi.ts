@@ -1,6 +1,6 @@
 import { api } from "./api";
 
-export async function createPayment(payload: { tripRequestId: number; amount: number }) {
+export async function createPayment(payload: { tripRequestId: number }) {
   const { data } = await api.post("/api/payment/create", payload);
   return data;
 }

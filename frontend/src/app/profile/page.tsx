@@ -71,11 +71,11 @@ export default function ProfilePage() {
         <div className="card p-6 space-y-4">
         <h2 className="text-2xl font-bold">Profile</h2>
         {loading && (
-          <p className="text-sm text-slate-500">Loading your profile… (may take up to a minute if the server was asleep)</p>
+          <p className="text-sm text-slate-400">Loading your profile… (may take up to a minute if the server was asleep)</p>
         )}
         {!loading && loadError && (
           <div className="space-y-2">
-            <p className="text-sm text-red-600">Couldn't load your profile - the server may still be waking up.</p>
+            <p className="text-sm text-red-400">Couldn't load your profile - the server may still be waking up.</p>
             <button className="btn-outline" onClick={loadProfile}>Retry</button>
           </div>
         )}
@@ -103,7 +103,7 @@ export default function ProfilePage() {
           </select>
         </div>
         <button className="btn-primary" onClick={handleSave}>Save</button>
-        {status && <p className="text-sm text-slate-600">{status}</p>}
+        {status && <p className="text-sm text-slate-300">{status}</p>}
         </>
         )}
         </div>

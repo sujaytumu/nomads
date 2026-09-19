@@ -35,7 +35,7 @@ export default function TopNav() {
   };
 
   return (
-    <nav className="flex gap-4 text-sm font-semibold text-slate-600 items-center">
+    <nav className="flex gap-4 text-sm font-semibold text-slate-300 items-center">
       <a href="/" className="hover:text-brand-700">Home</a>
       <a href="/trip-planner" className="hover:text-brand-700">Planner</a>
       <a href="/map" className="hover:text-brand-700">Map</a>

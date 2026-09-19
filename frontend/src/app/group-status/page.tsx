@@ -38,35 +38,35 @@ export default function GroupStatusPage() {
           />
           <button className="btn-primary" onClick={handleFetch}>Fetch</button>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
 
         {group && (
           <div className="grid gap-6">
             <div className="card p-6 space-y-2">
               <p className="font-semibold">Group #{group.id}</p>
-              <p className="text-sm text-slate-600">City: {group.city}</p>
-              <p className="text-sm text-slate-600">Interest: {group.interest}</p>
-              <p className="text-sm text-slate-600">Weekend: {group.weekendType}</p>
-              <p className="text-sm text-slate-600">Status: {group.status}</p>
-              <p className="text-sm text-slate-600">Size: {group.size}</p>
+              <p className="text-sm text-slate-300">City: {group.city}</p>
+              <p className="text-sm text-slate-300">Interest: {group.interest}</p>
+              <p className="text-sm text-slate-300">Weekend: {group.weekendType}</p>
+              <p className="text-sm text-slate-300">Status: {group.status}</p>
+              <p className="text-sm text-slate-300">Size: {group.size}</p>
             </div>
 
             <div className="card p-6 space-y-3">
               <h3 className="text-lg font-semibold">Members</h3>
               {members.length === 0 ? (
-                <p className="text-sm text-slate-500">No members found.</p>
+                <p className="text-sm text-slate-400">No members found.</p>
               ) : (
                 <div className="grid gap-3">
                   {members.map((member) => (
                     <div key={member.tripRequestId} className="flex items-center justify-between border rounded-xl p-3">
                       <div>
                         <p className="font-semibold">{member.name}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-400">
                           {member.city} · {member.interestType}
                         </p>
                       </div>
-                      <span className="text-xs rounded-full border px-3 py-1 text-slate-600">
+                      <span className="text-xs rounded-full border px-3 py-1 text-slate-300">
                         {member.tripStatus}
                       </span>
                     </div>

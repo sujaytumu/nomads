@@ -9,6 +9,7 @@ export type PlaceNearby = {
   category: string;
   rating: number;
   distanceKm: number;
+  imageUrl?: string;
 };
 
 export async function fetchNearbyPlaces(params: {

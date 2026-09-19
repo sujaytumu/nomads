@@ -87,13 +87,13 @@ export default function TripPlannerPage() {
         <div className="card p-8 space-y-6">
         <div>
           <h2 className="text-2xl font-bold">Trip Planner</h2>
-          <p className="text-slate-600">Create a weekend trip request with preferences.</p>
+          <p className="text-slate-300">Create a weekend trip request with preferences.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
           <label className="space-y-2">
             <span className="text-sm font-semibold">Your Account</span>
-            <div className="w-full border rounded-xl px-4 py-2 bg-gray-50 text-slate-600 text-sm">
+            <div className="w-full border rounded-xl px-4 py-2 bg-slate-900 text-slate-300 text-sm">
               {loadingUser ? "Loading your profile… (may take up to a minute if the server was asleep)" : form.userId ? `Logged in (user #${form.userId})` : "Not loaded"}
             </div>
           </label>
@@ -107,7 +107,7 @@ export default function TripPlannerPage() {
               disabled={cityLocked}
             />
             {cityLocked && (
-              <p className="text-xs text-slate-500">City is locked to user profile</p>
+              <p className="text-xs text-slate-400">City is locked to user profile</p>
             )}
           </label>
           <label className="space-y-2">
@@ -175,8 +175,8 @@ export default function TripPlannerPage() {
         <button className="btn-primary" onClick={handleSubmit} disabled={loadingTrip || loadingUser}>
           {loadingTrip ? "Creating..." : "Create Trip"}
         </button>
-        {result && <p className="text-sm text-slate-600">{result}</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {result && <p className="text-sm text-slate-300">{result}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
         </div>
       </div>
     </ProtectedPage>
