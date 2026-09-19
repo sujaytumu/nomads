@@ -15,9 +15,9 @@ type Booking = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  CONFIRMED: "bg-green-100 text-green-700",
-  PAYMENT_PENDING: "bg-yellow-100 text-yellow-700",
-  CANCELLED: "bg-red-100 text-red-700",
+  CONFIRMED: "bg-green-500/15 text-green-300",
+  PAYMENT_PENDING: "bg-yellow-500/15 text-yellow-300",
+  CANCELLED: "bg-red-500/15 text-red-300",
 };
 
 export default function BookingHistoryPage() {
@@ -43,21 +43,21 @@ export default function BookingHistoryPage() {
       <div className="section py-12 space-y-6">
         <div className="card p-6 space-y-4">
           <h2 className="text-2xl font-bold">Booking History</h2>
-          <p className="text-sm text-slate-600">Every trip you've created, past and pending.</p>
+          <p className="text-sm text-slate-300">Every trip you've created, past and pending.</p>
 
           {loading && (
-            <p className="text-sm text-slate-500">Loading your bookings… (may take up to a minute if the server was asleep)</p>
+            <p className="text-sm text-slate-400">Loading your bookings… (may take up to a minute if the server was asleep)</p>
           )}
 
           {!loading && loadError && (
             <div className="space-y-2">
-              <p className="text-sm text-red-600">Couldn't load your bookings.</p>
+              <p className="text-sm text-red-400">Couldn't load your bookings.</p>
               <button className="btn-outline" onClick={load}>Retry</button>
             </div>
           )}
 
           {!loading && !loadError && bookings.length === 0 && (
-            <p className="text-sm text-slate-500">No bookings yet. Create one from Trip Planner.</p>
+            <p className="text-sm text-slate-400">No bookings yet. Create one from Trip Planner.</p>
           )}
 
           {!loading && !loadError && bookings.length > 0 && (
@@ -80,7 +80,7 @@ export default function BookingHistoryPage() {
                       <td className="py-3 pr-4">{b.city || "—"}</td>
                       <td className="py-3 pr-4">{b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "—"}</td>
                       <td className="py-3 pr-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[b.status] || "bg-slate-100 text-slate-700"}`}>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[b.status] || "bg-slate-800 text-slate-200"}`}>
                           {b.status}
                         </span>
                       </td>

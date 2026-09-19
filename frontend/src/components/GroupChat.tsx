@@ -101,8 +101,8 @@ export default function GroupChat({ groupId }: { groupId: number }) {
           {connected ? "● Live" : "○ Connecting…"}
         </span>
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <div className="h-64 overflow-y-auto border rounded-xl p-3 space-y-2 bg-gray-50">
+      {error && <p className="text-sm text-red-400">{error}</p>}
+      <div className="h-64 overflow-y-auto border rounded-xl p-3 space-y-2 bg-slate-900">
         {messages.length === 0 && <p className="text-sm text-slate-400">No messages yet - say hi to your group.</p>}
         {messages.map((m) => (
           <div key={m.id} className="text-sm">

@@ -88,15 +88,15 @@ function TripSummaryPageInner() {
         {summary && (
           <div className="space-y-4">
             <div className="card p-4 bg-slate-50">
-              <p className="text-sm text-slate-600">Trip ID</p>
+              <p className="text-sm text-slate-300">Trip ID</p>
               <p className="font-semibold">{summary.tripRequestId}</p>
-              <p className="text-sm text-slate-600">Status</p>
+              <p className="text-sm text-slate-300">Status</p>
               <p className="font-semibold">{summary.status}</p>
-              <p className="text-sm text-slate-600">Estimated Cost</p>
+              <p className="text-sm text-slate-300">Estimated Cost</p>
               <p className="font-semibold">₹ {summary.estimatedCost}</p>
               {summary.shareToken && (
                 <div className="pt-2">
-                  <p className="text-sm text-slate-600">Share Link</p>
+                  <p className="text-sm text-slate-300">Share Link</p>
                   <a
                     className="text-sm text-brand-700 underline"
                     href={`/share/${summary.shareToken}`}
@@ -119,7 +119,7 @@ function TripSummaryPageInner() {
                 </select>
                 <button className="btn-primary" onClick={loadRoute}>Load Route</button>
               </div>
-              {routeError && <p className="text-sm text-red-600">{routeError}</p>}
+              {routeError && <p className="text-sm text-red-400">{routeError}</p>}
               <MapView routeGeoJson={routeGeoJson} />
             </div>
             {weather && weather.days.length > 0 && (
@@ -128,10 +128,10 @@ function TripSummaryPageInner() {
                 <div className="grid grid-cols-3 gap-3">
                   {weather.days.map((day) => (
                     <div key={day.date} className="border rounded-xl p-3 text-center">
-                      <p className="text-xs text-slate-500">{day.date}</p>
+                      <p className="text-xs text-slate-400">{day.date}</p>
                       <p className="text-sm font-semibold mt-1">{day.description}</p>
-                      <p className="text-sm text-slate-600">{Math.round(day.minTempC)}°–{Math.round(day.maxTempC)}°C</p>
-                      <p className="text-xs text-slate-500">{day.precipitationChance}% rain</p>
+                      <p className="text-sm text-slate-300">{Math.round(day.minTempC)}°–{Math.round(day.maxTempC)}°C</p>
+                      <p className="text-xs text-slate-400">{day.precipitationChance}% rain</p>
                     </div>
                   ))}
                 </div>
@@ -142,9 +142,9 @@ function TripSummaryPageInner() {
               {summary.plans?.map((plan: any, index: number) => (
                 <div key={`${plan.placeId}-${index}`} className="card p-4">
                   <p className="font-semibold">Day {plan.dayNumber} - {plan.placeName}</p>
-                  <p className="text-sm text-slate-600">{plan.startTime} - {plan.endTime}</p>
+                  <p className="text-sm text-slate-300">{plan.startTime} - {plan.endTime}</p>
                   {typeof plan.distanceFromPrevious === "number" && (
-                    <p className="text-xs text-slate-500">{plan.distanceFromPrevious.toFixed(1)} km from previous stop</p>
+                    <p className="text-xs text-slate-400">{plan.distanceFromPrevious.toFixed(1)} km from previous stop</p>
                   )}
                 </div>
               ))}

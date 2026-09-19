@@ -56,17 +56,23 @@ public class PaymentServiceImpl implements PaymentService {
         TripRequest tripRequest = tripRequestRepository.findById(request.getTripRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
 
-        if (request.getAmount() == null) {
-            throw new BadRequestException("amount is required");
+        // The amount is never taken from the client - it's always derived from
+        // the trip's own estimatedCost, which the server itself already set
+        // when the trip was created (Trip Planner) or when a package was
+        // enrolled in. Trusting a client-supplied amount here would let a
+        // tampered request pay less than the trip actually costs.
+        if (tripRequest.getEstimatedCost() == null) {
+            throw new BadRequestException("This trip has no cost set yet - cannot create a payment for it");
         }
+        BigDecimal amount = tripRequest.getEstimatedCost();
 
-        long amountPaise = request.getAmount().multiply(new BigDecimal("100")).longValue();
+        long amountPaise = amount.multiply(new BigDecimal("100")).longValue();
         if (devPayments) {
             log.info("devPayments enabled - creating fake order for tripId={}", tripRequest.getId());
             String fakeOrderId = "dev_order_" + System.currentTimeMillis();
             Payment payment = new Payment();
             payment.setTripRequest(tripRequest);
-            payment.setAmount(request.getAmount());
+            payment.setAmount(amount);
             payment.setRazorpayOrderId(fakeOrderId);
             payment.setPaymentStatus(PaymentStatus.CREATED);
             Payment saved = paymentRepository.save(payment);
@@ -81,7 +87,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment payment = new Payment();
         payment.setTripRequest(tripRequest);
-        payment.setAmount(request.getAmount());
+        payment.setAmount(amount);
         payment.setRazorpayOrderId(order.get("id"));
         payment.setPaymentStatus(PaymentStatus.CREATED);
         Payment saved = paymentRepository.save(payment);

@@ -18,18 +18,18 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="min-h-screen">
-          <header className="bg-white border-b border-slate-100">
+          <header className="bg-slate-900 border-b border-slate-800">
             <div className="section flex items-center justify-between py-5">
               <div>
                 <h1 className="text-xl font-bold text-brand-700">NOMAD</h1>
-                <p className="text-sm text-slate-500">Smart Weekend Travel & Assistance</p>
+                <p className="text-sm text-slate-400">Smart Weekend Travel & Assistance</p>
               </div>
               <TopNav />
             </div>
           </header>
           <main>{children}</main>
-          <footer className="border-t border-slate-100 bg-white mt-16">
-            <div className="section py-8 text-sm text-slate-500">
+          <footer className="border-t border-slate-800 bg-slate-900 mt-16">
+            <div className="section py-8 text-sm text-slate-400">
               © 2026 NOMAD by Tripfactory Internship Travelathon
             </div>
           </footer>

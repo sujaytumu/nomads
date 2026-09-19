@@ -46,14 +46,14 @@ export default function ReviewPage() {
           <button className="btn-primary" onClick={handleCreate}>Submit Review</button>
           <button className="btn-outline" onClick={handleFetch}>Fetch Reviews</button>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
 
         <div className="grid gap-4">
           {reviews.map((review) => (
             <div key={review.id} className="card p-4">
               <p className="font-semibold">Rating: {review.rating}</p>
-              <p className="text-sm text-slate-600">{review.comment}</p>
+              <p className="text-sm text-slate-300">{review.comment}</p>
               <p className="text-xs text-slate-400">{review.createdAt}</p>
             </div>
           ))}

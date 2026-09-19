@@ -20,7 +20,7 @@ export default async function PackageDetailPage({ params }: { params: { id: stri
       <div className="grid md:grid-cols-3 gap-6">
         <div className="col-span-2">
           <h1 className="text-3xl font-bold">{pkg.name}</h1>
-          <p className="text-slate-600 mt-2">{pkg.description}</p>
+          <p className="text-slate-300 mt-2">{pkg.description}</p>
           <div className="mt-6 space-y-4">
             <h3 className="text-xl font-semibold">Places in this package</h3>
             {pkg.places.map((place: any) => (
@@ -28,7 +28,7 @@ export default async function PackageDetailPage({ params }: { params: { id: stri
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold">{place.name}</h4>
-                    <div className="text-sm text-slate-500">{place.city} • Rating: {place.rating ?? 'N/A'}</div>
+                    <div className="text-sm text-slate-400">{place.city} • Rating: {place.rating ?? 'N/A'}</div>
                   </div>
                 </div>
                 <p className="text-sm mt-2">Activities: Visit, Explore local cuisine, Photo stops</p>

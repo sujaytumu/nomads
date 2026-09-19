@@ -96,10 +96,10 @@ export default function AdminPage() {
       <div className="section py-12 space-y-8">
         <div>
           <h2 className="text-2xl font-bold">Admin Console</h2>
-          <p className="text-slate-600">Manage Places and Vehicles (admin role required).</p>
+          <p className="text-slate-300">Manage Places and Vehicles (admin role required).</p>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
         <div className="grid lg:grid-cols-2 gap-8">
           <div className="card p-6 space-y-4">
@@ -225,7 +225,7 @@ export default function AdminPage() {
                 <div key={place.id} className="flex items-center justify-between border rounded-xl p-3">
                   <div>
                     <p className="font-semibold">{place.name}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-400">
                       {place.city} · {place.category}
                     </p>
                   </div>
@@ -260,7 +260,7 @@ export default function AdminPage() {
                     <p className="font-semibold">
                       {vehicle.vehicleType} · {vehicle.vehicleNumber}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-400">
                       Driver: {vehicle.driverName} · {vehicle.availabilityStatus}
                     </p>
                   </div>

@@ -73,12 +73,14 @@ public class PackageController {
         trip.setInterest(com.tripfactory.nomad.domain.enums.InterestType.NATURE);
         trip.setTravelMode(com.tripfactory.nomad.domain.enums.TravelMode.SOLO);
         trip.setPickupRequired(Boolean.FALSE);
+        trip.setEstimatedCost(d.getPrice());
         trip = tripRequestRepository.save(trip);
 
-        // delegate to payment service
+        // delegate to payment service - amount is derived server-side from
+        // the trip's own estimatedCost (set above from the package price),
+        // never trusted from the client
         PaymentCreateRequest payReq = new PaymentCreateRequest();
         payReq.setTripRequestId(trip.getId());
-        payReq.setAmount(request.getAmount());
         PaymentCreateResponse resp = paymentService.createOrder(payReq);
         return new ResponseEntity<>(resp, HttpStatus.CREATED);
     }

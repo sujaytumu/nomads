@@ -90,7 +90,7 @@ function PaymentPageInner() {
 
     let data;
     try {
-      data = await createPayment({ tripRequestId: Number(tripId), amount: Number(amount) });
+      data = await createPayment({ tripRequestId: Number(tripId) });
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || "Payment creation failed");
       return;
@@ -98,6 +98,7 @@ function PaymentPageInner() {
 
     setOrderId(data.razorpayOrderId);
     setStatus(data.paymentStatus);
+    setAmount(String(data.amount));
 
     // Dev-mode fake order (backend NOMAD_DEV_PAYMENTS=true) - no real Razorpay
     // involved, complete the booking directly instead of opening real checkout
@@ -127,7 +128,7 @@ function PaymentPageInner() {
 
     const options = {
       key: keyId,
-      amount: Number(amount) * 100,
+      amount: Number(data.amount) * 100,
       currency: "INR",
       name: "NOMAD",
       description: "Weekend Trip Payment",
@@ -182,7 +183,13 @@ function PaymentPageInner() {
           </label>
           <label className="space-y-2">
             <span className="text-sm font-semibold">Amount (INR)</span>
-            <input value={amount} onChange={(e) => setAmount(e.target.value)} className="border rounded-xl px-4 py-2" />
+            <input
+              value={amount}
+              readOnly
+              disabled
+              placeholder="Auto-filled when you select a booking"
+              className="border rounded-xl px-4 py-2 bg-slate-900 text-slate-200 cursor-not-allowed"
+            />
           </label>
         </div>
             <div className="flex gap-3">
@@ -191,7 +198,7 @@ function PaymentPageInner() {
             {/* Show warning only if no bookings and no tripId from query */}
             {trips.length === 0 && !tripId && (
               <div className="space-y-2">
-                <p className="text-sm text-red-600">No bookings found. Create a booking from the Trip Planner or enroll in a package first.</p>
+                <p className="text-sm text-red-400">No bookings found. Create a booking from the Trip Planner or enroll in a package first.</p>
                 <div className="flex gap-2">
                   <a href="/trip-planner" className="btn-secondary">Go to Trip Planner</a>
                   <a href="/packages" className="btn-secondary">View Packages</a>
@@ -199,9 +206,9 @@ function PaymentPageInner() {
               </div>
             )}
         {/* Show order/status only if a booking is selected and order exists */}
-        {orderId && tripId && <p className="text-sm text-slate-600">Order ID: {orderId}</p>}
-        {status && tripId && <p className="text-sm text-slate-600">Status: {status}</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {orderId && tripId && <p className="text-sm text-slate-300">Order ID: {orderId}</p>}
+        {status && tripId && <p className="text-sm text-slate-300">Status: {status}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
         </div>
       </div>
     </ProtectedPage>

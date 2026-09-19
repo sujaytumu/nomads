@@ -105,10 +105,11 @@ public class TripServiceImpl implements TripService {
         tripPlanRepository.saveAll(plans);
 
         savedRequest.setStatus(TripStatus.PLANNED);
+        savedRequest.setEstimatedCost(estimateCost(plans.size(), Boolean.TRUE.equals(request.getPickupRequired())));
         TripRequest updated = tripRequestRepository.save(savedRequest);
 
         TripResponse response = toResponse(updated, plans);
-        response.setEstimatedCost(estimateCost(plans.size(), Boolean.TRUE.equals(request.getPickupRequired())));
+        response.setEstimatedCost(updated.getEstimatedCost());
 
         notificationService.sendEmail(user.getEmail(), "NOMAD Trip Planned",
             "Your trip is planned for " + updated.getCity() + ". Trip ID: " + updated.getId());

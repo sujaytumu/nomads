@@ -112,14 +112,14 @@ export default function PlacesList() {
   }
 
   if (loading) return (
-    <div className="text-sm text-slate-500">
+    <div className="text-sm text-slate-400">
       Loading nearby places… (may take up to a minute on first load if the server was asleep)
     </div>
   );
   if (error) return (
     <div>
-      <div className="text-red-600">{error}</div>
-      <pre className="text-xs text-slate-500 mt-2">{JSON.stringify(debugInfo, null, 2)}</pre>
+      <div className="text-red-400">{error}</div>
+      <pre className="text-xs text-slate-400 mt-2">{JSON.stringify(debugInfo, null, 2)}</pre>
       <div className="mt-2">
         <button className="btn-outline" onClick={() => {
           // populate demo places for UI testing
@@ -133,7 +133,7 @@ export default function PlacesList() {
   if (!places || places.length === 0) return (
     <div>
       <div>No nearby places found.</div>
-      <pre className="text-xs text-slate-500 mt-2">{JSON.stringify(debugInfo, null, 2)}</pre>
+      <pre className="text-xs text-slate-400 mt-2">{JSON.stringify(debugInfo, null, 2)}</pre>
       <div className="mt-2">
         <button className="btn-outline" onClick={() => {
           const demo = [{ id: 1, name: "Demo Beach", shortDescription: "Demo place", imageUrl: null, distanceKm: 1, rating: 4.5 }];

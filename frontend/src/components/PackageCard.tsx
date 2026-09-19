@@ -37,7 +37,7 @@ export default function PackageCard({ pkg }: Props) {
       <img src={pkg.imageUrl || '/images/package-placeholder.svg'} alt={pkg.name} className="h-40 w-full object-cover rounded-md" />
       <div className="py-3">
         <h3 className="text-lg font-semibold">{pkg.name}</h3>
-        <p className="text-sm text-slate-600">{pkg.shortDescription}</p>
+        <p className="text-sm text-slate-300">{pkg.shortDescription}</p>
         <div className="flex items-center justify-between mt-3">
           <div className="text-xl font-bold">₹{pkg.price}</div>
           <div className="flex gap-2">

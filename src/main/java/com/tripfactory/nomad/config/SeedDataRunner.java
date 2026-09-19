@@ -1,5 +1,6 @@
 package com.tripfactory.nomad.config;
 
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.lang.NonNull;
 
@@ -8,11 +9,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.tripfactory.nomad.domain.entity.Place;
+import com.tripfactory.nomad.domain.entity.TripRequest;
 import com.tripfactory.nomad.domain.entity.Vehicle;
 import com.tripfactory.nomad.domain.enums.AvailabilityStatus;
 import com.tripfactory.nomad.domain.enums.InterestType;
 import com.tripfactory.nomad.domain.enums.VehicleType;
 import com.tripfactory.nomad.repository.PlaceRepository;
+import com.tripfactory.nomad.repository.TripPlanRepository;
+import com.tripfactory.nomad.repository.TripRequestRepository;
 import com.tripfactory.nomad.repository.VehicleRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -21,11 +25,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SeedDataRunner implements CommandLineRunner {
 
+    private static final BigDecimal BASE_COST_PER_PLACE = new BigDecimal("500");
+    private static final BigDecimal PICKUP_COST = new BigDecimal("300");
+
     @Value("${nomad.seed-data:false}")
     private boolean seedData;
 
     private final PlaceRepository placeRepository;
     private final VehicleRepository vehicleRepository;
+    private final TripRequestRepository tripRequestRepository;
+    private final TripPlanRepository tripPlanRepository;
 
     @Override
     public void run(String... args) {
@@ -42,6 +51,33 @@ public class SeedDataRunner implements CommandLineRunner {
         if (vehicleRepository.count() == 0) {
             vehicleRepository.saveAll(buildVehicles());
         }
+
+        backfillMissingEstimatedCost();
+    }
+
+    /**
+     * Trips created before estimatedCost became a persisted column would have
+     * it null, and payment creation now requires it (never trusts a client-
+     * supplied amount). Recomputes it the same way TripServiceImpl.createTrip
+     * does, from each trip's actual plan count and pickup flag, so existing
+     * pending trips can still be paid for instead of hitting a hard error.
+     */
+    private void backfillMissingEstimatedCost() {
+        List<TripRequest> withoutCost = tripRequestRepository.findAll().stream()
+                .filter(t -> t.getEstimatedCost() == null)
+                .toList();
+        if (withoutCost.isEmpty()) {
+            return;
+        }
+        withoutCost.forEach(t -> {
+            int planCount = tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(t.getId()).size();
+            BigDecimal cost = BASE_COST_PER_PLACE.multiply(BigDecimal.valueOf(planCount));
+            if (Boolean.TRUE.equals(t.getPickupRequired())) {
+                cost = cost.add(PICKUP_COST);
+            }
+            t.setEstimatedCost(cost);
+        });
+        tripRequestRepository.saveAll(withoutCost);
     }
 
     private void backfillMissingImageUrls() {

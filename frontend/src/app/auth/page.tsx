@@ -73,8 +73,8 @@ export default function AuthPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Authentication</h2>
           <div className="flex gap-2">
-            <button className={`btn-outline ${mode === "login" ? "bg-slate-100" : ""}`} onClick={() => setMode("login")}>Login</button>
-            <button className={`btn-outline ${mode === "register" ? "bg-slate-100" : ""}`} onClick={() => setMode("register")}>Register</button>
+            <button className={`btn-outline ${mode === "login" ? "bg-slate-800" : ""}`} onClick={() => setMode("login")}>Login</button>
+            <button className={`btn-outline ${mode === "register" ? "bg-slate-800" : ""}`} onClick={() => setMode("register")}>Register</button>
           </div>
         </div>
 
@@ -99,8 +99,8 @@ export default function AuthPage() {
                 </div>
                 <MapPicker onSet={(c) => setForm((p) => ({ ...p, latitude: String(c.latitude), longitude: String(c.longitude) }))} />
               </div>
-              <input name="latitude" value={form.latitude} readOnly placeholder="Latitude" className="border rounded-xl px-4 py-2 bg-gray-50" />
-              <input name="longitude" value={form.longitude} readOnly placeholder="Longitude" className="border rounded-xl px-4 py-2 bg-gray-50" />
+              <input name="latitude" value={form.latitude} readOnly placeholder="Latitude" className="border rounded-xl px-4 py-2 bg-slate-900" />
+              <input name="longitude" value={form.longitude} readOnly placeholder="Longitude" className="border rounded-xl px-4 py-2 bg-slate-900" />
               <select name="interestType" value={form.interestType} onChange={handleChange} className="border rounded-xl px-4 py-2">
                 {["FOOD", "CULTURE", "NATURE", "ADVENTURE", "SHOPPING", "NIGHTLIFE", "RELAXATION"].map((item) => (
                   <option key={item} value={item}>{item}</option>
@@ -116,8 +116,8 @@ export default function AuthPage() {
         <button className="btn-primary" onClick={handleSubmit} disabled={submitting}>
           {submitting ? "Please wait…" : mode === "register" ? "Register" : "Login"}
         </button>
-        {token && <p className="text-sm text-slate-600">Token saved (copy manually for now)</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {token && <p className="text-sm text-slate-300">Token saved (copy manually for now)</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
     </div>
   );

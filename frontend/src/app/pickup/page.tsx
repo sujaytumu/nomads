@@ -107,14 +107,14 @@ export default function PickupPage() {
           <button className="btn-outline" onClick={handleConfirm}>Confirm Pickup (User)</button>
           <button className="btn-outline" onClick={handleUpdate}>Update Pickup (Admin)</button>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
         {data && (
           <div className="card p-4 bg-slate-50">
             <p className="font-semibold">Pickup: {data.pickupLocation}</p>
-            <p className="text-sm text-slate-600">Time: {data.pickupTime}</p>
-            <p className="text-sm text-slate-600">Vehicle: {data.vehicleType} - {data.vehicleNumber}</p>
-            <p className="text-sm text-slate-600">Driver: {data.driverName}</p>
-            <p className="text-sm text-slate-600">Status: {data.status}</p>
+            <p className="text-sm text-slate-300">Time: {data.pickupTime}</p>
+            <p className="text-sm text-slate-300">Vehicle: {data.vehicleType} - {data.vehicleNumber}</p>
+            <p className="text-sm text-slate-300">Driver: {data.driverName}</p>
+            <p className="text-sm text-slate-300">Status: {data.status}</p>
             {data.routeMapUrl && (
               <a className="text-sm text-blue-600 underline" href={data.routeMapUrl} target="_blank" rel="noreferrer">
                 Open Route Link
