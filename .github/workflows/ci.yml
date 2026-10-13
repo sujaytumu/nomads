@@ -17,7 +17,14 @@ jobs:
           java-version: '17'
           cache: maven
       - name: Build and test
-        run: mvn -B -ntp verify
+        run: |
+          set -o pipefail
+          mvn -B -ntp verify 2>&1 | tee build.log
+      - name: Surface Maven failures as annotations
+        if: failure()
+        run: |
+          MSG=$(grep -E '^\[ERROR\]|Tests run:.*(Failures: [1-9]|Errors: [1-9])|Caused by:' build.log | head -60 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=Maven failure::${MSG}"
 
   frontend:
     name: Frontend (type-check + build)
