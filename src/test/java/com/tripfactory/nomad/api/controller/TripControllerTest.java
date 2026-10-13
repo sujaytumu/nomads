@@ -18,7 +18,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tripfactory.nomad.api.dto.TripCreateRequest;
 import com.tripfactory.nomad.api.dto.TripResponse;
+import com.tripfactory.nomad.repository.UserRepository;
 import com.tripfactory.nomad.service.TripService;
+import com.tripfactory.nomad.service.WeatherService;
 import com.tripfactory.nomad.service.jwt.JwtService;
 
 @WebMvcTest(TripController.class)
@@ -33,6 +35,14 @@ public class TripControllerTest {
 
     @MockBean
     private JwtService jwtService;
+
+    // TripController also depends on these since the /me and /weather endpoints
+    // were added - a @WebMvcTest slice only has what it is told to mock.
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
+    private WeatherService weatherService;
 
     @Autowired
     private ObjectMapper objectMapper;
