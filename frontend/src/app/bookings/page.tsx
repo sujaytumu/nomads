@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
+import { cancelBooking } from "@/lib/paymentApi";
 
 type Booking = {
   tripRequestId: number;
@@ -24,6 +25,8 @@ export default function BookingHistoryPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -32,6 +35,22 @@ export default function BookingHistoryPage() {
       .then((res) => setBookings(res.data || []))
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
+  };
+
+  const handleCancel = async (tripRequestId: number) => {
+    if (!confirm("Cancel this booking? If it was paid, a refund will be initiated automatically.")) {
+      return;
+    }
+    setActionError(null);
+    setCancellingId(tripRequestId);
+    try {
+      await cancelBooking(tripRequestId);
+      load();
+    } catch (err: any) {
+      setActionError(err?.response?.data?.message || "Failed to cancel booking");
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   useEffect(() => {
@@ -60,6 +79,10 @@ export default function BookingHistoryPage() {
             <p className="text-sm text-slate-400">No bookings yet. Create one from Trip Planner.</p>
           )}
 
+          {actionError && (
+            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">{actionError}</p>
+          )}
+
           {!loading && !loadError && bookings.length > 0 && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -85,10 +108,19 @@ export default function BookingHistoryPage() {
                         </span>
                       </td>
                       <td className="py-3 pr-4">{b.estimatedCost != null ? `₹${b.estimatedCost}` : "—"}</td>
-                      <td className="py-3 pr-4 space-x-3">
-                        <a href={`/trip-summary?tripId=${b.tripRequestId}`} className="text-indigo-600 hover:underline">View</a>
+                      <td className="py-3 pr-4 space-x-3 whitespace-nowrap">
+                        <a href={`/trip-summary?tripId=${b.tripRequestId}`} className="text-brand-400 hover:underline">View</a>
                         {b.status === "PAYMENT_PENDING" && (
-                          <a href={`/payment?tripRequestId=${b.tripRequestId}&prefillAmount=${b.estimatedCost ?? ""}`} className="text-indigo-600 hover:underline">Pay</a>
+                          <a href={`/payment?tripRequestId=${b.tripRequestId}&prefillAmount=${b.estimatedCost ?? ""}`} className="text-brand-400 hover:underline">Pay</a>
+                        )}
+                        {(b.status === "PAYMENT_PENDING" || b.status === "CONFIRMED") && (
+                          <button
+                            onClick={() => handleCancel(b.tripRequestId)}
+                            disabled={cancellingId === b.tripRequestId}
+                            className="text-red-400 hover:underline disabled:opacity-50"
+                          >
+                            {cancellingId === b.tripRequestId ? "Cancelling…" : "Cancel"}
+                          </button>
                         )}
                       </td>
                     </tr>
