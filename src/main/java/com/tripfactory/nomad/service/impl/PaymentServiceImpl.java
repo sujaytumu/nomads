@@ -216,6 +216,56 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+    @Override
+    @Transactional
+    public PaymentCreateResponse cancelBooking(Long tripRequestId) {
+        TripRequest tripRequest = tripRequestRepository.findById(tripRequestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
+
+        if (!authorizationService.canAccessTrip(tripRequestId)) {
+            throw new AccessDeniedException("Not authorized to cancel this trip");
+        }
+
+        if (tripRequest.getStatus() == TripStatus.CANCELLED) {
+            throw new BadRequestException("This trip is already cancelled");
+        }
+
+        Payment payment = paymentRepository.findByTripRequestId(tripRequestId).orElse(null);
+
+        if (payment != null && payment.getPaymentStatus() == PaymentStatus.CAPTURED) {
+            boolean isDevOrder = payment.getRazorpayOrderId() != null
+                    && payment.getRazorpayOrderId().startsWith("dev_order_");
+            if (devPayments && isDevOrder) {
+                log.info("devPayments enabled - skipping real Razorpay refund for fake order {}",
+                    payment.getRazorpayOrderId());
+            } else {
+                try {
+                    org.json.JSONObject refundRequest = new org.json.JSONObject();
+                    razorpayClient.payments.refund(payment.getRazorpayPaymentId(), refundRequest);
+                } catch (Exception ex) {
+                    log.error("Razorpay refund failed for payment {}: {}", payment.getRazorpayPaymentId(), ex.getMessage());
+                    throw new BadRequestException("Refund could not be processed - please try again or contact support");
+                }
+            }
+            payment.setPaymentStatus(PaymentStatus.REFUNDED);
+            paymentRepository.save(payment);
+        }
+
+        tripRequest.setStatus(TripStatus.CANCELLED);
+        tripRequestRepository.save(tripRequest);
+
+        try {
+            notificationService.sendEmail(tripRequest.getUser().getEmail(), "NOMAD Booking Cancelled",
+                "Your booking for trip " + tripRequest.getId() + " has been cancelled"
+                    + (payment != null && payment.getPaymentStatus() == PaymentStatus.REFUNDED
+                        ? " and your payment has been refunded." : "."));
+        } catch (Exception ex) {
+            log.warn("Cancellation email failed for trip {}: {}", tripRequest.getId(), ex.getMessage());
+        }
+
+        return payment != null ? toResponse(payment) : null;
+    }
+
     private Order createOrder(long amountPaise, Long tripId) {
         try {
             log.debug("Creating Razorpay order: amountPaise={} tripId={}", amountPaise, tripId);

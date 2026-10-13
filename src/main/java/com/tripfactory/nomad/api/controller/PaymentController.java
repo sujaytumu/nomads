@@ -42,4 +42,10 @@ public class PaymentController {
         paymentService.handleWebhook(payload, signature);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/cancel/{tripRequestId}")
+    public ResponseEntity<PaymentCreateResponse> cancel(
+            @org.springframework.web.bind.annotation.PathVariable Long tripRequestId) {
+        return ResponseEntity.ok(paymentService.cancelBooking(tripRequestId));
+    }
 }

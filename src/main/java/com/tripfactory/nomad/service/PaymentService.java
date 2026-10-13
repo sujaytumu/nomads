@@ -11,4 +11,6 @@ public interface PaymentService {
     PaymentCreateResponse verifyPayment(PaymentVerifyRequest request);
 
     void handleWebhook(String payload, String signature);
+
+    PaymentCreateResponse cancelBooking(Long tripRequestId);
 }

@@ -5,6 +5,11 @@ export async function createPayment(payload: { tripRequestId: number }) {
   return data;
 }
 
+export async function cancelBooking(tripRequestId: number) {
+  const { data } = await api.post(`/api/payment/cancel/${tripRequestId}`);
+  return data;
+}
+
 export async function verifyPayment(payload: {
   razorpayOrderId: string;
   razorpayPaymentId: string;
