@@ -9,6 +9,25 @@ jobs:
   backend:
     name: Backend (Maven build + tests)
     runs-on: ubuntu-latest
+    # The context-load test boots the whole app, which needs a real Postgres.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nomad
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: jdbc:postgresql://localhost:5432/nomad
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      NOMAD_DEV_PAYMENTS: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
