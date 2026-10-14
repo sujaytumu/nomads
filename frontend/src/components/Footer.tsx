@@ -10,19 +10,19 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     ],
   },
   {
-    title: "My Trip",
+    title: "Trips",
     links: [
-      { href: "/trip-planner", label: "Planner" },
+      { href: "/trip-planner", label: "Plan a trip" },
+      { href: "/bookings", label: "My Trips" },
+      { href: "/trip-summary", label: "Trip summary" },
       { href: "/route-view", label: "Route" },
-      { href: "/trip-summary", label: "Summary" },
-      { href: "/wishlist", label: "Wishlist" },
     ],
   },
   {
-    title: "Bookings",
+    title: "Pay & Save",
     links: [
-      { href: "/bookings", label: "My Bookings" },
       { href: "/payment", label: "Payment" },
+      { href: "/wishlist", label: "Wishlist" },
     ],
   },
   {

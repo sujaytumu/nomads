@@ -14,8 +14,9 @@ export default function EnrollButton({ packageId, amount }: Props) {
     setLoading(true);
     try {
       const { data } = await api.post(`/api/packages/${packageId}/enroll`, { amount: Number(amount) });
-      // redirect to payment page with tripRequestId and amount
-      router.push(`/payment?prefillAmount=${data.amount}&tripRequestId=${data.tripRequestId}`);
+      // The enrollment already created the trip; the payment page loads its
+      // real price and status from the server using just the trip id.
+      router.push(`/payment?tripRequestId=${data.tripRequestId}`);
       setLoading(false);
       return;
     } catch (e: any) {
