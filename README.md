@@ -21,6 +21,7 @@ Hosted on render && vercel (Postgres + backend + frontend as separate services i
 - Admin and user roles
 - Package search, price filter and sorting (`GET /api/packages/search`)
 - Wishlist: save/unsave packages per user (`/api/wishlist`)
+- Group expense splitter: log shared costs, see balances and who-pays-whom settle-up
 
 ---
 
