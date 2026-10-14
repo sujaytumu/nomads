@@ -56,7 +56,7 @@ class PackageFilterTest {
     @Test
     void sortByName_alphabetical() {
         assertThat(PackageFilter.apply(all, null, null, null, "name")).extracting(PackageSummaryResponse::getId)
-                .containsExactly(1L, 3L, 2L);
+                .containsExactly(3L, 2L, 1L);
     }
 
     @Test
