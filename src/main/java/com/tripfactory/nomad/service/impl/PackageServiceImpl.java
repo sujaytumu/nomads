@@ -16,6 +16,7 @@ import com.tripfactory.nomad.api.dto.PlaceResponse;
 import com.tripfactory.nomad.domain.entity.Place;
 import com.tripfactory.nomad.repository.PlaceRepository;
 import com.tripfactory.nomad.service.PackageService;
+import com.tripfactory.nomad.service.util.PackageFilter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -57,6 +58,11 @@ public class PackageServiceImpl implements PackageService {
     @Override
     public List<PackageSummaryResponse> getAllPackages() {
         return new ArrayList<>(packages);
+    }
+
+    @Override
+    public List<PackageSummaryResponse> searchPackages(String query, BigDecimal minPrice, BigDecimal maxPrice, String sort) {
+        return PackageFilter.apply(packages, query, minPrice, maxPrice, sort);
     }
 
     @Override

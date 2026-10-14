@@ -1,5 +1,5 @@
 import React from "react";
-import PackageCard from "@/components/PackageCard";
+import PackageBrowser from "@/components/PackageBrowser";
 
 async function fetchPackages() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/packages/all`, { cache: 'no-store' });
@@ -12,11 +12,7 @@ export default async function PackagesPage() {
   return (
     <div className="section py-12">
       <h2 className="text-2xl font-bold mb-6">All Packages</h2>
-      <div className="grid md:grid-cols-3 gap-4">
-        {pkgs.map((p: any) => (
-          <PackageCard key={p.id} pkg={p} />
-        ))}
-      </div>
+      <PackageBrowser initial={pkgs} />
     </div>
   );
 }

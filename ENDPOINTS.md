@@ -10,6 +10,15 @@ This file lists all REST endpoints implemented in the backend with example reque
   - `GET  /api/admin/vehicles`
   - `DELETE /api/admin/vehicles/{id}`
 
+- **PackageController** (additions) — base `/api/packages`
+  - `GET /api/packages/search?q=&minPrice=&maxPrice=&sort=price_asc|price_desc|name`
+
+- **WishlistController** — base `/api/wishlist` (auth required)
+  - `GET    /api/wishlist` (saved packages)
+  - `GET    /api/wishlist/ids`
+  - `POST   /api/wishlist/{packageId}` (idempotent)
+  - `DELETE /api/wishlist/{packageId}` (idempotent)
+
 - **UserController** — base `/api/users`
   - `POST /api/users` (create user)
   - `GET  /api/users/{id}`

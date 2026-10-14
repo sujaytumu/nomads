@@ -19,6 +19,8 @@ Hosted on render && vercel (Postgres + backend + frontend as separate services i
 - View and manage your bookings
 - Map/location features (OpenStreetMap via Leaflet, free/no signup)
 - Admin and user roles
+- Package search, price filter and sorting (`GET /api/packages/search`)
+- Wishlist: save/unsave packages per user (`/api/wishlist`)
 
 ---
 
