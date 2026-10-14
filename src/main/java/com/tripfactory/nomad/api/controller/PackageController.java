@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tripfactory.nomad.api.dto.PackageDetailResponse;
@@ -47,6 +48,15 @@ public class PackageController {
     @GetMapping("/all")
     public ResponseEntity<List<PackageSummaryResponse>> allPackages() {
         return ResponseEntity.ok(packageService.getAllPackages());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PackageSummaryResponse>> searchPackages(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String sort) {
+        return ResponseEntity.ok(packageService.searchPackages(q, minPrice, maxPrice, sort));
     }
 
     @GetMapping("/{id}")

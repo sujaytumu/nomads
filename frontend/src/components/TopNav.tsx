@@ -41,6 +41,8 @@ export default function TopNav() {
       <a href="/map" className="hover:text-brand-700">Map</a>
       <a href="/route-view" className="hover:text-brand-700">Route</a>
       <a href="/trip-summary" className="hover:text-brand-700">Summary</a>
+      <a href="/packages" className="hover:text-brand-700">Packages</a>
+      <a href="/wishlist" className="hover:text-brand-700">Wishlist</a>
       <a href="/bookings" className="hover:text-brand-700">Bookings</a>
       <a href="/payment" className="hover:text-brand-700">Payment</a>
       <a href="/auth" className="hover:text-brand-700">Auth</a>
