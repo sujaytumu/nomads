@@ -19,6 +19,7 @@ Hosted on render && vercel (Postgres + backend + frontend as separate services i
 - View and manage your bookings
 - Map/location features (OpenStreetMap via Leaflet, free/no signup)
 - Admin and user roles
+- Group expense splitter: log shared costs, see balances and who-pays-whom settle-up
 
 ---
 
