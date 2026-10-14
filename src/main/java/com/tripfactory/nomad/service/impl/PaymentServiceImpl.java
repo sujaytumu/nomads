@@ -56,6 +56,23 @@ public class PaymentServiceImpl implements PaymentService {
         TripRequest tripRequest = tripRequestRepository.findById(request.getTripRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
 
+        // The controller already checks access, but this method is also called
+        // directly (package enrollment), so enforce it here as well - same as
+        // verifyPayment and cancelBooking do.
+        if (!authorizationService.canAccessTrip(tripRequest.getId())) {
+            throw new AccessDeniedException("Not authorized to pay for this trip");
+        }
+
+        // Only a planned trip, or one whose payment was started but not finished,
+        // can be paid for. Without this, a second order on a booked trip would
+        // flip it back to PAYMENT_PENDING, and a cancelled trip would come back to life.
+        if (tripRequest.getStatus() == TripStatus.CONFIRMED) {
+            throw new BadRequestException("This trip is already paid and booked");
+        }
+        if (tripRequest.getStatus() == TripStatus.CANCELLED) {
+            throw new BadRequestException("This trip was cancelled and can't be paid for");
+        }
+
         // The amount is never taken from the client - it's always derived from
         // the trip's own estimatedCost, which the server itself already set
         // when the trip was created (Trip Planner) or when a package was
@@ -230,7 +247,12 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BadRequestException("This trip is already cancelled");
         }
 
-        Payment payment = paymentRepository.findByTripRequestId(tripRequestId).orElse(null);
+        // A trip can have several payment attempts (an abandoned or failed order
+        // followed by a retry), so look for the one that was actually charged
+        // instead of assuming there is exactly one row.
+        Payment payment = paymentRepository
+                .findFirstByTripRequestIdAndPaymentStatusOrderByIdDesc(tripRequestId, PaymentStatus.CAPTURED)
+                .orElse(null);
 
         if (payment != null && payment.getPaymentStatus() == PaymentStatus.CAPTURED) {
             boolean isDevOrder = payment.getRazorpayOrderId() != null
