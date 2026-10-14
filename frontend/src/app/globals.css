@@ -29,6 +29,40 @@ body {
   @apply inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 font-semibold text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition;
 }
 
+/* Header navigation. Every item shares one height, padding and font weight so
+   hovering, activating or logging in never changes the layout. */
+.nav-link {
+  @apply inline-flex h-9 items-center rounded-lg px-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-800 hover:text-white;
+}
+
+.nav-link-active {
+  @apply bg-slate-800 text-white;
+}
+
+.nav-btn {
+  @apply inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg px-4 text-sm font-semibold transition-colors;
+}
+
+.nav-btn-ghost {
+  @apply border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600;
+}
+
+.nav-btn-solid {
+  @apply border border-brand-600 bg-brand-600 text-white hover:bg-brand-500 hover:border-brand-500;
+}
+
+.nav-menu {
+  @apply absolute top-full z-50 mt-2 w-52 rounded-xl border border-slate-800 bg-slate-900 p-1 shadow-xl shadow-black/40;
+}
+
+.nav-menu-item {
+  @apply block rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white;
+}
+
+.nav-menu-item-active {
+  @apply bg-slate-800 text-white;
+}
+
 .badge {
   @apply inline-flex items-center rounded-full bg-brand-500/15 text-brand-300 text-xs font-semibold px-3 py-1 border border-brand-500/20;
 }
