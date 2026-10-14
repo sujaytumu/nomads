@@ -1,28 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
 import { cancelBooking } from "@/lib/paymentApi";
+import {
+  formatCost,
+  isCancellable,
+  isPayable,
+  statusMeta,
+  tripKind,
+  tripTitle,
+  type TripLike,
+} from "@/lib/tripStatus";
 
-type Booking = {
+type Trip = TripLike & {
   tripRequestId: number;
-  city: string;
-  status: string;
-  estimatedCost: number | null;
   createdAt: string;
   shareToken?: string;
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  CONFIRMED: "bg-green-500/15 text-green-300",
-  PAYMENT_PENDING: "bg-yellow-500/15 text-yellow-300",
-  CANCELLED: "bg-red-500/15 text-red-300",
-};
+// Grouped by what the user needs to do next, not by raw backend status.
+const SECTIONS: { key: string; title: string; subtitle: string; match: (s: string) => boolean }[] = [
+  {
+    key: "pay",
+    title: "Needs payment",
+    subtitle: "Planned or started, but not booked until you pay.",
+    match: isPayable,
+  },
+  {
+    key: "booked",
+    title: "Booked",
+    subtitle: "Paid and confirmed.",
+    match: (s) => s === "CONFIRMED",
+  },
+  {
+    key: "cancelled",
+    title: "Cancelled",
+    subtitle: "No longer active.",
+    match: (s) => s === "CANCELLED",
+  },
+];
 
-export default function BookingHistoryPage() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+export default function MyTripsPage() {
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
@@ -31,23 +54,26 @@ export default function BookingHistoryPage() {
   const load = () => {
     setLoading(true);
     setLoadError(false);
-    api.get("/api/trips/me")
-      .then((res) => setBookings(res.data || []))
+    api
+      .get("/api/trips/me")
+      .then((res) => setTrips(res.data || []))
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   };
 
-  const handleCancel = async (tripRequestId: number) => {
-    if (!confirm("Cancel this booking? If it was paid, a refund will be initiated automatically.")) {
-      return;
-    }
+  const handleCancel = async (trip: Trip) => {
+    const message =
+      trip.status === "CONFIRMED"
+        ? "Cancel this booking? Your payment will be refunded automatically."
+        : "Cancel this trip? The pending payment will be dropped.";
+    if (!confirm(message)) return;
     setActionError(null);
-    setCancellingId(tripRequestId);
+    setCancellingId(trip.tripRequestId);
     try {
-      await cancelBooking(tripRequestId);
+      await cancelBooking(trip.tripRequestId);
       load();
     } catch (err: any) {
-      setActionError(err?.response?.data?.message || "Failed to cancel booking");
+      setActionError(err?.response?.data?.message || "Failed to cancel the trip");
     } finally {
       setCancellingId(null);
     }
@@ -57,79 +83,117 @@ export default function BookingHistoryPage() {
     load();
   }, []);
 
+  const grouped = useMemo(() => {
+    const newestFirst = [...trips].sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+    return SECTIONS.map((section) => ({
+      ...section,
+      items: newestFirst.filter((t) => section.match(t.status)),
+    })).filter((section) => section.items.length > 0);
+  }, [trips]);
+
   return (
     <ProtectedPage>
       <div className="section py-12 space-y-6">
         <div className="card p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Booking History</h2>
-          <p className="text-sm text-slate-300">Every trip you've created, past and pending.</p>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold">My Trips</h2>
+              <p className="text-sm text-slate-300">
+                Every trip you've planned or booked. A trip is only booked once it's paid.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/trip-planner" className="btn-primary">Plan a trip</Link>
+              <Link href="/packages" className="btn-outline">Browse packages</Link>
+            </div>
+          </div>
 
           {loading && (
-            <p className="text-sm text-slate-400">Loading your bookings… (may take up to a minute if the server was asleep)</p>
+            <p className="text-sm text-slate-400">
+              Loading your trips… (may take up to a minute if the server was asleep)
+            </p>
           )}
 
           {!loading && loadError && (
             <div className="space-y-2">
-              <p className="text-sm text-red-400">Couldn't load your bookings.</p>
+              <p className="text-sm text-red-400">Couldn't load your trips.</p>
               <button className="btn-outline" onClick={load}>Retry</button>
             </div>
           )}
 
-          {!loading && !loadError && bookings.length === 0 && (
-            <p className="text-sm text-slate-400">No bookings yet. Create one from Trip Planner.</p>
+          {!loading && !loadError && trips.length === 0 && (
+            <div className="rounded-xl border border-slate-800 p-6 text-center space-y-3">
+              <p className="text-slate-300">You haven't planned or booked anything yet.</p>
+              <div className="flex justify-center gap-3">
+                <Link href="/trip-planner" className="btn-primary">Plan a trip</Link>
+                <Link href="/packages" className="btn-outline">Browse packages</Link>
+              </div>
+            </div>
           )}
 
           {actionError && (
-            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">{actionError}</p>
-          )}
-
-          {!loading && !loadError && bookings.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left border-b">
-                    <th className="py-2 pr-4">Trip ID</th>
-                    <th className="py-2 pr-4">City</th>
-                    <th className="py-2 pr-4">Date</th>
-                    <th className="py-2 pr-4">Status</th>
-                    <th className="py-2 pr-4">Amount</th>
-                    <th className="py-2 pr-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((b) => (
-                    <tr key={b.tripRequestId} className="border-b last:border-0">
-                      <td className="py-3 pr-4">#{b.tripRequestId}</td>
-                      <td className="py-3 pr-4">{b.city || "—"}</td>
-                      <td className="py-3 pr-4">{b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "—"}</td>
-                      <td className="py-3 pr-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[b.status] || "bg-slate-800 text-slate-200"}`}>
-                          {b.status}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-4">{b.estimatedCost != null ? `₹${b.estimatedCost}` : "—"}</td>
-                      <td className="py-3 pr-4 space-x-3 whitespace-nowrap">
-                        <a href={`/trip-summary?tripId=${b.tripRequestId}`} className="text-brand-400 hover:underline">View</a>
-                        {b.status === "PAYMENT_PENDING" && (
-                          <a href={`/payment?tripRequestId=${b.tripRequestId}&prefillAmount=${b.estimatedCost ?? ""}`} className="text-brand-400 hover:underline">Pay</a>
-                        )}
-                        {(b.status === "PAYMENT_PENDING" || b.status === "CONFIRMED") && (
-                          <button
-                            onClick={() => handleCancel(b.tripRequestId)}
-                            disabled={cancellingId === b.tripRequestId}
-                            className="text-red-400 hover:underline disabled:opacity-50"
-                          >
-                            {cancellingId === b.tripRequestId ? "Cancelling…" : "Cancel"}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+              {actionError}
+            </p>
           )}
         </div>
+
+        {!loading &&
+          !loadError &&
+          grouped.map((section) => (
+            <section key={section.key} className="space-y-3">
+              <div>
+                <h3 className="text-lg font-semibold">
+                  {section.title} <span className="text-slate-500 font-normal">({section.items.length})</span>
+                </h3>
+                <p className="text-sm text-slate-400">{section.subtitle}</p>
+              </div>
+
+              <div className="grid gap-3">
+                {section.items.map((trip) => {
+                  const meta = statusMeta(trip.status);
+                  return (
+                    <div key={trip.tripRequestId} className="card p-4 flex flex-wrap items-center justify-between gap-4">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold">{tripTitle(trip)}</p>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${meta.badge}`}>{meta.label}</span>
+                        </div>
+                        <p className="text-sm text-slate-400">
+                          #{trip.tripRequestId} · {tripKind(trip)}
+                          {trip.createdAt ? ` · ${new Date(trip.createdAt).toLocaleDateString()}` : ""}
+                          {` · ${formatCost(trip.estimatedCost)}`}
+                        </p>
+                        <p className="text-xs text-slate-500">{meta.hint}</p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        {isPayable(trip.status) && (
+                          <Link href={`/payment?tripRequestId=${trip.tripRequestId}`} className="btn-primary">
+                            {trip.status === "PAYMENT_PENDING" ? "Continue payment" : "Pay & book"}
+                          </Link>
+                        )}
+                        <Link href={`/trip-summary?tripId=${trip.tripRequestId}`} className="btn-outline">
+                          View trip
+                        </Link>
+                        {isCancellable(trip.status) && (
+                          <button
+                            onClick={() => handleCancel(trip)}
+                            disabled={cancellingId === trip.tripRequestId}
+                            className="text-sm text-red-400 hover:underline disabled:opacity-50"
+                          >
+                            {cancellingId === trip.tripRequestId ? "Cancelling…" : "Cancel"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
       </div>
     </ProtectedPage>
   );

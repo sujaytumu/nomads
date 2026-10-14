@@ -22,13 +22,14 @@ const MAIN_LINKS: NavItem[] = [
   { href: "/map", label: "Map" },
 ];
 
+// Ordered by the real journey: plan -> see your trips -> review -> pay.
 const TRIP_LINKS: NavItem[] = [
-  { href: "/trip-planner", label: "Planner" },
+  { href: "/trip-planner", label: "Plan a trip" },
+  { href: "/bookings", label: "My Trips" },
+  { href: "/trip-summary", label: "Trip summary" },
   { href: "/route-view", label: "Route" },
-  { href: "/trip-summary", label: "Summary" },
-  { href: "/wishlist", label: "Wishlist" },
-  { href: "/bookings", label: "Bookings" },
   { href: "/payment", label: "Payment" },
+  { href: "/wishlist", label: "Wishlist" },
 ];
 
 const ADMIN_LINKS: NavItem[] = [
@@ -166,7 +167,7 @@ export default function TopNav() {
             onClick={() => toggle("trip")}
             className={`nav-link gap-1 ${tripActive || openMenu === "trip" ? "nav-link-active" : ""}`}
           >
-            My Trip
+            Trips
             <Chevron open={openMenu === "trip"} />
           </button>
           {openMenu === "trip" && (
@@ -272,7 +273,7 @@ export default function TopNav() {
         <div className="lg:hidden absolute inset-x-0 top-full z-40 border-b border-slate-800 bg-slate-900 shadow-xl shadow-black/30">
           <div className="section py-4 space-y-4">
             <MobileGroup title="Explore" links={MAIN_LINKS} pathname={pathname} />
-            <MobileGroup title="My Trip" links={TRIP_LINKS} pathname={pathname} />
+            <MobileGroup title="Trips" links={TRIP_LINKS} pathname={pathname} />
             {authState === "in" && (
               <MobileGroup
                 title="Account"
