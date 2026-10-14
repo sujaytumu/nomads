@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "../lib/api";
+import WishlistButton from "./WishlistButton";
 
 type Props = {
   pkg: any;
@@ -42,6 +43,7 @@ export default function PackageCard({ pkg }: Props) {
           <div className="text-xl font-bold">₹{pkg.price}</div>
           <div className="flex gap-2">
             <Link href={`/packages/${pkg.id}`} className="btn-outline">Explore</Link>
+            <WishlistButton packageId={Number(pkg.id)} />
             <button className="btn-primary" onClick={handleEnroll} disabled={loading}>{loading ? 'Enrolling…' : 'Enroll'}</button>
           </div>
         </div>

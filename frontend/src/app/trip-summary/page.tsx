@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 const GroupChat = dynamic(() => import("@/components/GroupChat"), { ssr: false });
+import DownloadItineraryButton from "@/components/DownloadItineraryButton";
 import ProtectedPage from "@/components/ProtectedPage";
 import { fetchRoute } from "@/lib/routeApi";
 import { fetchTrip } from "@/lib/tripApi";
@@ -105,6 +106,7 @@ function TripSummaryPageInner() {
                   </a>
                 </div>
               )}
+              <DownloadItineraryButton tripId={Number(summary.tripRequestId)} />
             </div>
             <div className="card p-4 space-y-3">
               <div className="flex items-center gap-3">
