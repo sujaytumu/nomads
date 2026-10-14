@@ -1,5 +1,6 @@
 "use client";
 
+import ExpenseSplitter from "@/components/ExpenseSplitter";
 import ProtectedPage from "@/components/ProtectedPage";
 import { fetchGroup, fetchGroupMembers } from "@/lib/groupApi";
 import { useState } from "react";
@@ -74,6 +75,8 @@ export default function GroupStatusPage() {
                 </div>
               )}
             </div>
+
+            <ExpenseSplitter groupId={group.id} />
           </div>
         )}
       </div>
