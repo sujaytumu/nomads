@@ -82,3 +82,14 @@ export function formatCost(cost?: number | string | null): string {
   const n = Number(cost);
   return Number.isFinite(n) ? `₹${n.toLocaleString("en-IN")}` : `₹${cost}`;
 }
+
+/** Times arrive as "09:00:00" (or [9, 0] depending on server config); show "09:00". */
+export function formatTime(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value
+      .slice(0, 2)
+      .map((part) => String(part).padStart(2, "0"))
+      .join(":");
+  }
+  return typeof value === "string" ? value.slice(0, 5) : "";
+}

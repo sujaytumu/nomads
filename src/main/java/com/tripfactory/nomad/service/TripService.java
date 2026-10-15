@@ -2,6 +2,7 @@ package com.tripfactory.nomad.service;
 
 import java.util.List;
 
+import com.tripfactory.nomad.api.dto.ItineraryOptionsResponse;
 import com.tripfactory.nomad.api.dto.TripCreateRequest;
 import com.tripfactory.nomad.api.dto.TripResponse;
 
@@ -12,4 +13,10 @@ public interface TripService {
     TripResponse getTrip(Long tripRequestId);
 
     List<TripResponse> getTripsByUser(Long userId);
+
+    ItineraryOptionsResponse getItineraryOptions(Long tripRequestId);
+
+    TripResponse updateItinerary(Long tripRequestId, List<Long> placeIds);
+
+    byte[] generateItineraryPdf(Long tripRequestId);
 }

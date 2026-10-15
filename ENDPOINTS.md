@@ -33,6 +33,10 @@ This file lists all REST endpoints implemented in the backend with example reque
   - `POST /api/trips/create`
   - `GET  /api/trips/{id}`
   - `GET  /api/trips/user/{userId}`
+  - `GET  /api/trips/me` — the signed-in user's trips
+  - `GET  /api/trips/{id}/itinerary/options` — places that can be chosen for the trip, current picks marked, allowed range and pricing rule
+  - `PUT  /api/trips/{id}/itinerary` — body `{"placeIds":[1,2,3]}`; rebuilds the day-by-day plan and price. Only while the trip is `PLANNED` (before payment starts)
+  - `GET  /api/trips/{id}/itinerary.pdf` — the itinerary as a PDF download (trips with a day-by-day itinerary)
 
 - **TripRouteController** — base `/api/routes`
   - `GET /api/routes/{tripRequestId}`

@@ -14,15 +14,8 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     links: [
       { href: "/trip-planner", label: "Plan a trip" },
       { href: "/bookings", label: "My Trips" },
-      { href: "/trip-summary", label: "Trip summary" },
-      { href: "/route-view", label: "Route" },
-    ],
-  },
-  {
-    title: "Pay & Save",
-    links: [
-      { href: "/payment", label: "Payment" },
       { href: "/wishlist", label: "Wishlist" },
+      { href: "/route-view", label: "Route viewer" },
     ],
   },
   {
@@ -39,7 +32,7 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-slate-800 bg-slate-900">
       <div className="section py-10">
-        <div className="grid gap-8 md:grid-cols-[1.5fr_repeat(4,1fr)]">
+        <div className="grid gap-8 md:grid-cols-[1.6fr_repeat(3,1fr)]">
           <div className="space-y-2">
             <p className="text-lg font-bold text-brand-700">NOMAD</p>
             <p className="max-w-xs text-sm text-slate-400">
