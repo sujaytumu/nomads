@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import ProtectedPage from "@/components/ProtectedPage";
+import TripSteps from "@/components/TripSteps";
 import { createTrip } from "@/lib/tripApi";
 import { fetchMe } from "@/lib/authApi";
+import { formatCost } from "@/lib/tripStatus";
 
 export default function TripPlannerPage() {
   const [form, setForm] = useState({
@@ -18,7 +21,7 @@ export default function TripPlannerPage() {
     userLongitude: "",
     groupSize: "",
   });
-  const [result, setResult] = useState<string | null>(null);
+  const [created, setCreated] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingTrip, setLoadingTrip] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +56,7 @@ export default function TripPlannerPage() {
 
   const handleSubmit = async () => {
     setError(null);
-    setResult(null);
+    setCreated(null);
     if (!form.userId) {
       setError("User ID is required");
       return;
@@ -73,7 +76,7 @@ export default function TripPlannerPage() {
 
     try {
       const data = await createTrip(payload);
-      setResult(`Trip created with id ${data.tripRequestId}`);
+      setCreated(data);
     } catch (error: any) {
       setError(error?.response?.data?.message || "Failed to create trip");
     } finally {
@@ -85,9 +88,12 @@ export default function TripPlannerPage() {
     <ProtectedPage>
       <div className="section py-12">
         <div className="card p-8 space-y-6">
+        <TripSteps current={created ? 2 : 1} tripId={created?.tripRequestId} />
         <div>
           <h2 className="text-2xl font-bold">Trip Planner</h2>
-          <p className="text-slate-300">Create a weekend trip request with preferences.</p>
+          <p className="text-slate-300">
+            Tell us what you like and we'll build a weekend itinerary. Nothing is booked until you pay.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
@@ -175,8 +181,32 @@ export default function TripPlannerPage() {
         <button className="btn-primary" onClick={handleSubmit} disabled={loadingTrip || loadingUser}>
           {loadingTrip ? "Creating..." : "Create Trip"}
         </button>
-        {result && <p className="text-sm text-slate-300">{result}</p>}
         {error && <p className="text-sm text-red-400">{error}</p>}
+
+        {created && (
+          <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 space-y-3" role="status">
+            <div>
+              <p className="font-semibold text-green-300">
+                Trip #{created.tripRequestId} planned{created.city ? ` for ${created.city}` : ""}
+              </p>
+              <p className="text-sm text-slate-300">
+                Estimated cost {formatCost(created.estimatedCost)}. It isn't booked yet — review the itinerary,
+                then pay to confirm.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href={`/trip-summary?tripId=${created.tripRequestId}`} className="btn-primary">
+                Review itinerary
+              </Link>
+              <Link href={`/payment?tripRequestId=${created.tripRequestId}`} className="btn-outline">
+                Pay &amp; book
+              </Link>
+              <Link href="/bookings" className="btn-outline">
+                My trips
+              </Link>
+            </div>
+          </div>
+        )}
         </div>
       </div>
     </ProtectedPage>

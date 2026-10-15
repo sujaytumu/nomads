@@ -1,7 +1,7 @@
 "use client";
 
 import { login, register } from "@/lib/authApi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import UseLocationButton from "@/components/UseLocationButton";
 import dynamic from "next/dynamic";
@@ -25,6 +25,13 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+
+  // Nav "Sign up" links arrive as /auth?mode=register
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("mode") === "register") {
+      setMode("register");
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
