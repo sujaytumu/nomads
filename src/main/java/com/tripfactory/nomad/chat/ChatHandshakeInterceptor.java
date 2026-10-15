@@ -12,8 +12,8 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.tripfactory.nomad.domain.entity.User;
-import com.tripfactory.nomad.repository.TripRequestRepository;
 import com.tripfactory.nomad.repository.UserRepository;
+import com.tripfactory.nomad.security.AuthorizationService;
 import com.tripfactory.nomad.service.jwt.JwtService;
 
 /**
@@ -28,13 +28,13 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final TripRequestRepository tripRequestRepository;
+    private final AuthorizationService authorizationService;
 
     public ChatHandshakeInterceptor(JwtService jwtService, UserRepository userRepository,
-            TripRequestRepository tripRequestRepository) {
+            AuthorizationService authorizationService) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
-        this.tripRequestRepository = tripRequestRepository;
+        this.authorizationService = authorizationService;
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ChatHandshakeInterceptor implements HandshakeInterceptor {
         }
 
         User user = userOpt.get();
-        boolean isMember = tripRequestRepository.existsByGroupIdAndUserId(groupId, user.getId());
+        boolean isMember = authorizationService.isGroupMember(groupId, user.getId());
         if (!isMember) {
             response.setStatusCode(org.springframework.http.HttpStatus.FORBIDDEN);
             return false;

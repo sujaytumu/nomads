@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -47,6 +48,8 @@ public class SecurityConfig {
                     .requestMatchers("/api/auth/register", "/api/auth/login", "/api/packages/**", "/api/places/**", "/api/places/nearby", "/api/payment/webhook",
                         "/api/share/**", "/actuator/health", "/actuator/info",
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/ws/**").permitAll()
+                    // Browsing scheduled group trips is public; booking and everything else needs a login.
+                    .requestMatchers(HttpMethod.GET, "/api/departures", "/api/departures/*").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

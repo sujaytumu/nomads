@@ -18,6 +18,7 @@ import com.tripfactory.nomad.repository.PaymentRepository;
 import com.tripfactory.nomad.repository.TripRequestRepository;
 import com.tripfactory.nomad.service.PaymentService;
 import com.tripfactory.nomad.service.NotificationService;
+import com.tripfactory.nomad.service.GroupDepartureService;
 import com.tripfactory.nomad.service.exception.BadRequestException;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
 import com.razorpay.Order;
@@ -43,6 +44,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final RazorpayClient razorpayClient;
     private final RazorpayProperties razorpayProperties;
     private final NotificationService notificationService;
+    private final GroupDepartureService groupDepartureService;
     private final AuthorizationService authorizationService;
     private final ReceiptPdfGenerator receiptPdfGenerator;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -55,6 +57,10 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentCreateResponse createOrder(PaymentCreateRequest request) {
         TripRequest tripRequest = tripRequestRepository.findById(request.getTripRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
+
+        // Seats on a scheduled group trip are limited: confirm they are still
+        // available (and keep them held) before any money is requested.
+        groupDepartureService.assertCanPay(tripRequest);
 
         // The amount is never taken from the client - it's always derived from
         // the trip's own estimatedCost, which the server itself already set

@@ -109,7 +109,6 @@ public class TripServiceImpl implements TripService {
         TripRequest updated = tripRequestRepository.save(savedRequest);
 
         TripResponse response = toResponse(updated, plans);
-        response.setEstimatedCost(updated.getEstimatedCost());
 
         notificationService.sendEmail(user.getEmail(), "NOMAD Trip Planned",
             "Your trip is planned for " + updated.getCity() + ". Trip ID: " + updated.getId());
@@ -125,9 +124,7 @@ public class TripServiceImpl implements TripService {
         TripRequest tripRequest = tripRequestRepository.findById(tripRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
         List<TripPlan> plans = tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequestId);
-        TripResponse response = toResponse(tripRequest, plans);
-        response.setEstimatedCost(estimateCost(plans.size(), Boolean.TRUE.equals(tripRequest.getPickupRequired())));
-        return response;
+        return toResponse(tripRequest, plans);
     }
 
     @Override
@@ -136,10 +133,7 @@ public class TripServiceImpl implements TripService {
                 .map(tripRequest -> {
                     List<TripPlan> plans = tripPlanRepository
                             .findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequest.getId());
-                        TripResponse response = toResponse(tripRequest, plans);
-                        response.setEstimatedCost(
-                            estimateCost(plans.size(), Boolean.TRUE.equals(tripRequest.getPickupRequired())));
-                        return response;
+                        return toResponse(tripRequest, plans);
                 })
                 .collect(Collectors.toList());
     }
@@ -236,6 +230,20 @@ public class TripServiceImpl implements TripService {
         }
         response.setStatus(tripRequest.getStatus());
         response.setCreatedAt(tripRequest.getCreatedAt());
+        // The cost the server stored when the trip was created / seats were
+        // booked is the source of truth (it is also what payment charges).
+        // Recomputing it from the number of planned places would show a seat
+        // on a scheduled group trip, or a package, as Rs 0 since neither has
+        // planned places. Fall back only for old rows that never stored one.
+        response.setEstimatedCost(tripRequest.getEstimatedCost() != null
+                ? tripRequest.getEstimatedCost()
+                : estimateCost(plans.size(), Boolean.TRUE.equals(tripRequest.getPickupRequired())));
+        if (tripRequest.getDeparture() != null) {
+            response.setDepartureId(tripRequest.getDeparture().getId());
+            response.setDepartureTitle(tripRequest.getDeparture().getTitle());
+            response.setDepartureStartDate(tripRequest.getDeparture().getStartDate());
+            response.setSeats(tripRequest.getRequestedGroupSize());
+        }
 
         List<TripPlanItemResponse> planResponses = plans.stream().map(plan -> {
             TripPlanItemResponse item = new TripPlanItemResponse();

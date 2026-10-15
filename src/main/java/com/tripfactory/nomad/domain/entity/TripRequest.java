@@ -43,6 +43,15 @@ public class TripRequest {
     @JoinColumn(name = "group_id")
     private TripGroup group;
 
+    // Set when this booking is a seat on a scheduled stranger-group trip.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departure_id")
+    private GroupDeparture departure;
+
+    // While an unpaid departure booking waits for payment, its seats are held
+    // until this moment; after that they are released to other travellers.
+    private LocalDateTime seatHoldUntil;
+
     @Column(nullable = false)
     private String city;
 
