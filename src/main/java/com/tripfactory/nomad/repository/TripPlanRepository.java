@@ -9,4 +9,6 @@ import com.tripfactory.nomad.domain.entity.TripPlan;
 public interface TripPlanRepository extends JpaRepository<TripPlan, Long> {
 
     List<TripPlan> findByTripRequestIdOrderByDayNumberAscStartTimeAsc(Long tripRequestId);
+
+    void deleteByTripRequestId(Long tripRequestId);
 }

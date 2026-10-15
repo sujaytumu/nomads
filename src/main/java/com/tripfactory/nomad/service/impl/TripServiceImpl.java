@@ -5,12 +5,16 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tripfactory.nomad.api.dto.ItineraryOptionResponse;
+import com.tripfactory.nomad.api.dto.ItineraryOptionsResponse;
 import com.tripfactory.nomad.api.dto.TripCreateRequest;
 import com.tripfactory.nomad.api.dto.TripPlanItemResponse;
 import com.tripfactory.nomad.api.dto.TripResponse;
@@ -26,6 +30,7 @@ import com.tripfactory.nomad.domain.enums.WeekendType;
 import com.tripfactory.nomad.repository.PlaceRepository;
 import com.tripfactory.nomad.repository.TripGroupRepository;
 import com.tripfactory.nomad.repository.TripPlanRepository;
+import com.tripfactory.nomad.repository.TripRouteRepository;
 import com.tripfactory.nomad.repository.TripRequestRepository;
 import com.tripfactory.nomad.repository.UserRepository;
 import com.tripfactory.nomad.service.NotificationService;
@@ -43,12 +48,16 @@ public class TripServiceImpl implements TripService {
 
     private static final BigDecimal BASE_COST_PER_PLACE = new BigDecimal("500");
     private static final BigDecimal PICKUP_COST = new BigDecimal("300");
+    private static final int MIN_PLACES = 1;
+    private static final int MAX_PLACES_PER_DAY = 4;
 
     private final UserRepository userRepository;
     private final PlaceRepository placeRepository;
     private final TripGroupRepository tripGroupRepository;
     private final TripRequestRepository tripRequestRepository;
     private final TripPlanRepository tripPlanRepository;
+    private final TripRouteRepository tripRouteRepository;
+    private final ItineraryPdfGenerator itineraryPdfGenerator;
     private final NotificationService notificationService;
 
     @Override
@@ -126,7 +135,7 @@ public class TripServiceImpl implements TripService {
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
         List<TripPlan> plans = tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequestId);
         TripResponse response = toResponse(tripRequest, plans);
-        response.setEstimatedCost(estimateCost(plans.size(), Boolean.TRUE.equals(tripRequest.getPickupRequired())));
+        response.setEstimatedCost(effectiveCost(tripRequest, plans));
         return response;
     }
 
@@ -137,11 +146,153 @@ public class TripServiceImpl implements TripService {
                     List<TripPlan> plans = tripPlanRepository
                             .findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequest.getId());
                         TripResponse response = toResponse(tripRequest, plans);
-                        response.setEstimatedCost(
-                            estimateCost(plans.size(), Boolean.TRUE.equals(tripRequest.getPickupRequired())));
+                        response.setEstimatedCost(effectiveCost(tripRequest, plans));
                         return response;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItineraryOptionsResponse getItineraryOptions(Long tripRequestId) {
+        TripRequest trip = findTrip(tripRequestId);
+        List<TripPlan> plans = tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequestId);
+
+        ItineraryOptionsResponse response = new ItineraryOptionsResponse();
+        response.setTripRequestId(trip.getId());
+        response.setMinPlaces(MIN_PLACES);
+        response.setMaxPlaces(dayCount(trip) * MAX_PLACES_PER_DAY);
+        response.setCostPerPlace(BASE_COST_PER_PLACE);
+        response.setPickupCost(PICKUP_COST);
+        response.setPickupRequired(Boolean.TRUE.equals(trip.getPickupRequired()));
+
+        // Once payment has started the price is fixed, and package trips have
+        // no day-by-day itinerary at all - so there is nothing to choose.
+        boolean editable = trip.getStatus() == TripStatus.PLANNED && !plans.isEmpty();
+        response.setEditable(editable);
+        if (!editable) {
+            response.setOptions(List.of());
+            return response;
+        }
+
+        Set<Long> selected = plans.stream()
+                .map(plan -> plan.getPlace().getId())
+                .collect(Collectors.toSet());
+        User user = trip.getUser();
+        boolean hasHome = user.getLatitude() != null && user.getLongitude() != null;
+        double homeLat = hasHome ? user.getLatitude() : 0d;
+        double homeLon = hasHome ? user.getLongitude() : 0d;
+
+        List<Place> ranked = rankPlaces(placeRepository.findByCityIgnoreCase(trip.getCity()), homeLat, homeLon,
+                trip.getInterest());
+        List<ItineraryOptionResponse> options = ranked.stream().map(place -> {
+            ItineraryOptionResponse option = new ItineraryOptionResponse();
+            option.setPlaceId(place.getId());
+            option.setName(place.getName());
+            option.setCategory(place.getCategory());
+            option.setRating(place.getRating());
+            option.setImageUrl(place.getImageUrl());
+            if (hasHome) {
+                option.setDistanceFromHomeKm(
+                        GeoUtils.haversineKm(homeLat, homeLon, place.getLatitude(), place.getLongitude()));
+            }
+            option.setSelected(selected.contains(place.getId()));
+            return option;
+        }).collect(Collectors.toList());
+        response.setOptions(options);
+        return response;
+    }
+
+    @Override
+    @Transactional
+    public TripResponse updateItinerary(Long tripRequestId, List<Long> placeIds) {
+        TripRequest trip = findTrip(tripRequestId);
+
+        // Changing the stops changes the price. Once an order exists for the
+        // old price it could still be paid, so only unpaid, not-yet-started
+        // trips can be edited.
+        if (trip.getStatus() != TripStatus.PLANNED) {
+            throw new BadRequestException("The itinerary can only be changed before payment has started");
+        }
+        if (tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequestId).isEmpty()) {
+            throw new BadRequestException("This trip has no day-by-day itinerary to change");
+        }
+
+        List<Long> ids = placeIds == null
+                ? List.of()
+                : placeIds.stream().filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        int max = dayCount(trip) * MAX_PLACES_PER_DAY;
+        if (ids.size() < MIN_PLACES) {
+            throw new BadRequestException("Choose at least " + MIN_PLACES + " place");
+        }
+        if (ids.size() > max) {
+            throw new BadRequestException("You can choose at most " + max + " places for this trip");
+        }
+
+        Map<Long, Place> found = placeRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Place::getId, place -> place));
+        List<Place> chosen = new ArrayList<>();
+        for (Long id : ids) {
+            Place place = found.get(id);
+            if (place == null) {
+                throw new BadRequestException("Place " + id + " does not exist");
+            }
+            if (trip.getCity() == null || !trip.getCity().equalsIgnoreCase(place.getCity())) {
+                throw new BadRequestException(place.getName() + " is not in " + trip.getCity());
+            }
+            chosen.add(place);
+        }
+
+        User user = trip.getUser();
+        if (user.getLatitude() == null || user.getLongitude() == null) {
+            throw new BadRequestException("Your profile location is needed to plan the route");
+        }
+
+        int perDay = (int) Math.ceil((double) chosen.size() / dayCount(trip));
+        // Cached routes belong to the old stops, so they go too.
+        tripRouteRepository.deleteByTripRequestId(tripRequestId);
+        tripPlanRepository.deleteByTripRequestId(tripRequestId);
+        List<TripPlan> plans = buildPlans(trip, chosen, chosen.size(), perDay);
+        tripPlanRepository.saveAll(plans);
+
+        trip.setEstimatedCost(estimateCost(plans.size(), Boolean.TRUE.equals(trip.getPickupRequired())));
+        TripRequest saved = tripRequestRepository.save(trip);
+
+        TripResponse response = toResponse(saved, plans);
+        response.setEstimatedCost(saved.getEstimatedCost());
+        return response;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] generateItineraryPdf(Long tripRequestId) {
+        TripRequest trip = findTrip(tripRequestId);
+        List<TripPlan> plans = tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequestId);
+        if (plans.isEmpty()) {
+            throw new BadRequestException("This trip has no day-by-day itinerary to export");
+        }
+        return itineraryPdfGenerator.generate(trip, plans, effectiveCost(trip, plans));
+    }
+
+    private TripRequest findTrip(Long tripRequestId) {
+        return tripRequestRepository.findById(tripRequestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
+    }
+
+    private int dayCount(TripRequest trip) {
+        return trip.getWeekendType() == WeekendType.TWO_DAY ? 2 : 1;
+    }
+
+    /**
+     * The price saved on the trip is what the customer is actually charged
+     * (package trips have no stops to count, so recomputing from stops would
+     * show the wrong amount). Only fall back to the formula if nothing is saved.
+     */
+    private BigDecimal effectiveCost(TripRequest trip, List<TripPlan> plans) {
+        if (trip.getEstimatedCost() != null) {
+            return trip.getEstimatedCost();
+        }
+        return estimateCost(plans.size(), Boolean.TRUE.equals(trip.getPickupRequired()));
     }
 
     private List<Place> rankPlaces(List<Place> places, double userLat, double userLon,

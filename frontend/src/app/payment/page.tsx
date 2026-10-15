@@ -1,11 +1,23 @@
 "use client";
 
+import Link from "next/link";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import ProtectedPage from "@/components/ProtectedPage";
+import TripSteps from "@/components/TripSteps";
+import { api } from "@/lib/api";
 import { createPayment, verifyPayment } from "@/lib/paymentApi";
 import { loadRazorpayScript, RazorpayHandlerResponse } from "@/lib/razorpay";
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
+import { fetchTrip } from "@/lib/tripApi";
+import {
+  formatCost,
+  isPayable,
+  statusMeta,
+  tripKind,
+  tripTitle,
+  type TripLike,
+} from "@/lib/tripStatus";
 
 export default function PaymentPage() {
   return (
@@ -16,89 +28,93 @@ export default function PaymentPage() {
 }
 
 function PaymentPageInner() {
-  const [tripId, setTripId] = useState("");
-  const [amount, setAmount] = useState("");
-  const [trips, setTrips] = useState<any[]>([]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromQuery = searchParams?.get("tripRequestId") ?? "";
+
+  const [trips, setTrips] = useState<TripLike[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [tripId, setTripId] = useState(fromQuery);
+  const [paying, setPaying] = useState(false);
+  const [paid, setPaid] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const keyId = (process as any)?.env?.NEXT_PUBLIC_RAZORPAY_KEY_ID || "";
-  const searchParams = useSearchParams();
 
+  // Load the user's trips. If we arrived with ?tripRequestId=X (from the
+  // planner, a package enrollment or My Trips) make sure that exact trip is
+  // present with its real status and cost, then select it.
   useEffect(() => {
-    try {
-      const pre = searchParams?.get('prefillAmount');
-      const tripReq = searchParams?.get('tripRequestId');
-      if (pre) setAmount(String(pre));
-      if (tripReq) setTripId(String(tripReq));
-    } catch (e) {}
-  }, [searchParams]);
-
-  // When trips are loaded, or tripId changes, prefill amount from any available field
-  useEffect(() => {
-    if (tripId && trips.length > 0) {
-      const t = trips.find(x => String(x.tripRequestId) === String(tripId) || String(x.id) === String(tripId));
-      if (t) {
-        if (typeof t.estimatedCost !== 'undefined') setAmount(String(t.estimatedCost));
-        else if (typeof t.amount !== 'undefined') setAmount(String(t.amount));
-        else if (typeof t.price !== 'undefined') setAmount(String(t.price));
-        else setAmount("");
-      }
-    }
-    // eslint-disable-next-line
-  }, [trips, tripId]);
-
-  useEffect(() => {
-    let mounted = true;
+    let active = true;
     (async () => {
+      let list: TripLike[] = [];
+      let failed = false;
       try {
-        const { data } = await api.get('/api/trips/me');
-        let tripsData = data || [];
-        // If tripId is set from query and not in trips, add a placeholder booking
-        const tripReq = searchParams?.get('tripRequestId');
-        const pre = searchParams?.get('prefillAmount');
-        if (tripReq && !tripsData.some((t: any) => String(t.tripRequestId) === String(tripReq) || String(t.id) === String(tripReq))) {
-          const placeholder = {
-            id: tripReq,
-            tripRequestId: tripReq,
-            city: '',
-            status: 'ENROLLED',
-            estimatedCost: pre || amount || '',
-          };
-          tripsData = [placeholder, ...tripsData];
-        }
-        if (mounted) setTrips(tripsData);
-        // Auto-select the booking if tripReq is present
-        if (tripReq && mounted) {
-          setTimeout(() => {
-            setTripId(String(tripReq));
-          }, 0);
-        }
-      } catch (e) {
-        // ignore — user might be unauthenticated
+        const { data } = await api.get("/api/trips/me");
+        list = data || [];
+      } catch {
+        failed = true;
       }
+      if (fromQuery && !list.some((t) => String(t.tripRequestId) === fromQuery)) {
+        try {
+          list = [await fetchTrip(Number(fromQuery)), ...list];
+          failed = false;
+        } catch {
+          // Not found or not ours - the page falls back to the picker below.
+        }
+      }
+      if (!active) return;
+      setTrips(list);
+      setLoadError(failed && list.length === 0);
+      setTripId(fromQuery);
+      setLoaded(true);
     })();
-    return () => { mounted = false; };
-  }, []);
+    return () => {
+      active = false;
+    };
+  }, [fromQuery]);
 
-  const handleCreate = async () => {
+  const payable = useMemo(() => trips.filter((t) => isPayable(t.status)), [trips]);
+  const selected = useMemo(
+    () => trips.find((t) => String(t.tripRequestId) === tripId) ?? null,
+    [trips, tripId]
+  );
+  const selectedPayable = !!selected && isPayable(selected.status);
+  const hasCost = selected?.estimatedCost !== null && selected?.estimatedCost !== undefined;
+
+  const markStatus = (id: number, status: string) =>
+    setTrips((prev) => prev.map((t) => (Number(t.tripRequestId) === id ? { ...t, status } : t)));
+
+  // Payment is done: the trip is booked, so take the user to My Trips, where
+  // it now appears under "Booked" (the banner there confirms which trip).
+  const finish = (id: number) => {
+    markStatus(id, "CONFIRMED");
+    setPaid(true);
+    setPaying(false);
+    router.replace(`/bookings?paid=${id}`);
+  };
+
+  const handlePay = async () => {
     setError(null);
-    if (!tripId || Number(tripId) <= 0) {
-      setError("Missing or invalid Trip Request ID. Please enroll first or provide a valid Trip Request ID.");
+    if (!selected || !selectedPayable) {
+      setError("Choose a trip to pay for first.");
       return;
     }
+    const id = Number(selected.tripRequestId);
+    setPaying(true);
 
     let data;
     try {
-      data = await createPayment({ tripRequestId: Number(tripId) });
+      data = await createPayment({ tripRequestId: id });
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || "Payment creation failed");
+      setError(e?.response?.data?.message || e?.message || "Couldn't start the payment");
+      setPaying(false);
       return;
     }
 
     setOrderId(data.razorpayOrderId);
-    setStatus(data.paymentStatus);
-    setAmount(String(data.amount));
+    markStatus(id, "PAYMENT_PENDING");
 
     // Dev-mode fake order (backend NOMAD_DEV_PAYMENTS=true) - no real Razorpay
     // involved, complete the booking directly instead of opening real checkout
@@ -109,20 +125,28 @@ function PaymentPageInner() {
           razorpayPaymentId: "dev_payment_" + Date.now(),
           razorpaySignature: "dev_signature",
         });
-        setStatus(verified.paymentStatus);
+        if (verified.paymentStatus === "CAPTURED") {
+          finish(id);
+        } else {
+          setError("Payment wasn't confirmed. Please try again.");
+          setPaying(false);
+        }
       } catch (e: any) {
         setError(e?.response?.data?.message || e?.message || "Payment confirmation failed");
+        setPaying(false);
       }
       return;
     }
 
-    const loaded = await loadRazorpayScript();
-    if (!loaded) {
-      setError("Razorpay SDK failed to load");
+    const sdkLoaded = await loadRazorpayScript();
+    if (!sdkLoaded) {
+      setError("The payment window couldn't load. Check your connection and try again.");
+      setPaying(false);
       return;
     }
     if (!keyId) {
-      setError("Missing NEXT_PUBLIC_RAZORPAY_KEY_ID");
+      setError("Payments aren't configured (missing NEXT_PUBLIC_RAZORPAY_KEY_ID).");
+      setPaying(false);
       return;
     }
 
@@ -131,15 +155,29 @@ function PaymentPageInner() {
       amount: Number(data.amount) * 100,
       currency: "INR",
       name: "NOMAD",
-      description: "Weekend Trip Payment",
+      description: `${tripTitle(selected)} (#${id})`,
       order_id: data.razorpayOrderId,
       handler: async (response: RazorpayHandlerResponse) => {
-        const verified = await verifyPayment({
-          razorpayOrderId: response.razorpay_order_id,
-          razorpayPaymentId: response.razorpay_payment_id,
-          razorpaySignature: response.razorpay_signature,
-        });
-        setStatus(verified.paymentStatus);
+        try {
+          const verified = await verifyPayment({
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+          });
+          if (verified.paymentStatus === "CAPTURED") {
+            finish(id);
+          } else {
+            setError("Payment wasn't confirmed. If you were charged, it will show up in My Trips shortly.");
+            setPaying(false);
+          }
+        } catch (e: any) {
+          setError(e?.response?.data?.message || "We couldn't confirm your payment. Check My Trips before retrying.");
+          setPaying(false);
+        }
+      },
+      modal: {
+        // Closing the window without paying leaves the trip awaiting payment.
+        ondismiss: () => setPaying(false),
       },
       theme: {
         color: "#4f6cff",
@@ -150,65 +188,148 @@ function PaymentPageInner() {
     razorpay.open();
   };
 
+  const meta = statusMeta(selected?.status);
+
   return (
     <ProtectedPage>
       <div className="section py-12 space-y-6">
-        <div className="card p-6 space-y-4">
-        <h2 className="text-2xl font-bold">Payment</h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Select Booking</span>
-            <select
-              value={tripId}
-              onChange={(e) => {
-                const v = e.target.value;
-                setTripId(v);
-                const t = trips.find(x => String(x.tripRequestId) === v || String(x.id) === v);
-                if (t) {
-                  if (typeof t.estimatedCost !== 'undefined') setAmount(String(t.estimatedCost));
-                  else if (typeof t.amount !== 'undefined') setAmount(String(t.amount));
-                  else if (typeof t.price !== 'undefined') setAmount(String(t.price));
-                  else setAmount("");
-                }
-              }}
-              className="border rounded-xl px-4 py-2"
-            >
-              <option value="">-- Choose a booking --</option>
-              {trips.map((t) => (
-                <option key={t.tripRequestId || t.id} value={t.tripRequestId || t.id}>
-                  {`#${t.tripRequestId || t.id} — ${t.city || 'unknown'} • ${t.status}`}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Amount (INR)</span>
-            <input
-              value={amount}
-              readOnly
-              disabled
-              placeholder="Auto-filled when you select a booking"
-              className="border rounded-xl px-4 py-2 bg-slate-900 text-slate-200 cursor-not-allowed"
-            />
-          </label>
-        </div>
-            <div className="flex gap-3">
-              <button className="btn-primary" onClick={handleCreate} disabled={!tripId || Number(tripId) <= 0}>Pay with Razorpay</button>
+        <div className="card p-6 space-y-5">
+          <TripSteps current={paid ? 4 : 3} tripId={selected?.tripRequestId ?? (tripId || null)} />
+          <div>
+            <h2 className="text-2xl font-bold">Payment</h2>
+            <p className="text-sm text-slate-300">Pay for a trip to confirm your booking.</p>
+          </div>
+
+          {!loaded && <p className="text-sm text-slate-400">Loading your trips…</p>}
+
+          {loaded && loadError && (
+            <p className="text-sm text-red-400">
+              Couldn't load your trips. Refresh the page, or open <Link href="/bookings" className="underline">My Trips</Link>.
+            </p>
+          )}
+
+          {/* Success: shown only for the moment before the redirect to My Trips lands */}
+          {paid && selected && (
+            <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-5 space-y-2" role="status">
+              <p className="text-lg font-semibold text-green-300">Payment received — your trip is booked 🎉</p>
+              <p className="text-sm text-slate-300">
+                Taking you to <Link href="/bookings" className="underline">My Trips</Link>…
+              </p>
             </div>
-            {/* Show warning only if no bookings and no tripId from query */}
-            {trips.length === 0 && !tripId && (
-              <div className="space-y-2">
-                <p className="text-sm text-red-400">No bookings found. Create a booking from the Trip Planner or enroll in a package first.</p>
-                <div className="flex gap-2">
-                  <a href="/trip-planner" className="btn-secondary">Go to Trip Planner</a>
-                  <a href="/packages" className="btn-secondary">View Packages</a>
-                </div>
+          )}
+
+          {/* Arrived for a trip that can't be paid for (already booked / cancelled) */}
+          {loaded && !paid && selected && !selectedPayable && (
+            <div className="rounded-xl border border-slate-700 p-5 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold">
+                  {tripTitle(selected)} (#{selected.tripRequestId})
+                </p>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${meta.badge}`}>{meta.label}</span>
               </div>
-            )}
-        {/* Show order/status only if a booking is selected and order exists */}
-        {orderId && tripId && <p className="text-sm text-slate-300">Order ID: {orderId}</p>}
-        {status && tripId && <p className="text-sm text-slate-300">Status: {status}</p>}
-        {error && <p className="text-sm text-red-400">{error}</p>}
+              <p className="text-sm text-slate-300">
+                {selected.status === "CONFIRMED"
+                  ? "This trip is already booked and paid — there's nothing more to pay."
+                  : "This trip was cancelled, so it can't be paid for. You can plan a new one."}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {selected.status === "CONFIRMED" ? (
+                  <Link href={`/trip-summary?tripId=${selected.tripRequestId}`} className="btn-primary">View trip</Link>
+                ) : (
+                  <Link href="/trip-planner" className="btn-primary">Plan a new trip</Link>
+                )}
+                <Link href="/bookings" className="btn-outline">My trips</Link>
+              </div>
+            </div>
+          )}
+
+          {/* Pay form */}
+          {loaded && !paid && !loadError && payable.length > 0 && (selectedPayable || !selected) && (
+            <div className="space-y-4">
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold">Trip to pay for</span>
+                <select
+                  value={selectedPayable ? tripId : ""}
+                  onChange={(e) => {
+                    setTripId(e.target.value);
+                    setError(null);
+                  }}
+                  disabled={paying}
+                  className="w-full border rounded-xl px-4 py-2"
+                >
+                  <option value="">-- Choose a trip --</option>
+                  {payable.map((t) => (
+                    <option key={t.tripRequestId} value={String(t.tripRequestId)}>
+                      {`#${t.tripRequestId} — ${tripTitle(t)} · ${formatCost(t.estimatedCost)} · ${statusMeta(t.status).label}`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {selected && selectedPayable && (
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 flex flex-wrap items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold">{tripTitle(selected)}</p>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${meta.badge}`}>{meta.label}</span>
+                    </div>
+                    <p className="text-sm text-slate-400">
+                      #{selected.tripRequestId} · {tripKind(selected)}
+                    </p>
+                    <Link
+                      href={`/trip-summary?tripId=${selected.tripRequestId}`}
+                      className="text-sm text-brand-400 hover:underline"
+                    >
+                      Review trip details
+                    </Link>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Amount</p>
+                    <p className="text-2xl font-bold">{formatCost(selected.estimatedCost)}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  className="btn-primary"
+                  onClick={handlePay}
+                  disabled={!selected || !selectedPayable || !hasCost || paying}
+                >
+                  {paying
+                    ? "Processing…"
+                    : selected && hasCost
+                      ? `Pay ${formatCost(selected.estimatedCost)}`
+                      : "Pay"}
+                </button>
+                <Link href="/bookings" className="btn-outline">Back to my trips</Link>
+              </div>
+
+              {selected && selectedPayable && !hasCost && (
+                <p className="text-sm text-yellow-300">This trip has no price yet, so it can't be paid for.</p>
+              )}
+              {orderId && paying && <p className="text-xs text-slate-500">Order {orderId}</p>}
+            </div>
+          )}
+
+          {/* Nothing to pay for */}
+          {loaded && !paid && !loadError && payable.length === 0 && !selected && (
+            <div className="rounded-xl border border-slate-800 p-6 text-center space-y-3">
+              <p className="text-slate-300">Nothing to pay for right now.</p>
+              <p className="text-sm text-slate-400">Plan a trip or pick a package, then come back here to book it.</p>
+              <div className="flex justify-center gap-3">
+                <Link href="/trip-planner" className="btn-primary">Plan a trip</Link>
+                <Link href="/packages" className="btn-outline">View packages</Link>
+                <Link href="/bookings" className="btn-outline">My trips</Link>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3" role="alert">
+              {error}
+            </p>
+          )}
         </div>
       </div>
     </ProtectedPage>

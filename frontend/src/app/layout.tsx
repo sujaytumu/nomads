@@ -3,6 +3,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
 import TopNav from "@/components/TopNav";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "NOMAD – Smart Weekend Travel",
@@ -18,21 +19,17 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="min-h-screen">
-          <header className="bg-slate-900 border-b border-slate-800">
-            <div className="section flex items-center justify-between py-5">
-              <div>
-                <h1 className="text-xl font-bold text-brand-700">NOMAD</h1>
-                <p className="text-sm text-slate-400">Smart Weekend Travel & Assistance</p>
-              </div>
+          <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/95 backdrop-blur">
+            <div className="section flex h-16 items-center justify-between">
+              <a href="/" className="leading-tight">
+                <span className="block text-xl font-bold text-brand-700">NOMAD</span>
+                <span className="hidden text-xs text-slate-400 sm:block">Smart Weekend Travel & Assistance</span>
+              </a>
               <TopNav />
             </div>
           </header>
           <main>{children}</main>
-          <footer className="border-t border-slate-800 bg-slate-900 mt-16">
-            <div className="section py-8 text-sm text-slate-400">
-              © 2026 NOMAD by Tripfactory Internship Travelathon
-            </div>
-          </footer>
+          <Footer />
         </div>
       </body>
     </html>

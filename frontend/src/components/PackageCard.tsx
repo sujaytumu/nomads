@@ -22,7 +22,7 @@ export default function PackageCard({ pkg, saved, onSavedChange }: Props) {
     setLoading(true);
     try {
       const { data } = await api.post(`/api/packages/${pkg.id}/enroll`, { amount: Number(pkg.price) });
-      router.push(`/payment?prefillAmount=${data.amount}&tripRequestId=${data.tripRequestId}`);
+      router.push(`/payment?tripRequestId=${data.tripRequestId}`);
       setLoading(false);
       return;
     } catch (e: any) {
@@ -49,7 +49,7 @@ export default function PackageCard({ pkg, saved, onSavedChange }: Props) {
           <div className="text-xl font-bold">₹{pkg.price}</div>
           <div className="flex gap-2">
             <Link href={`/packages/${pkg.id}`} className="btn-outline">Explore</Link>
-            <button className="btn-primary" onClick={handleEnroll} disabled={loading}>{loading ? 'Enrolling…' : 'Enroll'}</button>
+            <button className="btn-primary" onClick={handleEnroll} disabled={loading}>{loading ? 'Enrolling…' : 'Enroll & Pay'}</button>
           </div>
         </div>
       </div>
