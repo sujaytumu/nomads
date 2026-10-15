@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import ProtectedPage from "@/components/ProtectedPage";
 import TripSteps from "@/components/TripSteps";
@@ -28,6 +28,7 @@ export default function PaymentPage() {
 }
 
 function PaymentPageInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const fromQuery = searchParams?.get("tripRequestId") ?? "";
 
@@ -85,10 +86,13 @@ function PaymentPageInner() {
   const markStatus = (id: number, status: string) =>
     setTrips((prev) => prev.map((t) => (Number(t.tripRequestId) === id ? { ...t, status } : t)));
 
+  // Payment is done: the trip is booked, so take the user to My Trips, where
+  // it now appears under "Booked" (the banner there confirms which trip).
   const finish = (id: number) => {
     markStatus(id, "CONFIRMED");
     setPaid(true);
     setPaying(false);
+    router.replace(`/bookings?paid=${id}`);
   };
 
   const handlePay = async () => {
@@ -204,20 +208,13 @@ function PaymentPageInner() {
             </p>
           )}
 
-          {/* Success */}
+          {/* Success: shown only for the moment before the redirect to My Trips lands */}
           {paid && selected && (
-            <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-5 space-y-3" role="status">
+            <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-5 space-y-2" role="status">
               <p className="text-lg font-semibold text-green-300">Payment received — your trip is booked 🎉</p>
               <p className="text-sm text-slate-300">
-                {tripTitle(selected)} (#{selected.tripRequestId}) · {formatCost(selected.estimatedCost)}. A
-                confirmation has been sent to you.
+                Taking you to <Link href="/bookings" className="underline">My Trips</Link>…
               </p>
-              <div className="flex flex-wrap gap-3">
-                <Link href={`/trip-summary?tripId=${selected.tripRequestId}`} className="btn-primary">
-                  View trip
-                </Link>
-                <Link href="/bookings" className="btn-outline">My trips</Link>
-              </div>
             </div>
           )}
 

@@ -2,7 +2,10 @@ package com.tripfactory.nomad.api.controller;
 
 import java.util.List;
 
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,12 +15,15 @@ import com.tripfactory.nomad.domain.entity.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 
+import com.tripfactory.nomad.api.dto.ItineraryOptionsResponse;
+import com.tripfactory.nomad.api.dto.ItineraryUpdateRequest;
 import com.tripfactory.nomad.api.dto.TripCreateRequest;
 import com.tripfactory.nomad.api.dto.TripResponse;
 import com.tripfactory.nomad.api.dto.WeatherForecastResponse;
@@ -64,5 +70,31 @@ public class TripController {
     @PreAuthorize("@authz.canAccessTrip(#id)")
     public ResponseEntity<WeatherForecastResponse> getWeather(@PathVariable Long id) {
         return ResponseEntity.ok(weatherService.getForecastForTrip(id));
+    }
+
+    // Places the traveller can pick from, with the current selection marked.
+    @GetMapping("/{id}/itinerary/options")
+    @PreAuthorize("@authz.canAccessTrip(#id)")
+    public ResponseEntity<ItineraryOptionsResponse> getItineraryOptions(@PathVariable Long id) {
+        return ResponseEntity.ok(tripService.getItineraryOptions(id));
+    }
+
+    // Rebuilds the day-by-day plan (and price) from the chosen places.
+    @PutMapping("/{id}/itinerary")
+    @PreAuthorize("@authz.canAccessTrip(#id)")
+    public ResponseEntity<TripResponse> updateItinerary(@PathVariable Long id,
+            @Valid @RequestBody ItineraryUpdateRequest request) {
+        return ResponseEntity.ok(tripService.updateItinerary(id, request.getPlaceIds()));
+    }
+
+    @GetMapping("/{id}/itinerary.pdf")
+    @PreAuthorize("@authz.canAccessTrip(#id)")
+    public ResponseEntity<byte[]> downloadItineraryPdf(@PathVariable Long id) {
+        byte[] pdf = tripService.generateItineraryPdf(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename("nomad-itinerary-" + id + ".pdf").build().toString())
+                .body(pdf);
     }
 }

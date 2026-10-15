@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
+import DownloadItineraryButton from "@/components/DownloadItineraryButton";
 import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
 import { cancelBooking } from "@/lib/paymentApi";
@@ -45,6 +47,17 @@ const SECTIONS: { key: string; title: string; subtitle: string; match: (s: strin
 ];
 
 export default function MyTripsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MyTripsPageInner />
+    </Suspense>
+  );
+}
+
+function MyTripsPageInner() {
+  const searchParams = useSearchParams();
+  // Set by the payment page right after a successful payment: ?paid=<tripId>
+  const [paidId, setPaidId] = useState<number | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -82,6 +95,18 @@ export default function MyTripsPage() {
   useEffect(() => {
     load();
   }, []);
+
+  // Remember the just-paid trip for the banner, then drop the parameter from
+  // the address so a refresh doesn't show the banner again.
+  useEffect(() => {
+    const paid = Number(searchParams?.get("paid"));
+    if (paid > 0) {
+      setPaidId(paid);
+      window.history.replaceState(null, "", "/bookings");
+    }
+  }, [searchParams]);
+
+  const paidTrip = paidId ? trips.find((t) => t.tripRequestId === paidId) : undefined;
 
   const grouped = useMemo(() => {
     const newestFirst = [...trips].sort(
@@ -140,6 +165,29 @@ export default function MyTripsPage() {
           )}
         </div>
 
+        {paidId && (
+          <div
+            className="rounded-2xl border border-green-500/30 bg-green-500/10 p-5 flex flex-wrap items-center justify-between gap-4"
+            role="status"
+          >
+            <div>
+              <p className="text-lg font-semibold text-green-300">Payment received — your trip is booked 🎉</p>
+              <p className="text-sm text-slate-300">
+                {paidTrip
+                  ? `${tripTitle(paidTrip)} (#${paidTrip.tripRequestId}) · ${formatCost(paidTrip.estimatedCost)}. A confirmation is on its way to you.`
+                  : `Trip #${paidId} is now confirmed. A confirmation is on its way to you.`}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-start gap-3">
+              {paidTrip && tripKind(paidTrip) === "Custom itinerary" && (
+                <DownloadItineraryButton tripId={paidId} className="btn-primary" />
+              )}
+              <Link href={`/trip-summary?tripId=${paidId}`} className="btn-outline">View trip</Link>
+              <button type="button" className="btn-outline" onClick={() => setPaidId(null)}>Dismiss</button>
+            </div>
+          </div>
+        )}
+
         {!loading &&
           !loadError &&
           grouped.map((section) => (
@@ -155,7 +203,12 @@ export default function MyTripsPage() {
                 {section.items.map((trip) => {
                   const meta = statusMeta(trip.status);
                   return (
-                    <div key={trip.tripRequestId} className="card p-4 flex flex-wrap items-center justify-between gap-4">
+                    <div
+                      key={trip.tripRequestId}
+                      className={`card p-4 flex flex-wrap items-center justify-between gap-4 ${
+                        trip.tripRequestId === paidId ? "ring-2 ring-green-500/50" : ""
+                      }`}
+                    >
                       <div className="space-y-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-semibold">{tripTitle(trip)}</p>
@@ -178,6 +231,9 @@ export default function MyTripsPage() {
                         <Link href={`/trip-summary?tripId=${trip.tripRequestId}`} className="btn-outline">
                           View trip
                         </Link>
+                        {trip.status !== "CANCELLED" && tripKind(trip) === "Custom itinerary" && (
+                          <DownloadItineraryButton tripId={trip.tripRequestId} label="PDF" />
+                        )}
                         {isCancellable(trip.status) && (
                           <button
                             onClick={() => handleCancel(trip)}
