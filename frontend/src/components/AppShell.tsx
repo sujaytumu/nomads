@@ -221,7 +221,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile "More" sheet */}
       {open && (
-        <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] top-12 z-30 flex flex-col bg-slate-900 lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 top-12 z-30 flex flex-col bg-slate-900 pb-[calc(3.25rem+env(safe-area-inset-bottom))] lg:hidden">
           {nav}
           {account}
         </div>
