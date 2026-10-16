@@ -1,82 +1,93 @@
 "use client";
 
-import ExpenseSplitter from "@/components/ExpenseSplitter";
-import ProtectedPage from "@/components/ProtectedPage";
-import { fetchGroup, fetchGroupMembers } from "@/lib/groupApi";
-import { useState } from "react";
+import dynamic from "next/dynamic";
+import { Suspense, useEffect, useState } from "react";
 
-export default function GroupStatusPage() {
-  const [groupId, setGroupId] = useState("");
+import ExpenseSplitter from "@/components/ExpenseSplitter";
+import PageHeader from "@/components/PageHeader";
+import ProtectedPage from "@/components/ProtectedPage";
+import TripPicker from "@/components/TripPicker";
+import { fetchGroup, fetchGroupMembers } from "@/lib/groupApi";
+import { statusMeta } from "@/lib/tripStatus";
+import { useTripSelection } from "@/lib/useTripSelection";
+
+const GroupChat = dynamic(() => import("@/components/GroupChat"), { ssr: false });
+
+export default function GroupPage() {
+  return (
+    <Suspense fallback={null}>
+      <GroupInner />
+    </Suspense>
+  );
+}
+
+function GroupInner() {
+  // Only trips that were matched into a group have anything to show here.
+  const sel = useTripSelection((t: any) => !!t.groupId && t.status !== "CANCELLED");
+  const groupId = (sel.selected as any)?.groupId as number | undefined;
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<"people" | "chat" | "split">("people");
 
-  const handleFetch = async () => {
+  useEffect(() => {
+    setGroup(null);
+    setMembers([]);
     setError(null);
-    try {
-      const [groupData, memberData] = await Promise.all([
-        fetchGroup(Number(groupId)),
-        fetchGroupMembers(Number(groupId)),
-      ]);
-      setGroup(groupData);
-      setMembers(memberData);
-    } catch (err) {
-      setError("Failed to fetch group");
-    }
-  };
+    if (!groupId) return;
+    Promise.all([fetchGroup(groupId), fetchGroupMembers(groupId)])
+      .then(([g, m]) => {
+        setGroup(g);
+        setMembers(m);
+      })
+      .catch(() => setError("Couldn't load this group."));
+  }, [groupId]);
 
   return (
     <ProtectedPage>
-      <div className="section py-8 space-y-6">
-        <div className="card p-6 space-y-4">
-        <h2 className="text-2xl font-bold">Group Status</h2>
-        <div className="flex gap-3">
-          <input
-            value={groupId}
-            onChange={(e) => setGroupId(e.target.value)}
-            placeholder="Group ID"
-            className="border rounded-xl px-4 py-2"
-          />
-          <button className="btn-primary" onClick={handleFetch}>Fetch</button>
+      <div className="section space-y-6 py-8">
+        <PageHeader
+          title="Group"
+          subtitle="Travelling with others? See who's in your group, chat, and split costs. Groups form automatically when people pick the same city, interest and weekend."
+        />
+        <div className="card space-y-5 p-6">
+          <TripPicker trips={sel.trips} selected={sel.selected} onSelect={sel.select} loading={sel.loading} error={sel.error} onRetry={sel.reload} emptyText="None of your trips is in a group yet. When someone else plans the same city, interest and weekend, you'll be grouped together." />
+          {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
         </div>
-        {error && <p className="text-sm text-red-400">{error}</p>}
-      </div>
 
         {group && (
-          <div className="grid gap-6">
-            <div className="card p-6 space-y-2">
-              <p className="font-semibold">Group #{group.id}</p>
-              <p className="text-sm text-slate-300">City: {group.city}</p>
-              <p className="text-sm text-slate-300">Interest: {group.interest}</p>
-              <p className="text-sm text-slate-300">Weekend: {group.weekendType}</p>
-              <p className="text-sm text-slate-300">Status: {group.status}</p>
-              <p className="text-sm text-slate-300">Size: {group.size}</p>
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+              <span className="badge">{group.city}</span>
+              <span className="badge">{String(group.interest).toLowerCase()}</span>
+              <span className="badge">{String(group.weekendType).replace("_", " ").toLowerCase()}</span>
+              <span className="text-slate-400">{group.size} {group.size === 1 ? "traveller" : "travellers"}</span>
+            </div>
+            <div className="flex gap-2">
+              {([["people", "People"], ["chat", "Chat"], ["split", "Split costs"]] as const).map(([k, label]) => (
+                <button key={k} type="button" className={`btn btn-sm ${tab === k ? "btn-primary" : "btn-secondary"}`} onClick={() => setTab(k)}>{label}</button>
+              ))}
             </div>
 
-            <div className="card p-6 space-y-3">
-              <h3 className="text-lg font-semibold">Members</h3>
-              {members.length === 0 ? (
-                <p className="text-sm text-slate-400">No members found.</p>
-              ) : (
-                <div className="grid gap-3">
-                  {members.map((member) => (
-                    <div key={member.tripRequestId} className="flex items-center justify-between border rounded-xl p-3">
+            {tab === "people" && (
+              <div className="card space-y-3 p-6">
+                {members.length === 0 ? (
+                  <p className="text-sm text-slate-400">No members found.</p>
+                ) : (
+                  members.map((m) => (
+                    <div key={m.tripRequestId} className="flex items-center justify-between rounded-xl border border-slate-800 p-3">
                       <div>
-                        <p className="font-semibold">{member.name}</p>
-                        <p className="text-xs text-slate-400">
-                          {member.city} · {member.interestType}
-                        </p>
+                        <p className="font-semibold">{m.name}</p>
+                        <p className="text-xs text-slate-400">{m.city} · {String(m.interestType).toLowerCase()}</p>
                       </div>
-                      <span className="text-xs rounded-full border px-3 py-1 text-slate-300">
-                        {member.tripStatus}
-                      </span>
+                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusMeta(m.tripStatus).badge}`}>{statusMeta(m.tripStatus).label}</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <ExpenseSplitter groupId={group.id} />
+                  ))
+                )}
+              </div>
+            )}
+            {tab === "chat" && <GroupChat groupId={group.id} />}
+            {tab === "split" && <ExpenseSplitter groupId={group.id} />}
           </div>
         )}
       </div>
