@@ -55,7 +55,7 @@ export default function MapPage() {
   const orderedPlaces = optimizeRoute ? [...places].sort((a, b) => a.distanceKm - b.distanceKm) : places;
 
   return (
-    <div className="section py-12 space-y-6">
+    <div className="section py-8 space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Explore the Map</h2>
         <p className="text-slate-400 mt-1">Find places near you, filtered by what you're into.</p>
