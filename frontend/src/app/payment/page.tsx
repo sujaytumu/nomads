@@ -192,7 +192,7 @@ function PaymentPageInner() {
 
   return (
     <ProtectedPage>
-      <div className="section py-12 space-y-6">
+      <div className="section py-8 space-y-6">
         <div className="card p-6 space-y-5">
           <TripSteps current={paid ? 4 : 3} tripId={selected?.tripRequestId ?? (tripId || null)} />
           <div>
@@ -292,7 +292,7 @@ function PaymentPageInner() {
 
               <div className="flex flex-wrap items-center gap-3">
                 <button
-                  className="btn-primary"
+                  className="btn btn-primary"
                   onClick={handlePay}
                   disabled={!selected || !selectedPayable || !hasCost || paying}
                 >
@@ -303,6 +303,15 @@ function PaymentPageInner() {
                       : "Pay"}
                 </button>
                 <Link href="/bookings" className="btn-outline">Back to my trips</Link>
+              </div>
+
+              <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-400">
+                <p className="mb-1 font-semibold text-slate-200">What happens when you pay</p>
+                <ol className="list-decimal space-y-0.5 pl-5">
+                  <li>The payment window opens and you pay securely.</li>
+                  <li>The trip becomes <b className="text-green-300">Booked</b> and moves to My Trips.</li>
+                  <li>One email arrives with your itinerary PDF attached.</li>
+                </ol>
               </div>
 
               {selected && selectedPayable && !hasCost && (
