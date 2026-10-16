@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 const GroupChat = dynamic(() => import("@/components/GroupChat"), { ssr: false });
 import DownloadItineraryButton from "@/components/DownloadItineraryButton";
+import EmergencyCard from "@/components/EmergencyCard";
 import ItineraryEditor from "@/components/ItineraryEditor";
 import PackingChecklist from "@/components/PackingChecklist";
 import ShareTripButton from "@/components/ShareTripButton";
@@ -255,7 +256,12 @@ function TripSummaryPageInner() {
               </p>
             )}
 
-            {summary.status === "CONFIRMED" && <PackingChecklist tripId={summary.tripRequestId} />}
+            {summary.status === "CONFIRMED" && (
+              <div className="grid gap-6 lg:grid-cols-2 items-start">
+                <PackingChecklist tripId={summary.tripRequestId} />
+                <EmergencyCard tripId={summary.tripRequestId} city={summary.city} />
+              </div>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-[3fr_2fr] items-start">
               {/* Itinerary */}
