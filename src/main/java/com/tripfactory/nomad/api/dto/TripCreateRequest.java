@@ -24,4 +24,5 @@ public class TripCreateRequest {
     private Integer groupSize;
     private Double userLatitude;
     private Double userLongitude;
+    private java.time.LocalDate tripDate;
 }

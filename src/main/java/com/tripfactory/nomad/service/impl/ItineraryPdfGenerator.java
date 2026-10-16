@@ -167,6 +167,9 @@ public class ItineraryPdfGenerator {
 
     private String subtitle(TripRequest trip, List<TripPlan> plans) {
         List<String> parts = new ArrayList<>();
+        if (trip.getTripDate() != null) {
+            parts.add(trip.getTripDate().format(DateTimeFormatter.ofPattern("EEE d MMM yyyy", Locale.ENGLISH)));
+        }
         if (plans.isEmpty()) {
             parts.add("Package getaway");
         } else if (trip.getWeekendType() != null) {

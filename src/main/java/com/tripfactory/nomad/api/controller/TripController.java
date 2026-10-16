@@ -95,6 +95,14 @@ public class TripController {
         return ResponseEntity.ok(java.util.Map.of("sent", sent));
     }
 
+    // Sets or changes the day the traveller plans to go.
+    @PutMapping("/{id}/date")
+    @PreAuthorize("@authz.canAccessTrip(#id)")
+    public ResponseEntity<TripResponse> updateTripDate(@PathVariable Long id,
+            @Valid @RequestBody com.tripfactory.nomad.api.dto.TripDateRequest request) {
+        return ResponseEntity.ok(tripService.updateTripDate(id, request.getTripDate()));
+    }
+
     @GetMapping("/{id}/itinerary.pdf")
     @PreAuthorize("@authz.canAccessTrip(#id)")
     public ResponseEntity<byte[]> downloadItineraryPdf(@PathVariable Long id) {
