@@ -65,7 +65,7 @@ class TripServiceImplTest {
     private NotificationService notificationService;
 
     @Mock
-    private ItineraryPdfGenerator itineraryPdfGenerator;
+    private ItineraryEmailService itineraryEmailService;
 
     @Captor
     private ArgumentCaptor<List<TripPlan>> plansCaptor;
@@ -317,17 +317,36 @@ class TripServiceImplTest {
         byte[] pdf = new byte[] { 1, 2, 3 };
         when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(trip));
         when(tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(TRIP_ID)).thenReturn(plans);
-        when(itineraryPdfGenerator.generate(trip, plans, trip.getEstimatedCost())).thenReturn(pdf);
+        when(itineraryEmailService.buildPdf(trip, trip.getEstimatedCost())).thenReturn(pdf);
 
         assertThat(tripService.generateItineraryPdf(TRIP_ID)).isSameAs(pdf);
     }
 
     @Test
-    void generateItineraryPdf_isRejectedWhenThereIsNoItinerary() {
+    void generateItineraryPdf_packageTripWithoutPlansStillProducesPdf() {
         TripRequest trip = trip(TripStatus.CONFIRMED, WeekendType.TWO_DAY);
+        byte[] pdf = new byte[] { 1 };
         when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(trip));
         when(tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(TRIP_ID)).thenReturn(List.of());
+        when(itineraryEmailService.buildPdf(trip, trip.getEstimatedCost())).thenReturn(pdf);
 
-        assertThrows(BadRequestException.class, () -> tripService.generateItineraryPdf(TRIP_ID));
+        assertThat(tripService.generateItineraryPdf(TRIP_ID)).isSameAs(pdf);
+    }
+
+    @Test
+    void emailItinerary_sendsOnlyForBookedTripsAndReportsResult() {
+        TripRequest booked = trip(TripStatus.CONFIRMED, WeekendType.TWO_DAY);
+        when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(booked));
+        when(itineraryEmailService.sendBookingEmail(booked)).thenReturn(false);
+
+        assertThat(tripService.emailItinerary(TRIP_ID)).isFalse();
+    }
+
+    @Test
+    void emailItinerary_isRejectedForUnbookedTrips() {
+        TripRequest planned = trip(TripStatus.PLANNED, WeekendType.TWO_DAY);
+        when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(planned));
+
+        assertThrows(BadRequestException.class, () -> tripService.emailItinerary(TRIP_ID));
     }
 }
