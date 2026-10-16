@@ -93,7 +93,7 @@ export default function AdminPage() {
 
   return (
     <ProtectedPage requiredRole="ADMIN">
-      <div className="section py-12 space-y-8">
+      <div className="section py-8 space-y-8">
         <div>
           <h2 className="text-2xl font-bold">Admin Console</h2>
           <p className="text-slate-300">Manage Places and Vehicles (admin role required).</p>

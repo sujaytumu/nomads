@@ -91,7 +91,7 @@ export default function TripPlannerPage() {
 
   return (
     <ProtectedPage>
-      <div className="section py-12">
+      <div className="section py-8">
         <div className="card p-8 space-y-6">
         <TripSteps current={created ? 2 : 1} tripId={created?.tripRequestId} />
         <div>
