@@ -31,10 +31,10 @@ jobs:
         run: |
           npm i --no-save playwright@1.48.0 >/dev/null
           npx playwright install --with-deps chromium >/dev/null
-          SAMPLE_PDF=$GITHUB_WORKSPACE/target/sample-pdfs/itinerary-booked.pdf node ../.github/preview/mock-api.js &
+          mkdir -p $GITHUB_WORKSPACE/out; SAMPLE_PDF=$GITHUB_WORKSPACE/target/sample-pdfs/itinerary-booked.pdf node ../.github/preview/mock-api.js &
           npx next start -p 3000 &
           sleep 8
-          OUT=$GITHUB_WORKSPACE/out node ../.github/preview/shots.js || true
+          NODE_PATH=$PWD/node_modules OUT=$GITHUB_WORKSPACE/out node ../.github/preview/shots.js 2>&1 | tee $GITHUB_WORKSPACE/out/shots.log || true
       - name: Publish to ci-preview branch
         run: |
           cd out && git init -q && git checkout -q -b ci-preview
