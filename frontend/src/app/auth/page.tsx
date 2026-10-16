@@ -2,6 +2,7 @@
 
 import { login, register } from "@/lib/authApi";
 import { useEffect, useState } from "react";
+import { warmUpBackend, withWakeRetry } from "@/lib/warmup";
 import UseLocationButton from "@/components/UseLocationButton";
 import dynamic from "next/dynamic";
 
@@ -22,6 +23,14 @@ export default function AuthPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => warmUpBackend(), []);
+  useEffect(() => {
+    if (!submitting) return setSeconds(0);
+    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [submitting]);
 
   // Nav "Sign up" links arrive as /auth?mode=register
   useEffect(() => {
@@ -41,7 +50,7 @@ export default function AuthPage() {
     setError(null);
     try {
       if (mode === "register") {
-        const data = await register({
+        const data = await withWakeRetry(() => register({
           name: form.name,
           email: form.email,
           phoneNumber: form.phoneNumber,
@@ -51,12 +60,12 @@ export default function AuthPage() {
           longitude: Number(form.longitude),
           interestType: form.interestType,
           travelPreference: form.travelPreference,
-        });
+        }));
         localStorage.setItem("nomad_token", data.token);
         // full navigation to home so the app reloads with auth state
         window.location.href = "/";
       } else {
-        const data = await login({ email: form.email, password: form.password });
+        const data = await withWakeRetry(() => login({ email: form.email, password: form.password }));
         localStorage.setItem("nomad_token", data.token);
         // full navigation to home so the app reloads with auth state
         window.location.href = "/";
@@ -121,7 +130,11 @@ export default function AuthPage() {
             {submitting ? "Please wait…" : mode === "register" ? "Create account" : "Log in"}
           </button>
         </form>
-        {submitting && <p className="text-center text-xs text-slate-500">The server can take up to a minute to wake up the first time.</p>}
+        {submitting && (
+          <p className="text-center text-xs text-slate-400" role="status">
+            {seconds < 5 ? "Signing you in…" : `Waking up the server… ${seconds}s (first sign-in after a quiet spell can take about a minute)`}
+          </p>
+        )}
         {error && <p role="alert" className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>}
       </div>
     </div>

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 import InstallApp from "@/components/InstallApp";
+import { warmUpBackend } from "@/lib/warmup";
 
 type User = { id: number; email: string; name?: string; role?: string };
 type Item = { href: string; label: string; icon: string; badge?: boolean };
@@ -74,6 +75,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
   const [needsPayment, setNeedsPayment] = useState(0);
+
+  useEffect(() => warmUpBackend(), []);
 
   const load = useCallback(() => {
     if (!localStorage.getItem("nomad_token")) {
