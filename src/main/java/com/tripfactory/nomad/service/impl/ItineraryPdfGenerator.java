@@ -609,7 +609,7 @@ public class ItineraryPdfGenerator {
             withAlpha(0.5f, () -> {
                 strokeColor(WHITE);
                 stream.setLineWidth(1.4f);
-                stream.setLineCap(1);
+                stream.setLineCapStyle(1);
                 stream.setLineDashPattern(new float[] { 0.1f, 5 }, 0);
                 stream.moveTo(330, H - 150);
                 stream.curveTo(380, H - 60, 440, H - 190, 500, H - 100);
