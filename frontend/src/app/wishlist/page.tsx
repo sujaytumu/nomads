@@ -21,7 +21,7 @@ function WishlistContent() {
   }
 
   return (
-    <div className="section py-12">
+    <div className="section py-8">
       <h2 className="text-2xl font-bold mb-6">My Wishlist</h2>
       {error && <p className="text-red-400">{error}</p>}
       {!error && pkgs === null && <p className="text-slate-400">Loading…</p>}
