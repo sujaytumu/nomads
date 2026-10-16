@@ -213,16 +213,33 @@ function TripSummaryPageInner() {
                   <p className="text-3xl font-bold">{formatCost(summary.estimatedCost)}</p>
                 </div>
                 <div className="flex flex-wrap items-start gap-3">
-                  {isPayable(summary.status) && (
-                    <Link href={`/payment?tripRequestId=${summary.tripRequestId}`} className="btn-primary">
-                      {summary.status === "PAYMENT_PENDING" ? "Continue payment" : "Pay & book"}
-                    </Link>
-                  )}
                   {hasPlans && <DownloadItineraryButton tripId={summary.tripRequestId} label="Download PDF" />}
                   <Link href="/bookings" className="btn-outline">My trips</Link>
                 </div>
               </div>
             </div>
+
+            {isPayable(summary.status) && !editing && (
+              <>
+                <div className="h-20" aria-hidden="true" />
+                <div className="fixed inset-x-0 bottom-14 z-30 border-t border-slate-800 bg-slate-900/95 px-4 py-3 backdrop-blur lg:bottom-0 lg:left-64">
+                  <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-slate-400">Next: pay to book this trip</p>
+                      <p className="text-lg font-bold">{formatCost(summary.estimatedCost)}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      {canEdit && (
+                        <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>Change places</button>
+                      )}
+                      <Link href={`/payment?tripRequestId=${summary.tripRequestId}`} className="btn btn-primary">
+                        {summary.status === "PAYMENT_PENDING" ? "Continue payment →" : "Continue to payment →"}
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {notice && (
               <p

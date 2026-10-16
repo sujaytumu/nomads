@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import ProtectedPage from "@/components/ProtectedPage";
 import TripSteps from "@/components/TripSteps";
@@ -10,6 +11,7 @@ import { fetchMe } from "@/lib/authApi";
 import { formatCost } from "@/lib/tripStatus";
 
 export default function TripPlannerPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
     userId: "",
     city: "",
@@ -77,6 +79,9 @@ export default function TripPlannerPage() {
     try {
       const data = await createTrip(payload);
       setCreated(data);
+      // One flow: straight on to reviewing the itinerary, then pay.
+      router.push(`/trip-summary?tripId=${data.tripRequestId}`);
+      return;
     } catch (error: any) {
       setError(error?.response?.data?.message || "Failed to create trip");
     } finally {
@@ -178,8 +183,8 @@ export default function TripPlannerPage() {
           </label>
         </div>
 
-        <button className="btn-primary" onClick={handleSubmit} disabled={loadingTrip || loadingUser}>
-          {loadingTrip ? "Creating..." : "Create Trip"}
+        <button className="btn btn-primary w-full sm:w-auto" onClick={handleSubmit} disabled={loadingTrip || loadingUser}>
+          {loadingTrip ? "Building your itinerary…" : "Plan my trip →"}
         </button>
         {error && <p className="text-sm text-red-400">{error}</p>}
 
