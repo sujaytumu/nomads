@@ -32,6 +32,7 @@ const GROUPS: Group[] = [
       { href: "/trip-summary", label: "Itinerary", icon: "M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" },
       { href: "/route-view", label: "Route", icon: "M5 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM7 17c6 0 2-10 10-10" },
       { href: "/payment", label: "Payment", icon: "M3 7h18v12H3zM3 11h18" },
+      { href: "/group-status", label: "Group", icon: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M14 15c3 0 8 1 8 5" },
       { href: "/pickup", label: "Pickup", icon: "M3 15V9l2-4h14l2 4v6M3 15h18M7 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM17 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" },
       { href: "/review", label: "Reviews", icon: "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" },
     ],
@@ -42,7 +43,6 @@ const ADMIN_GROUP: Group = {
   title: "Admin",
   items: [
     { href: "/admin", label: "Admin", icon: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" },
-    { href: "/group-status", label: "Groups", icon: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M14 15c3 0 8 1 8 5" },
   ],
 };
 
