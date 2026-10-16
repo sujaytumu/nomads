@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 
 import DownloadItineraryButton from "@/components/DownloadItineraryButton";
 import EmailItineraryButton from "@/components/EmailItineraryButton";
+import ShareTripButton from "@/components/ShareTripButton";
 import PageHeader from "@/components/PageHeader";
 import TripProgress from "@/components/TripProgress";
 import ProtectedPage from "@/components/ProtectedPage";
@@ -233,6 +234,7 @@ function MyTripsPageInner() {
                           <>
                             <DownloadItineraryButton tripId={trip.tripRequestId} label="PDF" className="btn btn-secondary btn-sm" />
                             <EmailItineraryButton tripId={trip.tripRequestId} />
+                            <ShareTripButton token={trip.shareToken} city={trip.city} />
                             <Link href={`/pickup?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Pickup</Link>
                             <Link href={`/review?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Review</Link>
                           </>
