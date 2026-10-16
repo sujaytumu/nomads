@@ -66,7 +66,8 @@ class ItineraryPdfGeneratorTest {
 
     private String textOf(byte[] pdf) throws IOException {
         try (PDDocument document = Loader.loadPDF(pdf)) {
-            return new PDFTextStripper().getText(document);
+            // Letter-spaced and kerned text can come out with stray spaces, so compare without whitespace.
+            return new PDFTextStripper().getText(document).replaceAll("\\s+", "");
         }
     }
 
@@ -105,16 +106,16 @@ class ItineraryPdfGeneratorTest {
         String text = textOf(pdf);
         assertThat(text)
                 .contains("Bengaluru")
-                .contains("BOOKING CONFIRMED")
-                .contains("DAY 1")
-                .contains("DAY 2")
-                .contains("Lalbagh Botanical Garden")
-                .contains("Bangalore Palace")
-                .contains("Cubbon Park")
+                .contains("BOOKINGCONFIRMED")
+                .contains("DAY1")
+                .contains("DAY2")
+                .contains("LalbaghBotanicalGarden")
+                .contains("BangalorePalace")
+                .contains("CubbonPark")
                 .contains("09:00")
                 .contains("pay_ABC123")
-                .contains("Paid in full")
-                .contains("Rs. 1,500");
+                .contains("Paidinfull")
+                .contains("Rs.1,500");
     }
 
     @Test
@@ -122,7 +123,7 @@ class ItineraryPdfGeneratorTest {
         byte[] pdf = generator.generate(trip(TripStatus.PLANNED),
                 List.of(stop(1, 9, "Cubbon Park", 2.0)), new BigDecimal("500"), null);
 
-        assertThat(textOf(pdf)).contains("PLANNED - NOT BOOKED YET").contains("ESTIMATED COST");
+        assertThat(textOf(pdf)).contains("PLANNED-NOTBOOKEDYET").contains("ESTIMATEDCOST");
     }
 
     @Test
@@ -131,7 +132,7 @@ class ItineraryPdfGeneratorTest {
         saveSample("package-booked.pdf", pdf);
 
         assertThat(pagesOf(pdf)).isEqualTo(1);
-        assertThat(textOf(pdf)).contains("Package booking").contains("Rs. 4,999");
+        assertThat(textOf(pdf)).contains("Packagebooking").contains("Rs.4,999");
     }
 
     @Test
@@ -159,7 +160,7 @@ class ItineraryPdfGeneratorTest {
 
         assertThat(pagesOf(pdf)).isGreaterThan(1);
         String text = textOf(pdf);
-        assertThat(text).contains("Stop number 0").contains("Stop number 39").contains("Page 1 of");
+        assertThat(text).contains("Stopnumber0").contains("Stopnumber39").contains("Page1of");
     }
 
     @Test
