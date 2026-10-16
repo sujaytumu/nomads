@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
-const GroupChat = dynamic(() => import("@/components/GroupChat"), { ssr: false });
 import DownloadItineraryButton from "@/components/DownloadItineraryButton";
 import EmergencyCard from "@/components/EmergencyCard";
 import ItineraryEditor from "@/components/ItineraryEditor";
@@ -371,7 +370,15 @@ function TripSummaryPageInner() {
               </div>
             </div>
 
-            {summary.groupId && <GroupChat groupId={summary.groupId} />}
+            {summary.groupId && (
+              <div className="card flex flex-wrap items-center justify-between gap-3 p-5">
+                <div>
+                  <p className="font-semibold">You&apos;re in a travel group</p>
+                  <p className="text-sm text-slate-400">See who&apos;s going, chat, and split costs.</p>
+                </div>
+                <Link href={`/group-status?tripId=${summary.tripRequestId}`} className="btn btn-primary">Open group</Link>
+              </div>
+            )}
           </>
         )}
       </div>
