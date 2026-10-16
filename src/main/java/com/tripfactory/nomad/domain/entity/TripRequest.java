@@ -71,6 +71,9 @@ public class TripRequest {
     // (Trip Planner) or when a package is enrolled in.
     private BigDecimal estimatedCost;
 
+    // Optional: the day the traveller plans to go. Used for the calendar reminder and the PDF.
+    private java.time.LocalDate tripDate;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TripStatus status;

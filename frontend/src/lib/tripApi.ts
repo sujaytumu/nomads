@@ -9,6 +9,7 @@ export type TripCreatePayload = {
   travelMode?: string;
   pickupRequired?: boolean;
   groupSize?: number;
+  tripDate?: string;
   userLatitude?: number;
   userLongitude?: number;
 };
@@ -83,4 +84,10 @@ export async function downloadItineraryPdf(tripId: number): Promise<void> {
 export async function emailItinerary(tripId: number): Promise<boolean> {
   const { data } = await api.post(`/api/trips/${tripId}/itinerary/email`);
   return !!data?.sent;
+}
+
+/** Sets or changes the day the traveller plans to go (YYYY-MM-DD). */
+export async function setTripDate(tripId: number, tripDate: string) {
+  const { data } = await api.put(`/api/trips/${tripId}/date`, { tripDate });
+  return data;
 }

@@ -12,6 +12,7 @@ import { formatCost } from "@/lib/tripStatus";
 
 export default function TripPlannerPage() {
   const router = useRouter();
+  const [tripDate, setTripDateValue] = useState("");
   const [form, setForm] = useState({
     userId: "",
     city: "",
@@ -74,6 +75,7 @@ export default function TripPlannerPage() {
       userLatitude: form.userLatitude ? Number(form.userLatitude) : undefined,
       userLongitude: form.userLongitude ? Number(form.userLongitude) : undefined,
       groupSize: form.groupSize ? Number(form.groupSize) : undefined,
+      tripDate: tripDate || undefined,
     };
 
     try {
@@ -183,6 +185,10 @@ export default function TripPlannerPage() {
           </label>
         </div>
 
+        <label className="block max-w-xs space-y-2">
+          <span className="text-sm font-semibold">When are you going? <span className="font-normal text-slate-500">(optional)</span></span>
+          <input type="date" min={new Date().toISOString().slice(0, 10)} value={tripDate} onChange={(e) => setTripDateValue(e.target.value)} className="w-full rounded-xl border px-4 py-2" />
+        </label>
         <button className="btn btn-primary w-full sm:w-auto" onClick={handleSubmit} disabled={loadingTrip || loadingUser}>
           {loadingTrip ? "Building your itinerary…" : "Plan my trip →"}
         </button>
