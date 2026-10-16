@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
@@ -45,6 +45,16 @@ const ADMIN_GROUP: Group = {
   ],
 };
 
+// Pages that work without signing in. Everything else sends you to /auth first.
+const isPublic = (path: string) => path === "/auth" || path.startsWith("/share/");
+
+// The four things people do most. Everything else is under "More".
+const TABS: Item[] = [
+  { href: "/", label: "Home", icon: "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
+  { href: "/trip-planner", label: "Plan", icon: "M12 5v14M5 12h14" },
+  { href: "/bookings", label: "My Trips", icon: "M4 7h16v12H4zM9 7V4h6v3", badge: true },
+];
+
 function active(path: string, href: string) {
   return href === "/" ? path === "/" : path === href || path.startsWith(href + "/");
 }
@@ -59,6 +69,7 @@ function Icon({ d }: { d: string }) {
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname() ?? "/";
+  const router = useRouter();
   const [authState, setAuthState] = useState<"loading" | "out" | "in">("loading");
   const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
@@ -97,6 +108,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [load, path]);
 
   useEffect(() => setOpen(false), [path]);
+
+  // Signed out: the only place to be is the login/register page.
+  useEffect(() => {
+    if (authState === "out" && !isPublic(path)) router.replace("/auth");
+  }, [authState, path, router]);
 
   const logout = () => {
     localStorage.removeItem("nomad_token");
@@ -158,8 +174,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <Link href="/" className="flex h-14 items-center px-6 text-xl font-bold tracking-wide text-brand-700">NOMAD</Link>
   );
 
+  // Not signed in: no menus, just the page (login/register) on its own.
+  if (authState !== "in") {
+    if (authState === "out" && isPublic(path)) return <main className="min-h-screen">{children}</main>;
+    return (
+      <div className="grid min-h-screen place-items-center text-sm text-slate-500">
+        <span className="text-xl font-bold tracking-wide text-brand-700">NOMAD</span>
+      </div>
+    );
+  }
+
+  const tabClass = (on: boolean) =>
+    `relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold transition-colors ${on ? "text-white" : "text-slate-400"}`;
+
   return (
-    <div className="min-h-screen lg:pl-64">
+    <div className="min-h-screen pb-16 lg:pb-0 lg:pl-64">
       {/* Desktop sidebar: fixed size, always the same options */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-800 bg-slate-900 lg:flex">
         {brand}
@@ -167,22 +196,39 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {account}
       </aside>
 
-      {/* Mobile bar + drawer */}
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-slate-800 bg-slate-900/95 px-4 backdrop-blur lg:hidden">
-        <Link href="/" className="text-xl font-bold tracking-wide text-brand-700">NOMAD</Link>
-        <button type="button" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} className="btn btn-secondary btn-sm">
-          {open ? "Close" : "Menu"}
-        </button>
+      {/* Mobile: slim top bar */}
+      <header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-slate-800 bg-slate-900/95 px-4 backdrop-blur lg:hidden">
+        <Link href="/" className="text-lg font-bold tracking-wide text-brand-700">NOMAD</Link>
+        <Link href="/profile" aria-label="Profile" className="grid h-8 w-8 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white">
+          {name.trim().charAt(0).toUpperCase()}
+        </Link>
       </header>
+
+      {/* Mobile: thumb-reach tab bar. The last tab opens everything else. */}
+      <nav aria-label="Quick" className="fixed inset-x-0 bottom-0 z-40 flex border-t border-slate-800 bg-slate-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+        {TABS.map((it) => (
+          <Link key={it.href} href={it.href} aria-current={active(path, it.href) ? "page" : undefined} className={tabClass(active(path, it.href))}>
+            <Icon d={it.icon} />
+            {it.label}
+            {it.badge && needsPayment > 0 && <span className="absolute right-[28%] top-1 h-2 w-2 rounded-full bg-amber-400" />}
+          </Link>
+        ))}
+        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={tabClass(open)}>
+          <Icon d={open ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16"} />
+          {open ? "Close" : "More"}
+        </button>
+      </nav>
+
+      {/* Mobile "More" sheet */}
       {open && (
-        <div className="fixed inset-0 top-14 z-30 flex flex-col bg-slate-900 lg:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] top-12 z-30 flex flex-col bg-slate-900 lg:hidden">
           {nav}
           {account}
         </div>
       )}
 
       <main className="min-h-[calc(100vh-3rem)]">{children}</main>
-      <footer className="border-t border-slate-800 px-6 py-4 text-xs text-slate-500">
+      <footer className="hidden border-t border-slate-800 px-6 py-4 text-xs text-slate-500 lg:block">
         © 2026 NOMAD · Smart Weekend Travel &amp; Assistance
       </footer>
     </div>
