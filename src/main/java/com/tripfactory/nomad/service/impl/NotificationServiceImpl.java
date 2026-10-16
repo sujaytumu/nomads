@@ -82,11 +82,11 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendEmailWithAttachment(String to, String subject, String body, String attachmentFilename,
-            byte[] attachmentBytes) {
+    public boolean sendEmailWithAttachment(String to, String subject, String textBody, String htmlBody,
+            String attachmentFilename, byte[] attachmentBytes) {
         if (resendApiKey == null || resendApiKey.isBlank()) {
             LOGGER.warn("Resend API key not configured; skipping email with attachment to {}", to);
-            return;
+            return false;
         }
         try {
             String base64Content = java.util.Base64.getEncoder().encodeToString(attachmentBytes);
@@ -94,12 +94,15 @@ public class NotificationServiceImpl implements NotificationService {
                     "filename", attachmentFilename,
                     "content", base64Content);
 
-            Map<String, Object> payload = Map.of(
-                    "from", fromAddress,
-                    "to", new String[] { to },
-                    "subject", subject,
-                    "text", body,
-                    "attachments", new Object[] { attachment });
+            Map<String, Object> payload = new java.util.HashMap<>();
+            payload.put("from", fromAddress);
+            payload.put("to", new String[] { to });
+            payload.put("subject", subject);
+            payload.put("text", textBody);
+            if (htmlBody != null) {
+                payload.put("html", htmlBody);
+            }
+            payload.put("attachments", new Object[] { attachment });
 
             RequestEntity<Map<String, Object>> request = RequestEntity.post(URI.create(RESEND_API_URL))
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + resendApiKey)
@@ -107,8 +110,10 @@ public class NotificationServiceImpl implements NotificationService {
                     .body(payload);
 
             restTemplate.exchange(request, String.class);
+            return true;
         } catch (Exception ex) {
             LOGGER.warn("Email with attachment send failed to {}: {}", to, ex.getMessage());
+            return false;
         }
     }
 
