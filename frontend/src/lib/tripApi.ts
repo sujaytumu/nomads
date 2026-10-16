@@ -78,3 +78,9 @@ export async function downloadItineraryPdf(tripId: number): Promise<void> {
     throw new Error(message ?? "Couldn't create the PDF. Please try again.");
   }
 }
+
+/** Re-sends the "booking complete" email with the itinerary PDF. Resolves to whether it was really sent. */
+export async function emailItinerary(tripId: number): Promise<boolean> {
+  const { data } = await api.post(`/api/trips/${tripId}/itinerary/email`);
+  return !!data?.sent;
+}
