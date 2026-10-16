@@ -59,7 +59,7 @@ class PaymentServiceImplTest {
     private AuthorizationService authorizationService;
 
     @Mock
-    private ReceiptPdfGenerator receiptPdfGenerator;
+    private ItineraryEmailService itineraryEmailService;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -172,7 +172,9 @@ class PaymentServiceImplTest {
 
         assertThat(captured.getPaymentStatus()).isEqualTo(PaymentStatus.REFUNDED);
         assertThat(trip.getStatus()).isEqualTo(TripStatus.CANCELLED);
-        verify(notificationService).sendEmail(anyString(), anyString(), anyString());
+        // Cancelling sends no email - the only email is the booking itinerary.
+        verify(notificationService, never()).sendEmail(anyString(), anyString(), anyString());
+        verify(itineraryEmailService, never()).sendBookingEmail(any());
     }
 
     @Test

@@ -87,6 +87,14 @@ public class TripController {
         return ResponseEntity.ok(tripService.updateItinerary(id, request.getPlaceIds()));
     }
 
+    // Re-sends the "booking complete" email (with the itinerary PDF) for a booked trip.
+    @PostMapping("/{id}/itinerary/email")
+    @PreAuthorize("@authz.canAccessTrip(#id)")
+    public ResponseEntity<java.util.Map<String, Object>> emailItinerary(@PathVariable Long id) {
+        boolean sent = tripService.emailItinerary(id);
+        return ResponseEntity.ok(java.util.Map.of("sent", sent));
+    }
+
     @GetMapping("/{id}/itinerary.pdf")
     @PreAuthorize("@authz.canAccessTrip(#id)")
     public ResponseEntity<byte[]> downloadItineraryPdf(@PathVariable Long id) {

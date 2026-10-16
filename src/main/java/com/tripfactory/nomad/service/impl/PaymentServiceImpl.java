@@ -44,7 +44,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final RazorpayProperties razorpayProperties;
     private final NotificationService notificationService;
     private final AuthorizationService authorizationService;
-    private final ReceiptPdfGenerator receiptPdfGenerator;
+    private final ItineraryEmailService itineraryEmailService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
     @Value("${nomad.dev-payments:false}")
@@ -147,7 +147,7 @@ public class PaymentServiceImpl implements PaymentService {
         tripRequest.setStatus(TripStatus.CONFIRMED);
         tripRequestRepository.save(tripRequest);
 
-        sendConfirmationEmail(saved, tripRequest);
+        sendConfirmationEmail(tripRequest);
         String phone = tripRequest.getUser().getPhoneNumber();
         if (phone != null && !phone.isBlank()) {
             notificationService.sendSms(phone, "NOMAD: Payment confirmed for trip " + tripRequest.getId());
@@ -157,21 +157,13 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     /**
-     * Generating the PDF receipt is a nice-to-have on top of an already-successful
-     * payment - if it fails for any reason, that failure must never propagate and
-     * roll back the @Transactional payment confirmation that already succeeded.
+     * The one email of a booking: the itinerary PDF. A failed email must never
+     * roll back the payment that already succeeded (the service never throws).
      */
-    private void sendConfirmationEmail(Payment payment, TripRequest tripRequest) {
-        try {
-            byte[] pdf = receiptPdfGenerator.generate(payment, tripRequest);
-            notificationService.sendEmailWithAttachment(tripRequest.getUser().getEmail(), "NOMAD Payment Confirmed",
-                "Payment confirmed for trip " + tripRequest.getId() + ". Your receipt is attached.",
-                "nomad-receipt-" + tripRequest.getId() + ".pdf", pdf);
-        } catch (Exception ex) {
-            log.warn("Receipt PDF generation failed for trip {}, sending plain confirmation instead: {}",
-                tripRequest.getId(), ex.getMessage());
-            notificationService.sendEmail(tripRequest.getUser().getEmail(), "NOMAD Payment Confirmed",
-                "Payment confirmed for trip " + tripRequest.getId());
+    private void sendConfirmationEmail(TripRequest tripRequest) {
+        if (!itineraryEmailService.sendBookingEmail(tripRequest)) {
+            log.warn("Booking email for trip {} was not sent; the user can resend it from My Trips",
+                tripRequest.getId());
         }
     }
 
@@ -206,7 +198,7 @@ public class PaymentServiceImpl implements PaymentService {
                 tripRequest.setStatus(TripStatus.CONFIRMED);
                 tripRequestRepository.save(tripRequest);
 
-                sendConfirmationEmail(payment, tripRequest);
+                sendConfirmationEmail(tripRequest);
                 String phone = tripRequest.getUser().getPhoneNumber();
                 if (phone != null && !phone.isBlank()) {
                     notificationService.sendSms(phone,
@@ -275,15 +267,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         tripRequest.setStatus(TripStatus.CANCELLED);
         tripRequestRepository.save(tripRequest);
-
-        try {
-            notificationService.sendEmail(tripRequest.getUser().getEmail(), "NOMAD Booking Cancelled",
-                "Your booking for trip " + tripRequest.getId() + " has been cancelled"
-                    + (payment != null && payment.getPaymentStatus() == PaymentStatus.REFUNDED
-                        ? " and your payment has been refunded." : "."));
-        } catch (Exception ex) {
-            log.warn("Cancellation email failed for trip {}: {}", tripRequest.getId(), ex.getMessage());
-        }
 
         return payment != null ? toResponse(payment) : null;
     }
