@@ -6,7 +6,7 @@ export const api = axios.create({
   // idle. 60s gives real cold starts room to finish, while still failing
   // with a clear, retryable error if something is genuinely stuck, instead
   // of a spinner that never resolves (axios has no timeout by default).
-  timeout: 60000,
+  timeout: 90000,
 });
 
 api.interceptors.request.use((config) => {
