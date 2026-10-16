@@ -67,16 +67,16 @@ export default function ProfilePage() {
 
   return (
     <ProtectedPage>
-      <div className="section py-12 space-y-6">
+      <div className="section py-8 space-y-6">
         <div className="card p-6 space-y-4">
-        <h2 className="text-2xl font-bold">Profile</h2>
+        <div><h1 className="text-2xl font-bold tracking-tight">Profile</h1><p className="text-sm text-slate-400">Your city and interests shape the places we suggest.</p></div>
         {loading && (
           <p className="text-sm text-slate-400">Loading your profile… (may take up to a minute if the server was asleep)</p>
         )}
         {!loading && loadError && (
           <div className="space-y-2">
             <p className="text-sm text-red-400">Couldn't load your profile - the server may still be waking up.</p>
-            <button className="btn-outline" onClick={loadProfile}>Retry</button>
+            <button className="btn btn-secondary btn-sm" onClick={loadProfile}>Retry</button>
           </div>
         )}
         {!loading && !loadError && (
@@ -102,7 +102,7 @@ export default function ProfilePage() {
             <option value="GROUP">GROUP</option>
           </select>
         </div>
-        <button className="btn-primary" onClick={handleSave}>Save</button>
+        <button className="btn btn-primary" onClick={handleSave}>Save changes</button>
         {status && <p className="text-sm text-slate-300">{status}</p>}
         </>
         )}
