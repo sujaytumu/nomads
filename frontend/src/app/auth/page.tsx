@@ -2,7 +2,6 @@
 
 import { login, register } from "@/lib/authApi";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import UseLocationButton from "@/components/UseLocationButton";
 import dynamic from "next/dynamic";
 
@@ -10,7 +9,6 @@ const MapPicker = dynamic(() => import("@/components/MapPicker"), { ssr: false }
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [token, setToken] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -24,7 +22,6 @@ export default function AuthPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const router = useRouter();
 
   // Nav "Sign up" links arrive as /auth?mode=register
   useEffect(() => {
@@ -56,13 +53,11 @@ export default function AuthPage() {
           travelPreference: form.travelPreference,
         });
         localStorage.setItem("nomad_token", data.token);
-        setToken(data.token);
         // full navigation to home so the app reloads with auth state
         window.location.href = "/";
       } else {
         const data = await login({ email: form.email, password: form.password });
         localStorage.setItem("nomad_token", data.token);
-        setToken(data.token);
         // full navigation to home so the app reloads with auth state
         window.location.href = "/";
       }
@@ -74,59 +69,61 @@ export default function AuthPage() {
     }
   };
 
+  const input = "w-full rounded-xl border px-4 py-3 text-base";
   return (
-    <div className="section py-12 space-y-6">
-      <div className="card p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Authentication</h2>
-          <div className="flex gap-2">
-            <button className={`btn-outline ${mode === "login" ? "bg-slate-800" : ""}`} onClick={() => setMode("login")}>Login</button>
-            <button className={`btn-outline ${mode === "register" ? "bg-slate-800" : ""}`} onClick={() => setMode("register")}>Register</button>
-          </div>
+    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-5 py-10">
+      <div className="mb-6 text-center">
+        <p className="text-3xl font-bold tracking-wide text-brand-700">NOMAD</p>
+        <p className="mt-1 text-sm text-slate-400">Smart weekend travel &amp; assistance</p>
+      </div>
+      <div className="card space-y-5 p-6">
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-800/60 p-1" role="tablist">
+          {(["login", "register"] as const).map((m) => (
+            <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`rounded-lg py-2 text-sm font-semibold transition-colors ${mode === m ? "bg-brand-600 text-white" : "text-slate-300 hover:text-white"}`}>
+              {m === "login" ? "Log in" : "Sign up"}
+            </button>
+          ))}
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <form className="grid gap-3 md:grid-cols-2" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
           {mode === "register" && (
-            <input name="name" value={form.name} onChange={handleChange} placeholder="Name" className="border rounded-xl px-4 py-2" />
+            <input name="name" value={form.name} onChange={handleChange} placeholder="Name" autoComplete="name" className={`${input} md:col-span-2`} />
           )}
-          <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="border rounded-xl px-4 py-2" />
-          <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" className="border rounded-xl px-4 py-2" />
+          <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email" autoComplete="email" className={`${input} md:col-span-2`} />
+          <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" autoComplete={mode === "login" ? "current-password" : "new-password"} className={`${input} md:col-span-2`} />
           {mode === "register" && (
             <>
-              <select name="city" value={form.city} onChange={handleChange} className="border rounded-xl px-4 py-2 bg-transparent">
+              <select name="city" value={form.city} onChange={handleChange} className={input}>
                 <option value="">Select city</option>
                 <option value="Bengaluru">Bengaluru</option>
                 <option value="Mumbai">Mumbai</option>
                 <option value="Delhi">Delhi</option>
               </select>
-              <input name="phoneNumber" value={form.phoneNumber} onChange={handleChange} placeholder="Phone Number (+91...)" className="border rounded-xl px-4 py-2" />
-              <div className="col-span-2">
-                <div className="flex gap-2 mb-2">
-                  <UseLocationButton onSet={(c) => setForm((p) => ({ ...p, latitude: String(c.latitude), longitude: String(c.longitude) }))} />
-                </div>
+              <input name="phoneNumber" value={form.phoneNumber} onChange={handleChange} placeholder="Phone (+91...)" autoComplete="tel" className={input} />
+              <div className="space-y-2 md:col-span-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Your location (for pickup and nearby places)</p>
+                <UseLocationButton onSet={(c) => setForm((p) => ({ ...p, latitude: String(c.latitude), longitude: String(c.longitude) }))} />
                 <MapPicker onSet={(c) => setForm((p) => ({ ...p, latitude: String(c.latitude), longitude: String(c.longitude) }))} />
+                {form.latitude && <p className="text-xs text-green-300">Location set ({Number(form.latitude).toFixed(3)}, {Number(form.longitude).toFixed(3)})</p>}
               </div>
-              <input name="latitude" value={form.latitude} readOnly placeholder="Latitude" className="border rounded-xl px-4 py-2 bg-slate-900" />
-              <input name="longitude" value={form.longitude} readOnly placeholder="Longitude" className="border rounded-xl px-4 py-2 bg-slate-900" />
-              <select name="interestType" value={form.interestType} onChange={handleChange} className="border rounded-xl px-4 py-2">
+              <select name="interestType" value={form.interestType} onChange={handleChange} className={input}>
                 {["FOOD", "CULTURE", "NATURE", "ADVENTURE", "SHOPPING", "NIGHTLIFE", "RELAXATION"].map((item) => (
-                  <option key={item} value={item}>{item}</option>
+                  <option key={item} value={item}>{item.charAt(0) + item.slice(1).toLowerCase()}</option>
                 ))}
               </select>
-              <select name="travelPreference" value={form.travelPreference} onChange={handleChange} className="border rounded-xl px-4 py-2">
-                <option value="SOLO">SOLO</option>
-                <option value="GROUP">GROUP</option>
+              <select name="travelPreference" value={form.travelPreference} onChange={handleChange} className={input}>
+                <option value="SOLO">Solo</option>
+                <option value="GROUP">Group</option>
               </select>
             </>
           )}
-        </div>
-        <button className="btn-primary" onClick={handleSubmit} disabled={submitting}>
-          {submitting ? "Please wait…" : mode === "register" ? "Register" : "Login"}
-        </button>
-        {token && <p className="text-sm text-slate-300">Token saved (copy manually for now)</p>}
-        {error && <p className="text-sm text-red-400">{error}</p>}
+          <button type="submit" className="btn btn-primary w-full py-3 md:col-span-2" disabled={submitting}>
+            {submitting ? "Please wait…" : mode === "register" ? "Create account" : "Log in"}
+          </button>
+        </form>
+        {submitting && <p className="text-center text-xs text-slate-500">The server can take up to a minute to wake up the first time.</p>}
+        {error && <p role="alert" className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>}
       </div>
     </div>
   );
 }
-
