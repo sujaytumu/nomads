@@ -367,7 +367,7 @@ public class ItineraryPdfGenerator {
     }
 
     private void drawGoodToKnow(Canvas c, TripRequest trip) throws IOException {
-        c.ensure(150);
+        c.ensure(124);
         c.cur += 14;
         c.sectionLabel("GOOD TO KNOW");
         c.roundRect(M, c.cur, CW, 96, 12, PANEL, 1f, -1);
