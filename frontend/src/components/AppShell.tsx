@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
+import InstallApp from "@/components/InstallApp";
 
 type User = { id: number; email: string; name?: string; role?: string };
 type Item = { href: string; label: string; icon: string; badge?: boolean };
@@ -129,7 +130,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   const account = (
-    <div className="border-t border-slate-800 p-3">
+    <div className="space-y-2 border-t border-slate-800 p-3">
+      <InstallApp />
       {authState === "in" ? (
         <div className="space-y-2">
           <Link href="/profile" className={`side-link ${active(path, "/profile") ? "side-link-active" : ""}`}>
