@@ -18,6 +18,8 @@ public interface TripService {
 
     TripResponse updateItinerary(Long tripRequestId, List<Long> placeIds);
 
+    TripResponse updateTripDate(Long tripRequestId, java.time.LocalDate tripDate);
+
     byte[] generateItineraryPdf(Long tripRequestId);
 
     /** Re-sends the booking email with the itinerary PDF. @return whether it was actually sent. */

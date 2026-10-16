@@ -24,5 +24,6 @@ public class TripResponse {
     private TripStatus status;
     private LocalDateTime createdAt;
     private BigDecimal estimatedCost;
+    private java.time.LocalDate tripDate;
     private List<TripPlanItemResponse> plans;
 }

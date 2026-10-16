@@ -11,6 +11,7 @@ import DownloadItineraryButton from "@/components/DownloadItineraryButton";
 import ItineraryEditor from "@/components/ItineraryEditor";
 import PackingChecklist from "@/components/PackingChecklist";
 import ShareTripButton from "@/components/ShareTripButton";
+import TripDate from "@/components/TripDate";
 import ProtectedPage from "@/components/ProtectedPage";
 import TripSteps from "@/components/TripSteps";
 import { api } from "@/lib/api";
@@ -207,6 +208,7 @@ function TripSummaryPageInner() {
                   #{summary.tripRequestId} · {tripKind(summary)}
                 </p>
                 <p className="text-sm text-slate-300">{meta.hint}</p>
+                <TripDate trip={summary} onChange={(u: any) => setSummary((prev: any) => ({ ...prev, tripDate: u.tripDate }))} />
               </div>
 
               <div className="flex flex-col items-start gap-3 sm:items-end">

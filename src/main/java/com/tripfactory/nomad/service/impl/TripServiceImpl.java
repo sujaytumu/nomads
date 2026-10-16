@@ -91,6 +91,10 @@ public class TripServiceImpl implements TripService {
             () -> com.tripfactory.nomad.domain.enums.TravelMode.valueOf(user.getTravelPreference().name())));
         tripRequest.setPickupRequired(Boolean.TRUE.equals(request.getPickupRequired()));
         tripRequest.setRequestedGroupSize(request.getGroupSize());
+        if (request.getTripDate() != null) {
+            requireFutureDate(request.getTripDate());
+            tripRequest.setTripDate(request.getTripDate());
+        }
         tripRequest.setStatus(TripStatus.REQUESTED);
 
         if (tripRequest.getTravelMode() == TravelMode.GROUP) {
@@ -279,6 +283,25 @@ public class TripServiceImpl implements TripService {
         return itineraryEmailService.sendBookingEmail(trip);
     }
 
+    @Override
+    @Transactional
+    public TripResponse updateTripDate(Long tripRequestId, java.time.LocalDate tripDate) {
+        TripRequest trip = findTrip(tripRequestId);
+        if (trip.getStatus() == TripStatus.CANCELLED) {
+            throw new BadRequestException("A cancelled trip can't be given a date");
+        }
+        requireFutureDate(tripDate);
+        trip.setTripDate(tripDate);
+        tripRequestRepository.save(trip);
+        return toResponse(trip, tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequestId));
+    }
+
+    private void requireFutureDate(java.time.LocalDate date) {
+        if (date.isBefore(java.time.LocalDate.now().minusDays(1))) {
+            throw new BadRequestException("Choose a date that hasn't passed yet");
+        }
+    }
+
     private TripRequest findTrip(Long tripRequestId) {
         return tripRequestRepository.findById(tripRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
@@ -386,6 +409,7 @@ public class TripServiceImpl implements TripService {
         response.setUserId(tripRequest.getUser().getId());
         response.setCity(tripRequest.getCity());
         response.setShareToken(tripRequest.getShareToken());
+        response.setTripDate(tripRequest.getTripDate());
         if (tripRequest.getGroup() != null) {
             response.setGroupId(tripRequest.getGroup().getId());
             response.setGroupSize(tripRequestRepository.countByGroupId(tripRequest.getGroup().getId()));

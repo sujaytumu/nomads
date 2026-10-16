@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import DownloadItineraryButton from "@/components/DownloadItineraryButton";
 import EmailItineraryButton from "@/components/EmailItineraryButton";
 import ShareTripButton from "@/components/ShareTripButton";
+import { downloadTripCalendar } from "@/lib/calendar";
 import PageHeader from "@/components/PageHeader";
 import TripProgress from "@/components/TripProgress";
 import ProtectedPage from "@/components/ProtectedPage";
@@ -26,6 +27,7 @@ type Trip = TripLike & {
   tripRequestId: number;
   createdAt: string;
   shareToken?: string;
+  tripDate?: string | null;
 };
 
 // Grouped by what the user needs to do next, not by raw backend status.
@@ -67,6 +69,8 @@ function MyTripsPageInner() {
   const [loadError, setLoadError] = useState(false);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "pay" | "booked" | "cancelled">("all");
 
   const load = () => {
     setLoading(true);
@@ -116,11 +120,16 @@ function MyTripsPageInner() {
     const newestFirst = [...trips].sort(
       (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
     );
-    return SECTIONS.map((section) => ({
-      ...section,
-      items: newestFirst.filter((t) => section.match(t.status)),
-    })).filter((section) => section.items.length > 0);
-  }, [trips]);
+    const q = query.trim().toLowerCase();
+    const matchesQuery = (t: Trip) =>
+      !q || `${tripTitle(t)} ${t.tripRequestId} ${tripKind(t)}`.toLowerCase().includes(q);
+    return SECTIONS.filter((s) => filter === "all" || s.key === filter)
+      .map((section) => ({
+        ...section,
+        items: newestFirst.filter((t) => section.match(t.status) && matchesQuery(t)),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [trips, query, filter]);
 
   return (
     <ProtectedPage>
@@ -165,6 +174,18 @@ function MyTripsPageInner() {
             </p>
           )}
         </div>
+
+        {!loading && !loadError && trips.length > 3 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search trips…" aria-label="Search trips" className="w-full rounded-xl border px-4 py-2 text-sm sm:w-64" />
+            {([["all", "All"], ["pay", "Needs payment"], ["booked", "Booked"], ["cancelled", "Cancelled"]] as const).map(([k, label]) => (
+              <button key={k} type="button" className={`btn btn-sm ${filter === k ? "btn-primary" : "btn-secondary"}`} onClick={() => setFilter(k)}>{label}</button>
+            ))}
+          </div>
+        )}
+        {!loading && !loadError && trips.length > 0 && grouped.length === 0 && (
+          <p className="text-sm text-slate-400">No trips match. <button type="button" className="underline" onClick={() => { setQuery(""); setFilter("all"); }}>Clear filters</button></p>
+        )}
 
         {paidId && (
           <div
@@ -215,7 +236,7 @@ function MyTripsPageInner() {
                         </div>
                         <p className="text-sm text-slate-400">
                           #{trip.tripRequestId} · {tripKind(trip)}
-                          {trip.createdAt ? ` · ${new Date(trip.createdAt).toLocaleDateString()}` : ""}
+                          {trip.tripDate ? ` · Going ${new Date(`${trip.tripDate}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : trip.createdAt ? ` · Planned ${new Date(trip.createdAt).toLocaleDateString("en-IN")}` : ""}
                           {` · ${formatCost(trip.estimatedCost)}`}
                         </p>
                         <TripProgress status={trip.status} />
@@ -235,6 +256,9 @@ function MyTripsPageInner() {
                             <DownloadItineraryButton tripId={trip.tripRequestId} label="PDF" className="btn btn-secondary btn-sm" />
                             <EmailItineraryButton tripId={trip.tripRequestId} />
                             <ShareTripButton token={trip.shareToken} city={trip.city} />
+                            {trip.tripDate && (
+                              <button type="button" className="btn btn-secondary btn-sm" onClick={() => downloadTripCalendar(trip as any)}>Calendar</button>
+                            )}
                             <Link href={`/pickup?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Pickup</Link>
                             <Link href={`/review?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Review</Link>
                           </>
