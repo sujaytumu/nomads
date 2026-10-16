@@ -9,6 +9,8 @@ const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 const GroupChat = dynamic(() => import("@/components/GroupChat"), { ssr: false });
 import DownloadItineraryButton from "@/components/DownloadItineraryButton";
 import ItineraryEditor from "@/components/ItineraryEditor";
+import PackingChecklist from "@/components/PackingChecklist";
+import ShareTripButton from "@/components/ShareTripButton";
 import ProtectedPage from "@/components/ProtectedPage";
 import TripSteps from "@/components/TripSteps";
 import { api } from "@/lib/api";
@@ -213,7 +215,8 @@ function TripSummaryPageInner() {
                   <p className="text-3xl font-bold">{formatCost(summary.estimatedCost)}</p>
                 </div>
                 <div className="flex flex-wrap items-start gap-3">
-                  {hasPlans && <DownloadItineraryButton tripId={summary.tripRequestId} label="Download PDF" />}
+                  {summary.status !== "CANCELLED" && <DownloadItineraryButton tripId={summary.tripRequestId} label="Download PDF" />}
+                  <ShareTripButton token={summary.shareToken} city={summary.city} className="btn btn-secondary" />
                   <Link href="/bookings" className="btn-outline">My trips</Link>
                 </div>
               </div>
@@ -249,6 +252,8 @@ function TripSummaryPageInner() {
                 {notice}
               </p>
             )}
+
+            {summary.status === "CONFIRMED" && <PackingChecklist tripId={summary.tripRequestId} />}
 
             <div className="grid gap-6 lg:grid-cols-[3fr_2fr] items-start">
               {/* Itinerary */}
