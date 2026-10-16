@@ -98,10 +98,6 @@ public class TravelAssistanceServiceImpl implements TravelAssistanceService {
         assistance.setStatus(AssistanceStatus.CONFIRMED);
         TravelAssistance saved = travelAssistanceRepository.save(assistance);
 
-        String email = saved.getTripRequest().getUser().getEmail();
-        notificationService.sendEmail(email, "NOMAD Pickup अपडेट",
-            "Pickup time confirmed at " + saved.getPickupTime() + " for trip "
-                + saved.getTripRequest().getId());
         String phone = saved.getTripRequest().getUser().getPhoneNumber();
         if (phone != null && !phone.isBlank()) {
             notificationService.sendSms(phone,
@@ -142,9 +138,6 @@ public class TravelAssistanceServiceImpl implements TravelAssistanceService {
         }
 
         TravelAssistance saved = travelAssistanceRepository.save(assistance);
-        String email = saved.getTripRequest().getUser().getEmail();
-        notificationService.sendEmail(email, "NOMAD Pickup अपडेट",
-            "Pickup details updated for trip " + saved.getTripRequest().getId());
         String phone = saved.getTripRequest().getUser().getPhoneNumber();
         if (phone != null && !phone.isBlank()) {
             notificationService.sendSms(phone,

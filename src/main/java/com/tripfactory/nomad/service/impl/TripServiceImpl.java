@@ -57,7 +57,7 @@ public class TripServiceImpl implements TripService {
     private final TripRequestRepository tripRequestRepository;
     private final TripPlanRepository tripPlanRepository;
     private final TripRouteRepository tripRouteRepository;
-    private final ItineraryPdfGenerator itineraryPdfGenerator;
+    private final ItineraryEmailService itineraryEmailService;
     private final NotificationService notificationService;
 
     @Override
@@ -120,8 +120,6 @@ public class TripServiceImpl implements TripService {
         TripResponse response = toResponse(updated, plans);
         response.setEstimatedCost(updated.getEstimatedCost());
 
-        notificationService.sendEmail(user.getEmail(), "NOMAD Trip Planned",
-            "Your trip is planned for " + updated.getCity() + ". Trip ID: " + updated.getId());
         if (user.getPhoneNumber() != null && !user.getPhoneNumber().isBlank()) {
             notificationService.sendSms(user.getPhoneNumber(),
                 "NOMAD: Trip planned for " + updated.getCity() + ". Trip ID: " + updated.getId());
@@ -268,10 +266,17 @@ public class TripServiceImpl implements TripService {
     public byte[] generateItineraryPdf(Long tripRequestId) {
         TripRequest trip = findTrip(tripRequestId);
         List<TripPlan> plans = tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(tripRequestId);
-        if (plans.isEmpty()) {
-            throw new BadRequestException("This trip has no day-by-day itinerary to export");
+        // Package bookings have no day-by-day plan; the PDF then shows a booking summary.
+        return itineraryEmailService.buildPdf(trip, effectiveCost(trip, plans));
+    }
+
+    @Override
+    public boolean emailItinerary(Long tripRequestId) {
+        TripRequest trip = findTrip(tripRequestId);
+        if (trip.getStatus() != TripStatus.CONFIRMED) {
+            throw new BadRequestException("The itinerary email is sent once a trip is booked and paid");
         }
-        return itineraryPdfGenerator.generate(trip, plans, effectiveCost(trip, plans));
+        return itineraryEmailService.sendBookingEmail(trip);
     }
 
     private TripRequest findTrip(Long tripRequestId) {

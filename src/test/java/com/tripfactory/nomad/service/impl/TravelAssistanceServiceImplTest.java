@@ -77,7 +77,7 @@ class TravelAssistanceServiceImplTest {
 
         assertThat(assistance.getStatus()).isEqualTo(AssistanceStatus.CONFIRMED);
         assertThat(assistance.getPickupTime()).isEqualTo(LocalDateTime.of(2025, 1, 2, 10, 0));
-        verify(notificationService).sendEmail(any(), any(), any());
+        verify(notificationService, never()).sendEmail(any(), any(), any());
         verify(notificationService).sendSms(any(), any());
     }
 

@@ -21,46 +21,25 @@ body {
   @apply rounded-2xl bg-slate-900/70 backdrop-blur border border-slate-800 shadow-xl shadow-black/20;
 }
 
-.btn-primary {
-  @apply inline-flex items-center justify-center rounded-xl bg-brand-600 text-white px-5 py-3 font-semibold hover:bg-brand-500 active:bg-brand-700 transition shadow-lg shadow-brand-900/40;
+@layer components {
+/* One button system. Every button/link-button uses .btn + one variant (+ optional size). */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-5 py-2.5 text-sm font-semibold transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 disabled:cursor-not-allowed disabled:opacity-50;
+}
+.btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-500 active:bg-brand-700; }
+.btn-secondary, .btn-outline { @apply btn border-slate-700 bg-slate-800/60 text-slate-100 hover:bg-slate-700 hover:border-slate-600; }
+.btn-ghost { @apply btn text-slate-300 hover:bg-slate-800 hover:text-white; }
+.btn-danger { @apply btn border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20; }
+.btn-sm { @apply rounded-lg px-3 py-1.5 text-xs; }
+
 }
 
-.btn-outline {
-  @apply inline-flex items-center justify-center rounded-xl border border-slate-700 px-5 py-3 font-semibold text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition;
+@layer components {
+.side-link {
+  @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white;
 }
+.side-link-active { @apply bg-brand-600/20 text-white; }
 
-/* Header navigation. Every item shares one height, padding and font weight so
-   hovering, activating or logging in never changes the layout. */
-.nav-link {
-  @apply inline-flex h-9 items-center rounded-lg px-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-800 hover:text-white;
-}
-
-.nav-link-active {
-  @apply bg-slate-800 text-white;
-}
-
-.nav-btn {
-  @apply inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg px-4 text-sm font-semibold transition-colors;
-}
-
-.nav-btn-ghost {
-  @apply border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600;
-}
-
-.nav-btn-solid {
-  @apply border border-brand-600 bg-brand-600 text-white hover:bg-brand-500 hover:border-brand-500;
-}
-
-.nav-menu {
-  @apply absolute top-full z-50 mt-2 w-52 rounded-xl border border-slate-800 bg-slate-900 p-1 shadow-xl shadow-black/40;
-}
-
-.nav-menu-item {
-  @apply block rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white;
-}
-
-.nav-menu-item-active {
-  @apply bg-slate-800 text-white;
 }
 
 .badge {

@@ -5,6 +5,9 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import DownloadItineraryButton from "@/components/DownloadItineraryButton";
+import EmailItineraryButton from "@/components/EmailItineraryButton";
+import PageHeader from "@/components/PageHeader";
+import TripProgress from "@/components/TripProgress";
 import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
 import { cancelBooking } from "@/lib/paymentApi";
@@ -120,21 +123,18 @@ function MyTripsPageInner() {
 
   return (
     <ProtectedPage>
-      <div className="section py-12 space-y-6">
-        <div className="card p-6 space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold">My Trips</h2>
-              <p className="text-sm text-slate-300">
-                Every trip you've planned or booked. A trip is only booked once it's paid.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/trip-planner" className="btn-primary">Plan a trip</Link>
-              <Link href="/packages" className="btn-outline">Browse packages</Link>
-            </div>
-          </div>
-
+      <div className="section py-8 space-y-6">
+        <PageHeader
+          title="My Trips"
+          subtitle="Every trip you've planned or booked. A trip is only booked once it's paid; the itinerary PDF is emailed to you at that moment."
+          actions={
+            <>
+              <Link href="/trip-planner" className="btn btn-primary">Plan a trip</Link>
+              <Link href="/packages" className="btn btn-secondary">Browse packages</Link>
+            </>
+          }
+        />
+        <div className="space-y-4">
           {loading && (
             <p className="text-sm text-slate-400">
               Loading your trips… (may take up to a minute if the server was asleep)
@@ -144,7 +144,7 @@ function MyTripsPageInner() {
           {!loading && loadError && (
             <div className="space-y-2">
               <p className="text-sm text-red-400">Couldn't load your trips.</p>
-              <button className="btn-outline" onClick={load}>Retry</button>
+              <button className="btn btn-secondary btn-sm" onClick={load}>Retry</button>
             </div>
           )}
 
@@ -152,8 +152,8 @@ function MyTripsPageInner() {
             <div className="rounded-xl border border-slate-800 p-6 text-center space-y-3">
               <p className="text-slate-300">You haven't planned or booked anything yet.</p>
               <div className="flex justify-center gap-3">
-                <Link href="/trip-planner" className="btn-primary">Plan a trip</Link>
-                <Link href="/packages" className="btn-outline">Browse packages</Link>
+                <Link href="/trip-planner" className="btn btn-primary">Plan a trip</Link>
+                <Link href="/packages" className="btn btn-secondary">Browse packages</Link>
               </div>
             </div>
           )}
@@ -174,16 +174,14 @@ function MyTripsPageInner() {
               <p className="text-lg font-semibold text-green-300">Payment received — your trip is booked 🎉</p>
               <p className="text-sm text-slate-300">
                 {paidTrip
-                  ? `${tripTitle(paidTrip)} (#${paidTrip.tripRequestId}) · ${formatCost(paidTrip.estimatedCost)}. A confirmation is on its way to you.`
-                  : `Trip #${paidId} is now confirmed. A confirmation is on its way to you.`}
+                  ? `${tripTitle(paidTrip)} (#${paidTrip.tripRequestId}) · ${formatCost(paidTrip.estimatedCost)}. Your itinerary PDF is being emailed to you.`
+                  : `Trip #${paidId} is now confirmed. Your itinerary PDF is being emailed to you.`}
               </p>
             </div>
             <div className="flex flex-wrap items-start gap-3">
-              {paidTrip && tripKind(paidTrip) === "Custom itinerary" && (
-                <DownloadItineraryButton tripId={paidId} className="btn-primary" />
-              )}
-              <Link href={`/trip-summary?tripId=${paidId}`} className="btn-outline">View trip</Link>
-              <button type="button" className="btn-outline" onClick={() => setPaidId(null)}>Dismiss</button>
+              <DownloadItineraryButton tripId={paidId} className="btn btn-primary" />
+              <Link href={`/pickup?tripId=${paidId}`} className="btn btn-secondary">Arrange pickup</Link>
+              <button type="button" className="btn btn-ghost" onClick={() => setPaidId(null)}>Dismiss</button>
             </div>
           </div>
         )}
@@ -219,26 +217,31 @@ function MyTripsPageInner() {
                           {trip.createdAt ? ` · ${new Date(trip.createdAt).toLocaleDateString()}` : ""}
                           {` · ${formatCost(trip.estimatedCost)}`}
                         </p>
-                        <p className="text-xs text-slate-500">{meta.hint}</p>
+                        <TripProgress status={trip.status} />
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
                         {isPayable(trip.status) && (
-                          <Link href={`/payment?tripRequestId=${trip.tripRequestId}`} className="btn-primary">
+                          <Link href={`/payment?tripRequestId=${trip.tripRequestId}`} className="btn btn-primary btn-sm">
                             {trip.status === "PAYMENT_PENDING" ? "Continue payment" : "Pay & book"}
                           </Link>
                         )}
-                        <Link href={`/trip-summary?tripId=${trip.tripRequestId}`} className="btn-outline">
+                        <Link href={`/trip-summary?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">
                           View trip
                         </Link>
-                        {trip.status !== "CANCELLED" && tripKind(trip) === "Custom itinerary" && (
-                          <DownloadItineraryButton tripId={trip.tripRequestId} label="PDF" />
+                        {trip.status === "CONFIRMED" && (
+                          <>
+                            <DownloadItineraryButton tripId={trip.tripRequestId} label="PDF" className="btn btn-secondary btn-sm" />
+                            <EmailItineraryButton tripId={trip.tripRequestId} />
+                            <Link href={`/pickup?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Pickup</Link>
+                            <Link href={`/review?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Review</Link>
+                          </>
                         )}
                         {isCancellable(trip.status) && (
                           <button
                             onClick={() => handleCancel(trip)}
                             disabled={cancellingId === trip.tripRequestId}
-                            className="text-sm text-red-400 hover:underline disabled:opacity-50"
+                            className="btn btn-danger btn-sm"
                           >
                             {cancellingId === trip.tripRequestId ? "Cancelling…" : "Cancel"}
                           </button>
