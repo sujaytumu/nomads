@@ -13,29 +13,39 @@ export default function ShareTripPage({ params }: { params: { token: string } })
       .catch(() => setError("Shared trip not found"));
   }, [params.token]);
 
+  const days: Record<number, any[]> = {};
+  (trip?.plans || []).forEach((p: any) => (days[p.dayNumber] = [...(days[p.dayNumber] || []), p]));
+  const t = (v: any) => (typeof v === "string" ? v.slice(0, 5) : "");
+
   return (
-    <div className="section py-12 space-y-6">
-      <div className="card p-6 space-y-4">
-        <h2 className="text-2xl font-bold">Shared Trip</h2>
-        {error && <p className="text-sm text-red-400">{error}</p>}
-        {trip && (
-          <div className="space-y-3">
-            <p className="text-sm text-slate-300">Trip ID: {trip.tripRequestId}</p>
-            <p className="text-sm text-slate-300">City: {trip.city}</p>
-            <div className="grid gap-3">
-              {trip.plans?.map((plan: any, index: number) => (
-                <div key={`${plan.placeId}-${index}`} className="border rounded-xl p-4">
-                  <p className="font-semibold">Day {plan.dayNumber} - {plan.placeName}</p>
-                  <p className="text-sm text-slate-300">{plan.startTime} - {plan.endTime}</p>
-                  {typeof plan.distanceFromPrevious === "number" && (
-                    <p className="text-xs text-slate-400">{plan.distanceFromPrevious.toFixed(1)} km from previous stop</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+    <div className="mx-auto max-w-2xl space-y-6 px-5 py-10">
+      <div className="text-center">
+        <p className="text-2xl font-bold tracking-wide text-brand-700">NOMAD</p>
+        <p className="text-sm text-slate-400">A shared weekend itinerary</p>
       </div>
+      {error && <p role="alert" className="card p-5 text-center text-sm text-red-400">{error}</p>}
+      {!trip && !error && <div className="card h-40 animate-pulse" />}
+      {trip && (
+        <>
+          <h1 className="text-center text-3xl font-bold">{trip.city ? `${trip.city} weekend` : "Weekend trip"}</h1>
+          {Object.entries(days).map(([day, stops]) => (
+            <section key={day} className="card space-y-3 p-5">
+              <p className="text-sm font-semibold uppercase tracking-wide text-brand-400">Day {day}</p>
+              <ol className="space-y-3 border-l border-slate-700 pl-4">
+                {stops.map((p: any, i: number) => (
+                  <li key={`${p.placeId}-${i}`}>
+                    <p className="font-semibold">{p.placeName}</p>
+                    <p className="text-sm text-slate-400">{t(p.startTime)} – {t(p.endTime)}{typeof p.distanceFromPrevious === "number" ? ` · ${p.distanceFromPrevious.toFixed(1)} km from previous` : ""}</p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))}
+          <div className="text-center">
+            <a href="/auth?mode=register" className="btn btn-primary">Plan your own weekend</a>
+          </div>
+        </>
+      )}
     </div>
   );
 }
