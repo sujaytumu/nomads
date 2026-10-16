@@ -349,4 +349,31 @@ class TripServiceImplTest {
 
         assertThrows(BadRequestException.class, () -> tripService.emailItinerary(TRIP_ID));
     }
+
+    @Test
+    void updateTripDate_savesAFutureDate() {
+        TripRequest trip = trip(TripStatus.CONFIRMED, WeekendType.TWO_DAY);
+        when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(trip));
+        when(tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(TRIP_ID)).thenReturn(List.of());
+        java.time.LocalDate date = java.time.LocalDate.now().plusDays(10);
+
+        tripService.updateTripDate(TRIP_ID, date);
+
+        assertThat(trip.getTripDate()).isEqualTo(date);
+        verify(tripRequestRepository).save(trip);
+    }
+
+    @Test
+    void updateTripDate_rejectsPastDatesAndCancelledTrips() {
+        TripRequest booked = trip(TripStatus.CONFIRMED, WeekendType.TWO_DAY);
+        when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(booked));
+        assertThrows(BadRequestException.class,
+                () -> tripService.updateTripDate(TRIP_ID, java.time.LocalDate.now().minusDays(5)));
+
+        TripRequest cancelled = trip(TripStatus.CANCELLED, WeekendType.TWO_DAY);
+        when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(cancelled));
+        assertThrows(BadRequestException.class,
+                () -> tripService.updateTripDate(TRIP_ID, java.time.LocalDate.now().plusDays(5)));
+        verify(tripRequestRepository, never()).save(any());
+    }
 }
