@@ -54,3 +54,42 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   @apply outline-none border-brand-500 ring-2 ring-brand-500/25;
 }
+
+/* ---- Finishing touches ---- */
+::selection { background: rgba(228, 76, 30, 0.18); }
+html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+h1 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* Pages ease in instead of snapping. */
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+main { animation: page-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Cards: a hairline top highlight and a smoother lift. */
+.card { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(18, 38, 58, 0.05), 0 10px 30px -8px rgba(18, 38, 58, 0.12); }
+a.card, .card.group { transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease; }
+
+/* Primary buttons: richer than a flat fill. */
+.btn-primary {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -8px rgba(228, 76, 30, 0.55); }
+.btn-secondary:hover, .btn-outline:hover { border-color: rgba(228, 76, 30, 0.45); }
+
+/* Loading placeholders shimmer. */
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.animate-pulse { position: relative; overflow: hidden; animation: none; background-color: rgba(18, 38, 58, 0.05); }
+.animate-pulse::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+/* Horizontal scrollers hide their bar; the sidebar and page keep thin ones. */
+.overflow-x-auto { scrollbar-width: none; }
+.overflow-x-auto::-webkit-scrollbar { display: none; }
+* { scrollbar-width: thin; scrollbar-color: rgba(18, 38, 58, 0.25) transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
