@@ -25,5 +25,9 @@ public class TripResponse {
     private LocalDateTime createdAt;
     private BigDecimal estimatedCost;
     private java.time.LocalDate tripDate;
+    private String weekendType;
+    private String interest;
+    private String travelMode;
+    private Boolean pickupRequired;
     private List<TripPlanItemResponse> plans;
 }
