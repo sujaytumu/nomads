@@ -105,7 +105,7 @@ export default function PackageBrowser({ initial }: { initial: any[] }) {
           <button className="btn-outline" onClick={reset}>Clear filters</button>
         </div>
       ) : (
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {pkgs.map((p: any) => (
             <PackageCard key={p.id} pkg={p} saved={saved.has(p.id)} onSavedChange={onSavedChange} />
           ))}
