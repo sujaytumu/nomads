@@ -409,6 +409,10 @@ public class TripServiceImpl implements TripService {
         response.setUserId(tripRequest.getUser().getId());
         response.setCity(tripRequest.getCity());
         response.setShareToken(tripRequest.getShareToken());
+        response.setWeekendType(tripRequest.getWeekendType() == null ? null : tripRequest.getWeekendType().name());
+        response.setInterest(tripRequest.getInterest() == null ? null : tripRequest.getInterest().name());
+        response.setTravelMode(tripRequest.getTravelMode() == null ? null : tripRequest.getTravelMode().name());
+        response.setPickupRequired(tripRequest.getPickupRequired());
         response.setTripDate(tripRequest.getTripDate());
         if (tripRequest.getGroup() != null) {
             response.setGroupId(tripRequest.getGroup().getId());
