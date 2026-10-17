@@ -1,0 +1,32 @@
+PASS sidebar / -> /
+PASS sidebar /packages -> /packages
+PASS sidebar /map -> /map
+PASS sidebar /wishlist -> /wishlist
+PASS sidebar /trip-planner -> /trip-planner
+PASS sidebar /bookings -> /bookings
+PASS sidebar /trip-summary -> /trip-summary
+PASS sidebar /route-view -> /route-view
+PASS sidebar /payment -> /payment
+PASS sidebar /group-status -> /group-status
+PASS sidebar /pickup -> /pickup
+PASS sidebar /review -> /review
+PASS My Trips link /trip-planner -> /trip-planner
+PASS My Trips link /packages -> /packages
+PASS My Trips link /payment?tripRequestId=2 -> /payment?tripRequestId=2
+PASS My Trips link /trip-summary?tripId=2 -> /trip-summary?tripId=2
+PASS My Trips link /payment?tripRequestId=1 -> /payment?tripRequestId=1
+PASS My Trips link /trip-summary?tripId=1 -> /trip-summary?tripId=1
+PASS My Trips link /trip-summary?tripId=4 -> /trip-summary?tripId=4
+PASS My Trips link /pickup?tripId=4 -> /pickup?tripId=4
+PASS My Trips link /review?tripId=4 -> /review?tripId=4
+PASS My Trips link /trip-summary?tripId=3 -> /trip-summary?tripId=3
+PASS My Trips link /pickup?tripId=3 -> /pickup?tripId=3
+PASS My Trips link /review?tripId=3 -> /review?tripId=3
+PASS My Trips link /trip-planner?weekend=TWO_DAY -> /trip-planner?weekend=TWO_DAY
+PASS My Trips link /trip-summary?tripId=5 -> /trip-summary?tripId=5
+PASS Email itinerary shows honest failure message
+PASS PDF button triggers a download
+PASS pickup confirm flow
+PASS admin controls hidden for normal user
+PASS review flow
+PASS payment redirects to My Trips: http://localhost:3000/bookings
