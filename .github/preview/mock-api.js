@@ -1,7 +1,7 @@
 // Tiny fake backend so the real frontend build can be screenshotted and clicked through in CI.
 const http = require("http"), fs = require("fs");
 const plans = (n) => Array.from({ length: n }, (_, i) => ({ dayNumber: 1 + (i >= 2 ? 1 : 0), placeId: i + 1, placeName: "Place " + (i + 1), startTime: "09:00:00", endTime: "11:00:00", distanceFromPrevious: 2.5 }));
-const t = (id, status, city, cost, p) => ({ tripRequestId: id, city, status, estimatedCost: cost, createdAt: "2026-10-1" + id + "T10:00:00", plans: p, weekendType: "TWO_DAY" });
+const t = (id, status, city, cost, p) => ({ tripRequestId: id, city, status, estimatedCost: cost, createdAt: "2026-10-1" + id + "T10:00:00", plans: p, weekendType: "TWO_DAY", tripDate: id === 3 ? new Date().toISOString().slice(0,10) : null });
 const trips = [
   t(1, "PLANNED", "Bengaluru", 1800, plans(3)),
   t(2, "PAYMENT_PENDING", "Mysuru", 1300, plans(2)),

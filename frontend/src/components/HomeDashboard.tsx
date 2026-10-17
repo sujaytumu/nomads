@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import TripProgress from "@/components/TripProgress";
+import UpcomingTrip from "@/components/UpcomingTrip";
 import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 import { formatCost, isPayable, tripTitle } from "@/lib/tripStatus";
@@ -60,6 +61,8 @@ export default function HomeDashboard() {
           ))}
         </div>
       </div>
+
+      {trips && <UpcomingTrip trips={trips} />}
 
       {trips === null ? (
         <div className="card h-28 animate-pulse" />
