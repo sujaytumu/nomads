@@ -1,0 +1,43 @@
+# TEMPORARY: renders the real frontend against a fake API and publishes screenshots to the ci-preview branch. Remove before merging.
+name: Preview
+on:
+  push:
+    branches: ['feat/**']
+permissions:
+  contents: write
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17', cache: maven }
+      - name: Render sample PDFs
+        run: |
+          mvn -B -ntp -q test -Dtest=ItineraryPdfGeneratorTest 2>&1 | tail -30
+          sudo apt-get install -y -qq poppler-utils >/dev/null
+          mkdir -p out
+          for f in target/sample-pdfs/*.pdf; do pdftoppm -r 70 -png "$f" "out/pdf-$(basename "$f" .pdf)"; done
+          cp target/sample-pdfs/*.pdf out/ || true
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          NEXT_PUBLIC_API_BASE_URL=http://localhost:8081 npm run build
+      - name: Screenshots and click-through
+        working-directory: frontend
+        run: |
+          npm i --no-save playwright@1.48.0 >/dev/null
+          npx playwright install --with-deps chromium >/dev/null
+          mkdir -p $GITHUB_WORKSPACE/out; SAMPLE_PDF=$GITHUB_WORKSPACE/target/sample-pdfs/itinerary-booked.pdf node ../.github/preview/mock-api.js &
+          npx next start -p 3000 &
+          sleep 8
+          NODE_PATH=$PWD/node_modules OUT=$GITHUB_WORKSPACE/out node ../.github/preview/shots.js 2>&1 | tee $GITHUB_WORKSPACE/out/shots.log || true
+      - name: Publish to ci-preview branch
+        run: |
+          cd out && git init -q && git checkout -q -b ci-preview
+          git config user.email ci@example.com && git config user.name ci
+          git add -A && git commit -q -m "preview for ${GITHUB_SHA}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-preview
