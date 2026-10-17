@@ -16,7 +16,7 @@ const CITIES: Record<string, [number, number]> = {
   Mumbai: [19.076, 72.8777],
   Delhi: [28.6139, 77.209],
   Hyderabad: [17.385, 78.4867],
-  Visakhapatnam: [17.6868, 83.2185],
+  Vishakapatnam: [17.6868, 83.2185],
 };
 
 const INTERESTS: { value: string; label: string; icon: string }[] = [
