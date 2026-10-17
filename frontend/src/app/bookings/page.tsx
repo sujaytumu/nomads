@@ -28,7 +28,22 @@ type Trip = TripLike & {
   createdAt: string;
   shareToken?: string;
   tripDate?: string | null;
+  weekendType?: string | null;
+  interest?: string | null;
+  travelMode?: string | null;
+  pickupRequired?: boolean | null;
+  groupSize?: number | null;
 };
+
+function planAgainHref(t: Trip): string {
+  const q = new URLSearchParams();
+  if (t.interest) q.set("interest", t.interest);
+  if (t.weekendType) q.set("weekend", t.weekendType);
+  if (t.travelMode) q.set("mode", t.travelMode);
+  if (t.groupSize) q.set("group", String(t.groupSize));
+  if (t.pickupRequired) q.set("pickup", "1");
+  return `/trip-planner?${q.toString()}`;
+}
 
 // Grouped by what the user needs to do next, not by raw backend status.
 const SECTIONS: { key: string; title: string; subtitle: string; match: (s: string) => boolean }[] = [
@@ -262,6 +277,9 @@ function MyTripsPageInner() {
                             <Link href={`/pickup?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Pickup</Link>
                             <Link href={`/review?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Review</Link>
                           </>
+                        )}
+                        {tripKind(trip) === "Custom itinerary" && (trip.status === "CONFIRMED" || trip.status === "CANCELLED") && (
+                          <Link href={planAgainHref(trip)} className="btn btn-secondary btn-sm">Plan again</Link>
                         )}
                         {isCancellable(trip.status) && (
                           <button

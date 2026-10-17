@@ -31,6 +31,7 @@ export default function TripPlannerPage() {
   const [cityLocked, setCityLocked] = useState(false);
 
   useEffect(() => {
+    const qs = new URLSearchParams(window.location.search);
     fetchMe()
       .then((user) => {
         setForm((prev) => ({
@@ -40,8 +41,11 @@ export default function TripPlannerPage() {
           userLatitude: user.latitude?.toString() ?? "",
           userLongitude: user.longitude?.toString() ?? "",
           // An interest chosen on Home (?interest=FOOD) beats the profile default.
-          interest: new URLSearchParams(window.location.search).get("interest") ?? user.interestType ?? prev.interest,
-          travelMode: user.travelPreference ?? prev.travelMode,
+          interest: qs.get("interest") ?? user.interestType ?? prev.interest,
+          travelMode: qs.get("mode") ?? user.travelPreference ?? prev.travelMode,
+          weekendType: qs.get("weekend") ?? prev.weekendType,
+          groupSize: qs.get("group") ?? prev.groupSize,
+          pickupRequired: qs.get("pickup") === "1" ? true : prev.pickupRequired,
         }));
         setCityLocked(true);
       })
