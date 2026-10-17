@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "../lib/api";
 import WishlistHeart from "./WishlistHeart";
+import Cover from "./Cover";
 
 type Props = {
   pkg: any;
@@ -37,20 +38,24 @@ export default function PackageCard({ pkg, saved, onSavedChange }: Props) {
   }
 
   return (
-    <div className="card p-4">
-      <img src={pkg.imageUrl || '/images/package-placeholder.svg'} alt={pkg.name} className="h-40 w-full object-cover rounded-md" />
-      <div className="py-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-lg font-semibold">{pkg.name}</h3>
-          {onSavedChange && <WishlistHeart packageId={pkg.id} saved={!!saved} onChange={onSavedChange} />}
+    <div className="card group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift">
+      <div className="relative">
+        <Cover src={pkg.imageUrl} alt={pkg.name} kind="PACKAGE" className="h-48" />
+        <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-sm font-bold text-slate-100 shadow-sm">₹{pkg.price}</span>
+        {onSavedChange && (
+          <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-brand-600 shadow-sm">
+            <WishlistHeart packageId={pkg.id} saved={!!saved} onChange={onSavedChange} />
+          </span>
+        )}
+      </div>
+      <div className="space-y-3 p-4">
+        <div>
+          <h3 className="font-display text-lg font-semibold leading-snug">{pkg.name}</h3>
+          <p className="mt-1 line-clamp-2 text-sm text-slate-400">{pkg.shortDescription}</p>
         </div>
-        <p className="text-sm text-slate-300">{pkg.shortDescription}</p>
-        <div className="flex items-center justify-between mt-3">
-          <div className="text-xl font-bold">₹{pkg.price}</div>
-          <div className="flex gap-2">
-            <Link href={`/packages/${pkg.id}`} className="btn-outline">Explore</Link>
-            <button className="btn-primary" onClick={handleEnroll} disabled={loading}>{loading ? 'Enrolling…' : 'Enroll & Pay'}</button>
-          </div>
+        <div className="flex gap-2">
+          <Link href={`/packages/${pkg.id}`} className="btn btn-secondary btn-sm flex-1">Explore</Link>
+          <button className="btn btn-primary btn-sm flex-1" onClick={handleEnroll} disabled={loading}>{loading ? 'Enrolling…' : 'Enroll & Pay'}</button>
         </div>
       </div>
     </div>

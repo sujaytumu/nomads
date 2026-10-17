@@ -1,9 +1,7 @@
-import dynamic from "next/dynamic";
 import HomeDashboard from "@/components/HomeDashboard";
 import PickedForYou from "@/components/PickedForYou";
 import PackageCard from "@/components/PackageCard";
 
-const PlacesList = dynamic(() => import("@/components/PlacesList"), { ssr: false });
 
 async function fetchHomepagePackages() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/packages/homepage`, { cache: 'no-store' });
@@ -18,16 +16,8 @@ export default async function HomePage() {
       <PickedForYou />
       <section className="section pb-16">
         <div className="mb-6">
-          <h3 className="text-2xl font-semibold">Nearby Attractions</h3>
-          <p className="text-sm text-slate-300">Places near you — explore and add to your tour.</p>
-        </div>
-        <PlacesList />
-      </section>
-
-      <section className="section pb-16">
-        <div className="mb-6">
-          <h3 className="text-2xl font-semibold">Featured Weekend Packages</h3>
-          <p className="text-sm text-slate-300">Choose a curated weekend package and enroll instantly.</p>
+          <h2 className="font-display text-2xl font-semibold">Weekend packages</h2>
+          <p className="text-sm text-slate-400">Ready-made weekends. Enroll, pay, and your itinerary PDF lands in your inbox.</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {

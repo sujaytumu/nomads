@@ -26,14 +26,14 @@ export default function TripSteps({ current, tripId }: Props) {
         const circle = done
           ? "bg-brand-600 text-white"
           : active
-            ? "border-2 border-brand-500 text-white"
+            ? "border-2 border-brand-500 text-slate-100"
             : "border border-slate-700 text-slate-500";
         const content = (
           <span className="flex items-center gap-2">
             <span className={`grid h-6 w-6 place-items-center rounded-full text-xs font-bold ${circle}`}>
               {done ? "✓" : step.n}
             </span>
-            <span className={active ? "font-semibold text-white" : done ? "text-slate-300" : "text-slate-500"}>
+            <span className={`${active ? "font-semibold text-slate-100" : done ? "text-slate-300" : "hidden text-slate-500 sm:inline"}`}>
               {step.label}
             </span>
           </span>
@@ -41,15 +41,15 @@ export default function TripSteps({ current, tripId }: Props) {
         // Only earlier steps are links; you can't skip ahead.
         const canLink = step.href && step.n < current;
         return (
-          <li key={step.n} className="flex items-center gap-2" aria-current={active ? "step" : undefined}>
+          <li key={step.n} className="flex items-center gap-1.5 sm:gap-2" aria-current={active ? "step" : undefined}>
             {canLink ? (
-              <Link href={step.href as string} className="hover:text-white">
+              <Link href={step.href as string} className="hover:text-slate-100">
                 {content}
               </Link>
             ) : (
               content
             )}
-            {i < steps.length - 1 && <span aria-hidden="true" className="h-px w-6 bg-slate-700 sm:w-10" />}
+            {i < steps.length - 1 && <span aria-hidden="true" className="h-px w-2 bg-slate-700 sm:w-10" />}
           </li>
         );
       })}

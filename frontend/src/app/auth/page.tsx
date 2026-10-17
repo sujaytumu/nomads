@@ -81,14 +81,16 @@ export default function AuthPage() {
   const input = "w-full rounded-xl border px-4 py-3 text-base";
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-5 py-10">
-      <div className="mb-6 text-center">
-        <p className="text-3xl font-bold tracking-wide text-brand-700">NOMAD</p>
-        <p className="mt-1 text-sm text-slate-400">Smart weekend travel &amp; assistance</p>
+      <div className="relative mb-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#FF7A50] via-[#FF9A63] to-[#14A097] p-7 text-white shadow-lift">
+        <div aria-hidden="true" className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/15" />
+        <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Nomad</p>
+        <h1 className="relative mt-1 font-display text-3xl font-semibold leading-tight">Your weekend,<br />planned in minutes.</h1>
+        <p className="relative mt-2 text-sm text-white/90">Itinerary, route, pickup and payment in one place.</p>
       </div>
       <div className="card space-y-5 p-6">
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-800/60 p-1" role="tablist">
+        <div className="grid grid-cols-2 gap-1 rounded-full bg-slate-800 p-1" role="tablist">
           {(["login", "register"] as const).map((m) => (
-            <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`rounded-lg py-2 text-sm font-semibold transition-colors ${mode === m ? "bg-brand-600 text-white" : "text-slate-300 hover:text-white"}`}>
+            <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`rounded-full py-2 text-sm font-semibold transition-colors ${mode === m ? "bg-brand-600 text-white shadow" : "text-slate-300 hover:text-slate-100"}`}>
               {m === "login" ? "Log in" : "Sign up"}
             </button>
           ))}
