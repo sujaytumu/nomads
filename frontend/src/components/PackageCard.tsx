@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "../lib/api";
 import WishlistHeart from "./WishlistHeart";
+import Cover from "./Cover";
 
 type Props = {
   pkg: any;
@@ -39,7 +40,7 @@ export default function PackageCard({ pkg, saved, onSavedChange }: Props) {
   return (
     <div className="card group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift">
       <div className="relative">
-        <img src={pkg.imageUrl || '/images/package-placeholder.svg'} alt={pkg.name} className="h-48 w-full object-cover" />
+        <Cover src={pkg.imageUrl} alt={pkg.name} kind="PACKAGE" className="h-48" />
         <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-sm font-bold text-slate-100 shadow-sm">₹{pkg.price}</span>
         {onSavedChange && (
           <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-brand-600 shadow-sm">

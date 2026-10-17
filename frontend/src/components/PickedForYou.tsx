@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import Cover from "@/components/Cover";
 import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 
@@ -74,7 +75,7 @@ export default function PickedForYou() {
         {picks.map(({ place, why }) => (
           <Link key={place.id} href={`/place/${place.id}`} className="card group block w-64 shrink-0 snap-start overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift sm:w-auto">
             <div className="relative">
-              <img src={place.imageUrl || "/images/place-placeholder.svg"} alt="" className="h-36 w-full object-cover" />
+              <Cover src={place.imageUrl} kind={place.category} className="h-36" />
               <span className="absolute left-3 top-3 rounded-full bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white shadow">{why}</span>
               {place.rating ? <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-100">★ {Number(place.rating).toFixed(1)}</span> : null}
             </div>

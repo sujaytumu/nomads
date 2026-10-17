@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Cover from "./Cover";
 
 const label = (s?: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : "");
 
@@ -9,7 +10,7 @@ export default function PlaceCard({ place, onAdd }: { place: any; onAdd: (p: any
   return (
     <div className="card group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift">
       <div className="relative">
-        <img src={place.imageUrl || "/images/place-placeholder.svg"} alt={place.name} className="h-44 w-full object-cover" />
+        <Cover src={place.imageUrl} alt={place.name} kind={place.category} className="h-44" />
         {place.category && (
           <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-100 shadow-sm">{label(place.category)}</span>
         )}
