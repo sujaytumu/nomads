@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import HomeDashboard from "@/components/HomeDashboard";
+import PickedForYou from "@/components/PickedForYou";
 import PackageCard from "@/components/PackageCard";
 
 const PlacesList = dynamic(() => import("@/components/PlacesList"), { ssr: false });
@@ -14,6 +15,7 @@ export default async function HomePage() {
   return (
     <div>
       <HomeDashboard />
+      <PickedForYou />
       <section className="section pb-16">
         <div className="mb-6">
           <h3 className="text-2xl font-semibold">Nearby Attractions</h3>
