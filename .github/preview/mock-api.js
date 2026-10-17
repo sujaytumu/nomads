@@ -28,6 +28,7 @@ http.createServer((req, res) => {
     if (p === "/api/trips/me") return json(trips);
     if ((m = p.match(/^\/api\/trips\/(\d+)\/itinerary\.pdf$/))) { res.writeHead(200, { "Content-Type": "application/pdf" }); return res.end(pdf); }
     if ((m = p.match(/^\/api\/trips\/(\d+)\/itinerary\/email$/))) return json({ sent: false });
+    if (p.match(/^\/api\/trips\/\d+\/weather$/)) return json({ city: "Bengaluru", days: [{ date: "2026-10-24", maxTempC: 28, minTempC: 19, precipitationChance: 30, description: "Partly cloudy" }, { date: "2026-10-25", maxTempC: 27, minTempC: 19, precipitationChance: 60, description: "Light rain" }] });
     if ((m = p.match(/^\/api\/trips\/(\d+)$/))) { const x = trips.find((q) => q.tripRequestId == m[1]); return x ? json(x) : json({ message: "Trip not found" }, 404); }
     if ((m = p.match(/^\/api\/travel\/(\d+)$/)) && req.method === "GET") return travel[m[1]] ? json(travel[m[1]]) : json({ message: "none" }, 404);
     if (p === "/api/travel/assign") { const id = JSON.parse(body).tripRequestId; travel[id] = { pickupLocation: "Majestic Bus Stand", vehicleType: "SEDAN", vehicleNumber: "KA01 AB 1234", driverName: "Ravi", status: "ASSIGNED" }; return json(travel[id]); }
