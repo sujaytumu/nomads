@@ -57,16 +57,16 @@ export default function PackageBrowser({ initial }: { initial: any[] }) {
 
   return (
     <>
-      <div className="card p-4 mb-6 grid gap-3 md:grid-cols-5">
+      <div className="card p-3 sm:p-4 mb-6 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-5">
         <input
-          className="md:col-span-2 rounded-md px-3 py-2 text-slate-900"
+          className="col-span-2 w-full rounded-xl border px-3 py-2.5 md:col-span-2"
           placeholder="Search destinations…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           aria-label="Search packages"
         />
         <input
-          className="rounded-md px-3 py-2 text-slate-900"
+          className="w-full rounded-xl border px-3 py-2.5"
           type="number"
           min={0}
           placeholder="Min ₹"
@@ -75,7 +75,7 @@ export default function PackageBrowser({ initial }: { initial: any[] }) {
           aria-label="Minimum price"
         />
         <input
-          className="rounded-md px-3 py-2 text-slate-900"
+          className="w-full rounded-xl border px-3 py-2.5"
           type="number"
           min={0}
           placeholder="Max ₹"
@@ -84,7 +84,7 @@ export default function PackageBrowser({ initial }: { initial: any[] }) {
           aria-label="Maximum price"
         />
         <select
-          className="rounded-md px-3 py-2 text-slate-900"
+          className="col-span-2 w-full rounded-xl border px-3 py-2.5 md:col-span-1"
           value={sort}
           onChange={(e) => setSort(e.target.value as PackageSort)}
           aria-label="Sort packages"
