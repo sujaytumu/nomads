@@ -1,15 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
 import AppShell from "@/components/AppShell";
 
-export const viewport: Viewport = { themeColor: "#1B2559" };
+const body = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+const display = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+
+export const viewport: Viewport = { themeColor: "#FBF8F3" };
 
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icon-192.png", apple: "/apple-touch-icon.png" },
-  appleWebApp: { capable: true, title: "NOMAD", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "NOMAD", statusBarStyle: "default" },
   title: "NOMAD – Smart Weekend Travel",
   description: "Plan weekend city trips with smart recommendations, assistance, and payments.",
 };
@@ -20,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${body.variable} ${display.variable}`}>
       <body>
         <AppShell>{children}</AppShell>
       </body>

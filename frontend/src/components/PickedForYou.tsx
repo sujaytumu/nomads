@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import Cover from "@/components/Cover";
 import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 
@@ -67,21 +68,23 @@ export default function PickedForYou() {
   return (
     <section className="section space-y-3 pb-8">
       <div>
-        <h2 className="text-xl font-semibold">Picked for you</h2>
+        <h2 className="font-display text-2xl font-semibold">Picked for you</h2>
         <p className="text-sm text-slate-400">New places, ranked by your interests, rating and distance.</p>
       </div>
       <div className="-mx-6 flex snap-x gap-3 overflow-x-auto px-6 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
         {picks.map(({ place, why }) => (
-          <Link key={place.id} href={`/place/${place.id}`} className="card block w-64 shrink-0 snap-start overflow-hidden transition-colors hover:border-brand-500/50 sm:w-auto">
-            <img src={place.imageUrl || "/images/place-placeholder.svg"} alt="" className="h-28 w-full object-cover" />
-            <div className="space-y-1 p-3">
-              <p className="truncate font-semibold">{place.name}</p>
+          <Link key={place.id} href={`/place/${place.id}`} className="card group block w-64 shrink-0 snap-start overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift sm:w-auto">
+            <div className="relative">
+              <Cover src={place.imageUrl} kind={place.category} className="h-36" />
+              <span className="absolute left-3 top-3 rounded-full bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white shadow">{why}</span>
+              {place.rating ? <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-100">★ {Number(place.rating).toFixed(1)}</span> : null}
+            </div>
+            <div className="p-3">
+              <p className="truncate font-display text-base font-semibold">{place.name}</p>
               <p className="text-xs text-slate-400">
                 {label(place.category)}
-                {place.rating ? ` · ★ ${Number(place.rating).toFixed(1)}` : ""}
                 {typeof place.distanceKm === "number" ? ` · ${place.distanceKm.toFixed(1)} km` : ""}
               </p>
-              <p className="text-xs font-medium text-brand-400">{why}</p>
             </div>
           </Link>
         ))}

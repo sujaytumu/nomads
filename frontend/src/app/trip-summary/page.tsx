@@ -341,7 +341,7 @@ function TripSummaryPageInner() {
                   </section>
                 )}
 
-                {weather && weather.days.length > 0 && (
+                {weather && Array.isArray(weather.days) && weather.days.length > 0 && (
                   <section className="card p-6">
                     <h3 className="text-lg font-semibold mb-3">Weather in {weather.city}</h3>
                     <div className="grid grid-cols-3 gap-3">
