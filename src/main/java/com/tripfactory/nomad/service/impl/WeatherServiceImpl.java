@@ -39,7 +39,7 @@ public class WeatherServiceImpl implements WeatherService {
             "Mumbai", new double[] { 19.0760, 72.8777 },
             "Delhi", new double[] { 28.6139, 77.2090 },
             "Hyderabad", new double[] { 17.3850, 78.4867 },
-            "Visakhapatnam", new double[] { 17.6868, 83.2185 });
+            "Vishakapatnam", new double[] { 17.6868, 83.2185 });
 
     private final TripRequestRepository tripRequestRepository;
     private final RestTemplate restTemplate = new RestTemplate();

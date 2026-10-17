@@ -38,6 +38,8 @@ public class PackageServiceImpl implements PackageService {
         packages.add(buildSummary("Weekend in Bengaluru", "A curated 2-day Bengaluru weekend with food, parks and nightlife.", new BigDecimal("4999"), bengaluru, "https://picsum.photos/seed/nomad-bengaluru/600/400"));
         packages.add(buildSummary("Mumbai Shoreline", "Explore beaches, bazaars and local cuisine in Mumbai.", new BigDecimal("5999"), mumbai, "https://picsum.photos/seed/nomad-mumbai/600/400"));
         packages.add(buildSummary("Delhi Heritage Trip", "Historical walks, markets and cultural experiences in Delhi.", new BigDecimal("5499"), delhi, "https://picsum.photos/seed/nomad-delhi/600/400"));
+        packages.add(buildSummary("Hyderabad Nizami Trail", "Charminar, Golconda Fort, lakeside evenings and legendary biryani in Hyderabad.", new BigDecimal("5299"), List.of(), "https://picsum.photos/seed/nomad-hyderabad/600/400"));
+        packages.add(buildSummary("Vishakapatnam Coast & Hills", "Beaches, Kailasagiri views, seafood and an Araku Valley escape from Vishakapatnam.", new BigDecimal("5799"), List.of(), "https://picsum.photos/seed/nomad-vishakapatnam/600/400"));
     }
 
     private PackageSummaryResponse buildSummary(String name, String desc, BigDecimal price, List<Place> fromPlaces, String imageUrl) {
@@ -83,6 +85,10 @@ public class PackageServiceImpl implements PackageService {
             places = placeRepository.findByCityIgnoreCase("Mumbai");
         } else if (summary.getName().toLowerCase().contains("delhi")) {
             places = placeRepository.findByCityIgnoreCase("Delhi");
+        } else if (summary.getName().toLowerCase().contains("hyderabad")) {
+            places = placeRepository.findByCityIgnoreCase("Hyderabad");
+        } else if (summary.getName().toLowerCase().contains("vishakapatnam")) {
+            places = placeRepository.findByCityIgnoreCase("Vishakapatnam");
         }
         if (places == null || places.isEmpty()) {
             places = placeRepository.findAll();

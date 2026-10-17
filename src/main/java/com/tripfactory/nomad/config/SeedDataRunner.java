@@ -126,19 +126,22 @@ public class SeedDataRunner implements CommandLineRunner {
                 createPlace("Laad Bazaar", "Hyderabad", 17.3616, 78.4720, InterestType.SHOPPING, 4.2),
                 createPlace("Ramoji Film City", "Hyderabad", 17.2543, 78.6808, InterestType.ADVENTURE, 4.5),
                 createPlace("Jubilee Hills Pubs", "Hyderabad", 17.4326, 78.4071, InterestType.NIGHTLIFE, 4.2),
-                createPlace("RK Beach", "Visakhapatnam", 17.7126, 83.3239, InterestType.RELAXATION, 4.5),
-                createPlace("Kailasagiri Hill Park", "Visakhapatnam", 17.7505, 83.3426, InterestType.NATURE, 4.5),
-                createPlace("INS Kursura Submarine Museum", "Visakhapatnam", 17.7143, 83.3283, InterestType.CULTURE, 4.4),
-                createPlace("Rushikonda Beach", "Visakhapatnam", 17.7826, 83.3851, InterestType.ADVENTURE, 4.4),
-                createPlace("Araku Valley Viewpoint", "Visakhapatnam", 18.3273, 82.8775, InterestType.NATURE, 4.6),
-                createPlace("Jagadamba Junction Market", "Visakhapatnam", 17.7096, 83.3010, InterestType.SHOPPING, 4.1),
-                createPlace("Beach Road Seafood Stalls", "Visakhapatnam", 17.7180, 83.3270, InterestType.FOOD, 4.3));
+                createPlace("RK Beach", "Vishakapatnam", 17.7126, 83.3239, InterestType.RELAXATION, 4.5),
+                createPlace("Kailasagiri Hill Park", "Vishakapatnam", 17.7505, 83.3426, InterestType.NATURE, 4.5),
+                createPlace("INS Kursura Submarine Museum", "Vishakapatnam", 17.7143, 83.3283, InterestType.CULTURE, 4.4),
+                createPlace("Rushikonda Beach", "Vishakapatnam", 17.7826, 83.3851, InterestType.ADVENTURE, 4.4),
+                createPlace("Araku Valley Viewpoint", "Vishakapatnam", 18.3273, 82.8775, InterestType.NATURE, 4.6),
+                createPlace("Jagadamba Junction Market", "Vishakapatnam", 17.7096, 83.3010, InterestType.SHOPPING, 4.1),
+                createPlace("Beach Road Seafood Stalls", "Vishakapatnam", 17.7180, 83.3270, InterestType.FOOD, 4.3));
     }
 
     /** Existing databases are not empty, so add places for any city that has none yet. */
     private void addPlacesForNewCities() {
+        List<Place> renamed = placeRepository.findByCityIgnoreCase("Visakhapatnam");
+        renamed.forEach(pl -> pl.setCity("Vishakapatnam"));
+        placeRepository.saveAll(renamed);
         java.util.Set<String> missing = new java.util.HashSet<>();
-        for (String city : List.of("Hyderabad", "Visakhapatnam")) {
+        for (String city : List.of("Hyderabad", "Vishakapatnam")) {
             if (placeRepository.findByCityIgnoreCase(city).isEmpty()) {
                 missing.add(city);
             }

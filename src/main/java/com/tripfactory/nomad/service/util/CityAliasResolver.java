@@ -27,10 +27,11 @@ public final class CityAliasResolver {
             Map.entry("hyd", "Hyderabad"),
             Map.entry("hyderabad", "Hyderabad"),
             Map.entry("secunderabad", "Hyderabad"),
-            Map.entry("vizag", "Visakhapatnam"),
-            Map.entry("visakhapatnam", "Visakhapatnam"),
-            Map.entry("vishakhapatnam", "Visakhapatnam"),
-            Map.entry("waltair", "Visakhapatnam")
+            Map.entry("vizag", "Vishakapatnam"),
+            Map.entry("visakhapatnam", "Vishakapatnam"),
+            Map.entry("vishakhapatnam", "Vishakapatnam"),
+            Map.entry("vishakapatnam", "Vishakapatnam"),
+            Map.entry("waltair", "Vishakapatnam")
     );
 
     private CityAliasResolver() {
