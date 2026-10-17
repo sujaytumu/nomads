@@ -1,53 +1,96 @@
 "use client";
 
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+
+import InstallApp from "@/components/InstallApp";
+import PageHeader from "@/components/PageHeader";
 import ProtectedPage from "@/components/ProtectedPage";
+import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 import { updateUser } from "@/lib/profileApi";
-import { useEffect, useState } from "react";
+
+const CITIES: Record<string, [number, number]> = {
+  Bengaluru: [12.9716, 77.5946],
+  Mumbai: [19.076, 72.8777],
+  Delhi: [28.6139, 77.209],
+  Hyderabad: [17.385, 78.4867],
+  Vishakapatnam: [17.6868, 83.2185],
+};
+
+const INTERESTS = [
+  { value: "FOOD", label: "Food", icon: "🍜" },
+  { value: "CULTURE", label: "Culture", icon: "🏛️" },
+  { value: "NATURE", label: "Nature", icon: "🌿" },
+  { value: "ADVENTURE", label: "Adventure", icon: "🧗" },
+  { value: "SHOPPING", label: "Shopping", icon: "🛍️" },
+  { value: "NIGHTLIFE", label: "Nightlife", icon: "🌙" },
+  { value: "RELAXATION", label: "Relax", icon: "🧘" },
+];
+
+const chip = (on: boolean) =>
+  `rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+    on ? "border-brand-600 bg-brand-600 text-white shadow-md shadow-brand-600/25" : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+  }`;
+
+type Form = { id: string; email: string; name: string; phoneNumber: string; city: string; latitude: string; longitude: string; interestType: string; travelPreference: string };
+const EMPTY: Form = { id: "", email: "", name: "", phoneNumber: "", city: "", latitude: "", longitude: "", interestType: "CULTURE", travelPreference: "SOLO" };
 
 export default function ProfilePage() {
-  const [form, setForm] = useState({
-    id: "",
-    name: "",
-    phoneNumber: "",
-    city: "",
-    latitude: "",
-    longitude: "",
-    interestType: "CULTURE",
-    travelPreference: "SOLO",
-  });
-  const [status, setStatus] = useState<string | null>(null);
+  const [form, setForm] = useState<Form>(EMPTY);
+  const [saved, setSaved] = useState<Form>(EMPTY);
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [stats, setStats] = useState<{ trips: number; booked: number } | null>(null);
 
   const loadProfile = () => {
     setLoading(true);
     setLoadError(false);
-    fetchMe().then((data) => {
-      setForm({
-        id: String(data.id),
-        name: data.name ?? "",
-        phoneNumber: data.phoneNumber ?? "",
-        city: data.city ?? "",
-        latitude: String(data.latitude ?? ""),
-        longitude: String(data.longitude ?? ""),
-        interestType: data.interestType ?? "CULTURE",
-        travelPreference: data.travelPreference ?? "SOLO",
-      });
-    }).catch(() => setLoadError(true))
+    fetchMe()
+      .then((d) => {
+        const f: Form = {
+          id: String(d.id),
+          email: d.email ?? "",
+          name: d.name ?? "",
+          phoneNumber: d.phoneNumber ?? "",
+          city: d.city ?? "",
+          latitude: String(d.latitude ?? ""),
+          longitude: String(d.longitude ?? ""),
+          interestType: d.interestType ?? "CULTURE",
+          travelPreference: d.travelPreference ?? "SOLO",
+        };
+        setForm(f);
+        setSaved(f);
+      })
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
+    api
+      .get("/api/trips/me")
+      .then(({ data }) => {
+        const list = Array.isArray(data) ? data : [];
+        setStats({ trips: list.length, booked: list.filter((t: any) => t.status === "CONFIRMED").length });
+      })
+      .catch(() => undefined);
   };
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  useEffect(loadProfile, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+  const dirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(saved), [form, saved]);
+  const set = (patch: Partial<Form>) => {
+    setStatus(null);
+    setForm((p) => ({ ...p, ...patch }));
+  };
+
+  // Picking a city also sets the coordinates used for pickup and distance.
+  const pickCity = (city: string) => {
+    const c = CITIES[city];
+    set(c ? { city, latitude: String(c[0]), longitude: String(c[1]) } : { city });
   };
 
   const handleSave = async () => {
+    setSaving(true);
     setStatus(null);
     try {
       await updateUser(Number(form.id), {
@@ -59,56 +102,117 @@ export default function ProfilePage() {
         interestType: form.interestType,
         travelPreference: form.travelPreference,
       });
-      setStatus("Profile updated");
-    } catch (err) {
-      setStatus("Update failed");
+      setSaved(form);
+      setStatus({ ok: true, text: "Saved. Your suggestions will follow these choices." });
+    } catch {
+      setStatus({ ok: false, text: "Couldn't save. Check your connection and try again." });
+    } finally {
+      setSaving(false);
     }
   };
 
+  const logout = () => {
+    localStorage.removeItem("nomad_token");
+    window.location.href = "/";
+  };
+
+  const initials = (saved.name || saved.email || "N").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const interest = INTERESTS.find((i) => i.value === saved.interestType);
+
   return (
     <ProtectedPage>
-      <div className="section py-8 space-y-6">
-        <div className="card p-6 space-y-4">
-        <div><h1 className="text-2xl font-bold tracking-tight">Profile</h1><p className="text-sm text-slate-400">Your city and interests shape the places we suggest.</p></div>
-        {loading && (
-          <p className="text-sm text-slate-400">Loading your profile… (may take up to a minute if the server was asleep)</p>
-        )}
+      <div className="section max-w-3xl space-y-5 py-8 pb-28">
+        <PageHeader title="Profile" subtitle="Your city and interests shape the places we suggest." />
+
+        {loading && <div className="card h-40 animate-pulse" aria-label="Loading your profile" />}
         {!loading && loadError && (
-          <div className="space-y-2">
-            <p className="text-sm text-red-400">Couldn't load your profile - the server may still be waking up.</p>
+          <div className="card space-y-3 p-5">
+            <p className="text-sm text-red-300">Couldn't load your profile. The server may still be waking up.</p>
             <button className="btn btn-secondary btn-sm" onClick={loadProfile}>Retry</button>
           </div>
         )}
+
         {!loading && !loadError && (
-        <>
-        <div className="grid md:grid-cols-2 gap-4">
-          <input name="name" value={form.name} onChange={handleChange} placeholder="Name" className="border rounded-xl px-4 py-2" />
-          <input name="phoneNumber" value={form.phoneNumber} onChange={handleChange} placeholder="Phone Number (+91...)" className="border rounded-xl px-4 py-2" />
-          <select name="city" value={form.city} onChange={handleChange} className="border rounded-xl px-4 py-2 bg-transparent">
-            <option value="">Select city</option>
-            <option value="Bengaluru">Bengaluru</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Hyderabad">Hyderabad</option>
-            <option value="Vishakapatnam">Vishakapatnam</option>
-          </select>
-          <input name="latitude" value={form.latitude} onChange={handleChange} placeholder="Latitude" className="border rounded-xl px-4 py-2" />
-          <input name="longitude" value={form.longitude} onChange={handleChange} placeholder="Longitude" className="border rounded-xl px-4 py-2" />
-          <select name="interestType" value={form.interestType} onChange={handleChange} className="border rounded-xl px-4 py-2">
-            {["FOOD", "CULTURE", "NATURE", "ADVENTURE", "SHOPPING", "NIGHTLIFE", "RELAXATION"].map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-          <select name="travelPreference" value={form.travelPreference} onChange={handleChange} className="border rounded-xl px-4 py-2">
-            <option value="SOLO">SOLO</option>
-            <option value="GROUP">GROUP</option>
-          </select>
-        </div>
-        <button className="btn btn-primary" onClick={handleSave}>Save changes</button>
-        {status && <p className="text-sm text-slate-300">{status}</p>}
-        </>
+          <>
+            <div className="card flex flex-wrap items-center gap-4 p-5">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-ocean-500 font-display text-xl font-bold text-white">{initials}</div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-display text-xl font-semibold">{saved.name || "Traveller"}</p>
+                <p className="truncate text-sm text-slate-400">{saved.email}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold">
+                  {saved.city && <span className="badge">📍 {saved.city}</span>}
+                  {interest && <span className="badge">{interest.icon} {interest.label}</span>}
+                  <span className="badge">{saved.travelPreference === "GROUP" ? "👥 Group" : "🧍 Solo"}</span>
+                </div>
+              </div>
+              {stats && (
+                <Link href="/bookings" className="flex gap-5 text-center">
+                  <div><p className="font-display text-2xl font-semibold">{stats.trips}</p><p className="text-xs text-slate-400">Trips</p></div>
+                  <div><p className="font-display text-2xl font-semibold">{stats.booked}</p><p className="text-xs text-slate-400">Booked</p></div>
+                </Link>
+              )}
+            </div>
+
+            <section className="card space-y-4 p-5">
+              <h2 className="font-display text-lg font-semibold">About you</h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="space-y-1 text-sm font-medium">Name
+                  <input value={form.name} onChange={(e) => set({ name: e.target.value })} autoComplete="name" className="mt-1 w-full rounded-xl border px-4 py-2.5" />
+                </label>
+                <label className="space-y-1 text-sm font-medium">Phone (for pickup updates)
+                  <input value={form.phoneNumber} onChange={(e) => set({ phoneNumber: e.target.value })} inputMode="tel" autoComplete="tel" placeholder="+91…" className="mt-1 w-full rounded-xl border px-4 py-2.5" />
+                </label>
+              </div>
+            </section>
+
+            <section className="card space-y-3 p-5">
+              <h2 className="font-display text-lg font-semibold">Home city</h2>
+              <div className="flex flex-wrap gap-2">
+                {Object.keys(CITIES).map((c) => (
+                  <button key={c} type="button" onClick={() => pickCity(c)} className={chip(form.city === c)}>📍 {c}</button>
+                ))}
+              </div>
+            </section>
+
+            <section className="card space-y-4 p-5">
+              <div>
+                <h2 className="font-display text-lg font-semibold">Travel style</h2>
+                <p className="text-sm text-slate-400">What you enjoy most. We use it on Home and in the planner.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {INTERESTS.map((i) => (
+                  <button key={i.value} type="button" onClick={() => set({ interestType: i.value })} className={chip(form.interestType === i.value)}>
+                    <span aria-hidden="true" className="mr-1">{i.icon}</span>{i.label}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
+                {[{ v: "SOLO", l: "🧍 Solo" }, { v: "GROUP", l: "👥 With a group" }].map((o) => (
+                  <button key={o.v} type="button" onClick={() => set({ travelPreference: o.v })} className={chip(form.travelPreference === o.v)}>{o.l}</button>
+                ))}
+              </div>
+            </section>
+
+            <section className="card space-y-3 p-5">
+              <h2 className="font-display text-lg font-semibold">App</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <InstallApp />
+                <Link href="/wishlist" className="btn btn-secondary btn-sm">♡ Wishlist</Link>
+                <Link href="/bookings" className="btn btn-secondary btn-sm">My Trips</Link>
+                <button type="button" onClick={logout} className="btn btn-ghost btn-sm">Log out</button>
+              </div>
+            </section>
+
+            <div className="fixed inset-x-0 bottom-20 z-30 px-4 sm:static sm:bottom-auto sm:px-0">
+              <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border border-slate-800 bg-white/95 p-3 shadow-lift backdrop-blur sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+                <button className="btn btn-primary" onClick={handleSave} disabled={!dirty || saving}>{saving ? "Saving…" : "Save changes"}</button>
+                <p role="status" className={`text-sm ${status ? (status.ok ? "text-green-600" : "text-red-400") : "text-slate-400"}`}>
+                  {status ? status.text : dirty ? "You have unsaved changes" : "All saved"}
+                </p>
+              </div>
+            </div>
+          </>
         )}
-        </div>
       </div>
     </ProtectedPage>
   );
