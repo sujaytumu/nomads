@@ -49,7 +49,7 @@ export default function TripSteps({ current, tripId }: Props) {
             ) : (
               content
             )}
-            {i < steps.length - 1 && <span aria-hidden="true" className="h-px w-4 bg-slate-700 sm:w-10" />}
+            {i < steps.length - 1 && <span aria-hidden="true" className="h-px w-2 bg-slate-700 sm:w-10" />}
           </li>
         );
       })}
