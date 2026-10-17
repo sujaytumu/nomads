@@ -39,11 +39,9 @@ export default function UpcomingTrip({ trips }: { trips: Trip[] }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ocean-700">{underway ? "Your trip is on" : "Coming up"}</p>
-          <p className="mt-1 font-display text-2xl font-semibold sm:text-3xl">
-            {label} · {t.city ? `${t.city} weekend` : "Weekend trip"}
-          </p>
-          <p className="text-sm text-slate-400">
-            {start.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}
+          <p className="mt-1 font-display text-3xl font-semibold sm:text-4xl">{label}</p>
+          <p className="mt-0.5 text-sm text-slate-300">
+            {t.city ? `${t.city} weekend` : "Weekend trip"} · {start.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
