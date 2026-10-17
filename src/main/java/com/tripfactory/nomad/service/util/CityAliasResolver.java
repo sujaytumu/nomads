@@ -23,7 +23,14 @@ public final class CityAliasResolver {
             Map.entry("delhi", "Delhi"),
             Map.entry("new delhi", "Delhi"),
             Map.entry("pune", "Pune"),
-            Map.entry("poona", "Pune")
+            Map.entry("poona", "Pune"),
+            Map.entry("hyd", "Hyderabad"),
+            Map.entry("hyderabad", "Hyderabad"),
+            Map.entry("secunderabad", "Hyderabad"),
+            Map.entry("vizag", "Visakhapatnam"),
+            Map.entry("visakhapatnam", "Visakhapatnam"),
+            Map.entry("vishakhapatnam", "Visakhapatnam"),
+            Map.entry("waltair", "Visakhapatnam")
     );
 
     private CityAliasResolver() {

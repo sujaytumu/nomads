@@ -44,7 +44,9 @@ public class SeedDataRunner implements CommandLineRunner {
 
         if (placeRepository.count() == 0) {
             placeRepository.saveAll(buildPlaces());
+            addPlacesForNewCities();
         } else {
+            addPlacesForNewCities();
             backfillMissingImageUrls();
         }
 
@@ -113,6 +115,38 @@ public class SeedDataRunner implements CommandLineRunner {
                 createPlace("Lodhi Garden", "Delhi", 28.5933, 77.2197, InterestType.NATURE, 4.4),
                 createPlace("Chandni Chowk", "Delhi", 28.6506, 77.2303, InterestType.FOOD, 4.2),
                 createPlace("Akshardham", "Delhi", 28.6127, 77.2773, InterestType.CULTURE, 4.6));
+    }
+
+    private List<Place> buildNewCityPlaces() {
+        return List.of(
+                createPlace("Charminar", "Hyderabad", 17.3616, 78.4747, InterestType.CULTURE, 4.5),
+                createPlace("Golconda Fort", "Hyderabad", 17.3833, 78.4011, InterestType.CULTURE, 4.5),
+                createPlace("Hussain Sagar Lake", "Hyderabad", 17.4239, 78.4738, InterestType.RELAXATION, 4.4),
+                createPlace("Paradise Biryani, Secunderabad", "Hyderabad", 17.4416, 78.4983, InterestType.FOOD, 4.4),
+                createPlace("Laad Bazaar", "Hyderabad", 17.3616, 78.4720, InterestType.SHOPPING, 4.2),
+                createPlace("Ramoji Film City", "Hyderabad", 17.2543, 78.6808, InterestType.ADVENTURE, 4.5),
+                createPlace("Jubilee Hills Pubs", "Hyderabad", 17.4326, 78.4071, InterestType.NIGHTLIFE, 4.2),
+                createPlace("RK Beach", "Visakhapatnam", 17.7126, 83.3239, InterestType.RELAXATION, 4.5),
+                createPlace("Kailasagiri Hill Park", "Visakhapatnam", 17.7505, 83.3426, InterestType.NATURE, 4.5),
+                createPlace("INS Kursura Submarine Museum", "Visakhapatnam", 17.7143, 83.3283, InterestType.CULTURE, 4.4),
+                createPlace("Rushikonda Beach", "Visakhapatnam", 17.7826, 83.3851, InterestType.ADVENTURE, 4.4),
+                createPlace("Araku Valley Viewpoint", "Visakhapatnam", 18.3273, 82.8775, InterestType.NATURE, 4.6),
+                createPlace("Jagadamba Junction Market", "Visakhapatnam", 17.7096, 83.3010, InterestType.SHOPPING, 4.1),
+                createPlace("Beach Road Seafood Stalls", "Visakhapatnam", 17.7180, 83.3270, InterestType.FOOD, 4.3));
+    }
+
+    /** Existing databases are not empty, so add places for any city that has none yet. */
+    private void addPlacesForNewCities() {
+        java.util.Set<String> missing = new java.util.HashSet<>();
+        for (String city : List.of("Hyderabad", "Visakhapatnam")) {
+            if (placeRepository.findByCityIgnoreCase(city).isEmpty()) {
+                missing.add(city);
+            }
+        }
+        List<Place> toAdd = buildNewCityPlaces().stream().filter(p -> missing.contains(p.getCity())).toList();
+        if (!toAdd.isEmpty()) {
+            placeRepository.saveAll(toAdd);
+        }
     }
 
     private List<Vehicle> buildVehicles() {
