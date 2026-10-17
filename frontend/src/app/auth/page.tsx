@@ -110,7 +110,7 @@ export default function AuthPage() {
                 <option value="Mumbai">Mumbai</option>
                 <option value="Delhi">Delhi</option>
                 <option value="Hyderabad">Hyderabad</option>
-                <option value="Visakhapatnam">Visakhapatnam</option>
+                <option value="Vishakapatnam">Vishakapatnam</option>
               </select>
               <input name="phoneNumber" value={form.phoneNumber} onChange={handleChange} placeholder="Phone (+91...)" autoComplete="tel" className={input} />
               <div className="space-y-2 md:col-span-2">

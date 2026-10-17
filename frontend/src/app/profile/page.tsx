@@ -90,7 +90,7 @@ export default function ProfilePage() {
             <option value="Mumbai">Mumbai</option>
             <option value="Delhi">Delhi</option>
             <option value="Hyderabad">Hyderabad</option>
-            <option value="Visakhapatnam">Visakhapatnam</option>
+            <option value="Vishakapatnam">Vishakapatnam</option>
           </select>
           <input name="latitude" value={form.latitude} onChange={handleChange} placeholder="Latitude" className="border rounded-xl px-4 py-2" />
           <input name="longitude" value={form.longitude} onChange={handleChange} placeholder="Longitude" className="border rounded-xl px-4 py-2" />
