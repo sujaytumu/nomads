@@ -10,6 +10,21 @@ import { createTrip } from "@/lib/tripApi";
 import { fetchMe } from "@/lib/authApi";
 import { formatCost } from "@/lib/tripStatus";
 
+const INTERESTS = [
+  { v: "FOOD", l: "Food", icon: "🍜" },
+  { v: "CULTURE", l: "Culture", icon: "🏛️" },
+  { v: "NATURE", l: "Nature", icon: "🌿" },
+  { v: "ADVENTURE", l: "Adventure", icon: "🧗" },
+  { v: "SHOPPING", l: "Shopping", icon: "🛍️" },
+  { v: "NIGHTLIFE", l: "Nightlife", icon: "🌙" },
+  { v: "RELAXATION", l: "Relax", icon: "🧘" },
+];
+
+const chip = (on: boolean) =>
+  `rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+    on ? "border-brand-600 bg-brand-600 text-white shadow-md shadow-brand-600/25" : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+  }`;
+
 export default function TripPlannerPage() {
   const router = useRouter();
   const [tripDate, setTripDateValue] = useState("");
@@ -99,98 +114,66 @@ export default function TripPlannerPage() {
   return (
     <ProtectedPage>
       <div className="section py-8">
-        <div className="card p-8 space-y-6">
+        <div className="card space-y-6 p-5 sm:p-8">
         <TripSteps current={created ? 2 : 1} tripId={created?.tripRequestId} />
         <div>
-          <h2 className="text-2xl font-bold">Trip Planner</h2>
-          <p className="text-slate-300">
+          <h1 className="font-display text-2xl font-semibold">Plan your weekend</h1>
+          <p className="text-slate-400">
             Tell us what you like and we'll build a weekend itinerary. Nothing is booked until you pay.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Your Account</span>
-            <div className="w-full border rounded-xl px-4 py-2 bg-slate-900 text-slate-300 text-sm">
-              {loadingUser ? "Loading your profile… (may take up to a minute if the server was asleep)" : form.userId ? `Logged in (user #${form.userId})` : "Not loaded"}
-            </div>
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">City</span>
-            <input
-              name="city"
-              value={form.city}
-              onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-2"
-              disabled={cityLocked}
-            />
-            {cityLocked && (
-              <p className="text-xs text-slate-400">City is locked to user profile</p>
-            )}
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Weekend Type</span>
-            <select name="weekendType" value={form.weekendType} onChange={handleChange} className="w-full border rounded-xl px-4 py-2">
-              <option value="ONE_DAY">One Day</option>
-              <option value="TWO_DAY">Two Day</option>
-            </select>
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Interest</span>
-            <select name="interest" value={form.interest} onChange={handleChange} className="w-full border rounded-xl px-4 py-2">
-              {[
-                "FOOD",
-                "CULTURE",
-                "NATURE",
-                "ADVENTURE",
-                "SHOPPING",
-                "NIGHTLIFE",
-                "RELAXATION",
-              ].map((interest) => (
-                <option key={interest} value={interest}>
-                  {interest}
-                </option>
+        {loadingUser && <p className="text-sm text-slate-400">Loading your profile… (may take up to a minute if the server was asleep)</p>}
+
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold">Starting from</span>
+            <span className="badge">📍 {form.city || "your city"}</span>
+            {cityLocked && <Link href="/profile" className="text-xs text-brand-600 underline">Change in profile</Link>}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">How long?</p>
+            <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
+              {[{ v: "ONE_DAY", l: "One day" }, { v: "TWO_DAY", l: "Two days" }].map((o) => (
+                <button key={o.v} type="button" onClick={() => setForm((p) => ({ ...p, weekendType: o.v }))} className={chip(form.weekendType === o.v)}>{o.l}</button>
               ))}
-            </select>
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Travel Mode</span>
-            <select name="travelMode" value={form.travelMode} onChange={handleChange} className="w-full border rounded-xl px-4 py-2">
-              <option value="SOLO">Solo</option>
-              <option value="GROUP">Group</option>
-            </select>
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Group Size (optional)</span>
-            <input name="groupSize" value={form.groupSize} onChange={handleChange} className="w-full border rounded-xl px-4 py-2" />
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Latitude</span>
-            <input
-              name="userLatitude"
-              value={form.userLatitude}
-              onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-2"
-              disabled={cityLocked}
-            />
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-semibold">Longitude</span>
-            <input
-              name="userLongitude"
-              value={form.userLongitude}
-              onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-2"
-              disabled={cityLocked}
-            />
-          </label>
-          <label className="flex items-center gap-3">
-            <input type="checkbox" name="pickupRequired" checked={form.pickupRequired} onChange={handleChange} />
-            <span className="text-sm font-semibold">Pickup Assistance</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">What do you feel like?</p>
+            <div className="flex flex-wrap gap-2">
+              {INTERESTS.map((i) => (
+                <button key={i.v} type="button" onClick={() => setForm((p) => ({ ...p, interest: i.v }))} className={chip(form.interest === i.v)}>
+                  <span aria-hidden="true" className="mr-1">{i.icon}</span>{i.l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">Who's going?</p>
+            <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
+              {[{ v: "SOLO", l: "🧍 Solo" }, { v: "GROUP", l: "👥 Group" }].map((o) => (
+                <button key={o.v} type="button" onClick={() => setForm((p) => ({ ...p, travelMode: o.v }))} className={chip(form.travelMode === o.v)}>{o.l}</button>
+              ))}
+            </div>
+            {form.travelMode === "GROUP" && (
+              <input name="groupSize" type="number" min={2} value={form.groupSize} onChange={handleChange} placeholder="How many people?" aria-label="Group size" className="w-full rounded-xl border px-4 py-2.5 sm:max-w-sm" />
+            )}
+          </div>
+
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-slate-700 px-4 py-3 sm:max-w-sm">
+            <span>
+              <span className="block text-sm font-semibold">Pickup assistance</span>
+              <span className="block text-xs text-slate-400">A cab from your door (+₹300)</span>
+            </span>
+            <input type="checkbox" name="pickupRequired" checked={form.pickupRequired} onChange={handleChange} className="h-5 w-5 accent-brand-600" />
           </label>
         </div>
 
-        <label className="block max-w-xs space-y-2">
+        <label className="block space-y-2 sm:max-w-sm">
           <span className="text-sm font-semibold">When are you going? <span className="font-normal text-slate-500">(optional)</span></span>
           <input type="date" min={new Date().toISOString().slice(0, 10)} value={tripDate} onChange={(e) => setTripDateValue(e.target.value)} className="w-full rounded-xl border px-4 py-2" />
         </label>

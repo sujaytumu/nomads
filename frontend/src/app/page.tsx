@@ -19,7 +19,7 @@ export default async function HomePage() {
           <h2 className="font-display text-2xl font-semibold">Weekend packages</h2>
           <p className="text-sm text-slate-400">Ready-made weekends. Enroll, pay, and your itinerary PDF lands in your inbox.</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="-mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-3 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto">
           {
             (await fetchHomepagePackages()).map((p: any) => (
               <PackageCard key={p.id} pkg={p} />
