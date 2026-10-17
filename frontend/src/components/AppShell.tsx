@@ -56,6 +56,20 @@ const TABS: Item[] = [
   { href: "/bookings", label: "My Trips", icon: "M4 7h16v12H4zM9 7V4h6v3", badge: true },
 ];
 
+function Logo({ className = "" }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-2 ${className}`}>
+      <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-amber-400 text-white shadow-md shadow-brand-600/30">
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M15.5 8.5l-2 5-5 2 2-5z" fill="currentColor" />
+        </svg>
+      </span>
+      <span className="font-display text-xl font-semibold tracking-tight text-slate-100">Nomad</span>
+    </span>
+  );
+}
+
 function active(path: string, href: string) {
   return href === "/" ? path === "/" : path === href || path.startsWith(href + "/");
 }
@@ -137,7 +151,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <Icon d={it.icon} />
                   <span className="flex-1">{it.label}</span>
                   {it.badge && needsPayment > 0 && (
-                    <span title="Trips waiting for payment" className="rounded-full bg-amber-400/20 px-2 text-xs font-bold text-amber-300">{needsPayment}</span>
+                    <span title="Trips waiting for payment" className="rounded-full bg-brand-500/15 px-2 text-xs font-bold text-brand-700">{needsPayment}</span>
                   )}
                 </Link>
               </li>
@@ -149,7 +163,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   const account = (
-    <div className="space-y-2 border-t border-slate-800 p-3">
+    <div className="space-y-2 border-t border-slate-700/60 p-3">
       <InstallApp />
       {authState === "in" ? (
         <div className="space-y-2">
@@ -174,7 +188,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   const brand = (
-    <Link href="/" className="flex h-14 items-center px-6 text-xl font-bold tracking-wide text-brand-700">NOMAD</Link>
+    <Link href="/" aria-label="NOMAD home" className="flex h-16 items-center px-5"><Logo /></Link>
   );
 
   // Not signed in: no menus, just the page (login/register) on its own.
@@ -182,38 +196,38 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     if (authState === "out" && isPublic(path)) return <main className="min-h-screen">{children}</main>;
     return (
       <div className="grid min-h-screen place-items-center text-sm text-slate-500">
-        <span className="text-xl font-bold tracking-wide text-brand-700">NOMAD</span>
+        <Logo />
       </div>
     );
   }
 
   const tabClass = (on: boolean) =>
-    `relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold transition-colors ${on ? "text-white" : "text-slate-400"}`;
+    `relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-50 text-brand-700" : "text-slate-400"}`;
 
   return (
-    <div className="min-h-screen pb-16 lg:pb-0 lg:pl-64">
+    <div className="min-h-screen pb-28 lg:pb-0 lg:pl-64">
       {/* Desktop sidebar: fixed size, always the same options */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-800 bg-slate-900 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-700/70 bg-slate-900 lg:flex">
         {brand}
         {nav}
         {account}
       </aside>
 
       {/* Mobile: slim top bar */}
-      <header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-slate-800 bg-slate-900/95 px-4 backdrop-blur lg:hidden">
-        <Link href="/" className="text-lg font-bold tracking-wide text-brand-700">NOMAD</Link>
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-700/60 bg-slate-950/90 px-4 backdrop-blur lg:hidden">
+        <Link href="/" aria-label="NOMAD home"><Logo /></Link>
         <Link href="/profile" aria-label="Profile" className="grid h-8 w-8 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white">
           {name.trim().charAt(0).toUpperCase()}
         </Link>
       </header>
 
       {/* Mobile: thumb-reach tab bar. The last tab opens everything else. */}
-      <nav aria-label="Quick" className="fixed inset-x-0 bottom-0 z-40 flex border-t border-slate-800 bg-slate-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+      <nav aria-label="Quick" className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-3xl border border-slate-700/70 bg-slate-900/95 p-1.5 shadow-lift backdrop-blur lg:hidden">
         {TABS.map((it) => (
           <Link key={it.href} href={it.href} aria-current={active(path, it.href) ? "page" : undefined} className={tabClass(active(path, it.href))}>
             <Icon d={it.icon} />
             {it.label}
-            {it.badge && needsPayment > 0 && <span className="absolute right-[28%] top-1 h-2 w-2 rounded-full bg-amber-400" />}
+            {it.badge && needsPayment > 0 && <span className="absolute right-[28%] top-1.5 h-2 w-2 rounded-full bg-brand-500" />}
           </Link>
         ))}
         <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={tabClass(open)}>
@@ -224,14 +238,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile "More" sheet */}
       {open && (
-        <div className="fixed inset-x-0 bottom-0 top-12 z-30 flex flex-col bg-slate-900 pb-[calc(3.25rem+env(safe-area-inset-bottom))] lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col bg-slate-950 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden">
           {nav}
           {account}
         </div>
       )}
 
       <main className="min-h-[calc(100vh-3rem)]">{children}</main>
-      <footer className="hidden border-t border-slate-800 px-6 py-4 text-xs text-slate-500 lg:block">
+      <footer className="hidden border-t border-slate-700/60 px-6 py-4 text-xs text-slate-500 lg:block">
         © 2026 NOMAD · Smart Weekend Travel &amp; Assistance
       </footer>
     </div>

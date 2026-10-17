@@ -17,7 +17,7 @@ export default function TripProgress({ status }: { status: string }) {
         {STEPS.map((s, i) => (
           <li key={s} className="flex items-center gap-1.5 text-xs">
             <span className={`h-2 w-2 rounded-full ${i < idx ? "bg-green-400" : i === idx ? "bg-amber-400" : "bg-slate-700"}`} />
-            <span className={i < idx ? "text-slate-300" : i === idx ? "font-semibold text-white" : "text-slate-500"}>{s}</span>
+            <span className={i < idx ? "text-slate-300" : i === idx ? "font-semibold text-slate-100" : "text-slate-500"}>{s}</span>
             {i < STEPS.length - 1 && <span className="h-px w-4 bg-slate-700" />}
           </li>
         ))}
