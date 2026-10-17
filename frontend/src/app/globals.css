@@ -3,55 +3,54 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-slate-950 text-slate-100;
-  background-image: radial-gradient(circle at 15% 0%, rgba(79, 108, 255, 0.12), transparent 40%),
-    radial-gradient(circle at 85% 15%, rgba(79, 108, 255, 0.08), transparent 35%);
+  @apply bg-slate-950 font-sans text-slate-100 antialiased;
+  background-image: radial-gradient(60rem 28rem at 8% -6%, rgba(255, 190, 150, 0.28), transparent 60%),
+    radial-gradient(48rem 24rem at 100% 0%, rgba(20, 160, 151, 0.12), transparent 60%);
   background-attachment: fixed;
 }
 
+h1, h2 {
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
 .section {
-  @apply max-w-6xl mx-auto px-6;
+  @apply max-w-6xl mx-auto px-5 sm:px-6;
 }
 
 .card {
-  @apply rounded-2xl bg-slate-900/70 backdrop-blur border border-slate-800 shadow-xl shadow-black/20;
+  @apply rounded-3xl border border-slate-700/70 bg-slate-900 shadow-soft;
 }
 
 @layer components {
-/* One button system. Every button/link-button uses .btn + one variant (+ optional size). */
-.btn {
-  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-transparent px-5 py-2.5 text-sm font-semibold transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 disabled:cursor-not-allowed disabled:opacity-50;
-}
-.btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-500 active:bg-brand-700; }
-.btn-secondary, .btn-outline { @apply btn border-slate-700 bg-slate-800/60 text-slate-100 hover:bg-slate-700 hover:border-slate-600; }
-.btn-ghost { @apply btn text-slate-300 hover:bg-slate-800 hover:text-white; }
-.btn-danger { @apply btn border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20; }
-.btn-sm { @apply rounded-lg px-3 py-1.5 text-xs; }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent px-6 py-2.5 text-sm font-semibold transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary { @apply btn bg-brand-600 text-white shadow-md shadow-brand-600/25 hover:bg-brand-700 active:scale-[0.98]; }
+  .btn-secondary, .btn-outline { @apply btn border-slate-600 bg-slate-900 text-slate-100 hover:bg-slate-800 active:scale-[0.98]; }
+  .btn-ghost { @apply btn text-slate-300 hover:bg-slate-800 hover:text-slate-100; }
+  .btn-danger { @apply btn border-red-400/30 bg-red-400/10 text-red-300 hover:bg-red-400/20; }
+  .btn-sm { @apply px-4 py-1.5 text-xs; }
 
-}
-
-@layer components {
-.side-link {
-  @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white;
-}
-.side-link-active { @apply bg-brand-600/20 text-white; }
-
+  .side-link {
+    @apply flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100;
+  }
+  .side-link-active { @apply bg-ocean-50 font-semibold text-ocean-700; }
 }
 
 .badge {
-  @apply inline-flex items-center rounded-full bg-brand-500/15 text-brand-300 text-xs font-semibold px-3 py-1 border border-brand-500/20;
+  @apply inline-flex items-center rounded-full border border-brand-500/20 bg-brand-500/10 px-3 py-1 text-xs font-semibold text-brand-300;
 }
 
-/* Form controls need explicit dark styling - browsers pick their own light
-   defaults for inputs/selects otherwise, clashing badly with a dark page */
+/* Form controls */
 input, select, textarea {
-  @apply bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500;
+  @apply rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500;
 }
 
 input:focus, select:focus, textarea:focus {
-  @apply outline-none ring-2 ring-brand-500/50 border-brand-500;
+  @apply outline-none border-brand-500 ring-2 ring-brand-500/25;
 }

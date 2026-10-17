@@ -99,7 +99,7 @@ export default function ItineraryEditor({ tripId, onSaved, onCancel }: Props) {
           </p>
         </div>
         <p className="text-sm text-slate-300" aria-live="polite">
-          <span className="font-semibold text-white">{count}</span> of {options.maxPlaces} selected
+          <span className="font-semibold text-slate-100">{count}</span> of {options.maxPlaces} selected
         </p>
       </div>
 

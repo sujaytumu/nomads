@@ -39,7 +39,8 @@ export default function TripPlannerPage() {
           city: user.city ?? "",
           userLatitude: user.latitude?.toString() ?? "",
           userLongitude: user.longitude?.toString() ?? "",
-          interest: user.interestType ?? prev.interest,
+          // An interest chosen on Home (?interest=FOOD) beats the profile default.
+          interest: new URLSearchParams(window.location.search).get("interest") ?? user.interestType ?? prev.interest,
           travelMode: user.travelPreference ?? prev.travelMode,
         }));
         setCityLocked(true);
