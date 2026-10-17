@@ -71,7 +71,7 @@ export default function PickedForYou() {
         <h2 className="font-display text-2xl font-semibold">Picked for you</h2>
         <p className="text-sm text-slate-400">New places, ranked by your interests, rating and distance.</p>
       </div>
-      <div className="-mx-6 flex snap-x gap-3 overflow-x-auto px-6 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+      <div className="-mx-5 flex snap-x scroll-pl-5 gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
         {picks.map(({ place, why }) => (
           <Link key={place.id} href={`/place/${place.id}`} className="card group block w-64 shrink-0 snap-start overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift sm:w-auto">
             <div className="relative">
