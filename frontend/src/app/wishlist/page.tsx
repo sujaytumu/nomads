@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import PageHeader from "@/components/PageHeader";
 import PackageCard from "@/components/PackageCard";
 import ProtectedPage from "@/components/ProtectedPage";
 import { fetchWishlist } from "@/lib/wishlistApi";
@@ -21,17 +23,24 @@ function WishlistContent() {
   }
 
   return (
-    <div className="section py-8">
-      <h2 className="text-2xl font-bold mb-6">My Wishlist</h2>
-      {error && <p className="text-red-400">{error}</p>}
-      {!error && pkgs === null && <p className="text-slate-400">Loading…</p>}
+    <div className="section space-y-6 py-8">
+      <PageHeader title="Wishlist" subtitle="Weekends you've saved. Tap ♥ on a card to remove it." />
+      {error && <p role="alert" className="rounded-2xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300">{error}</p>}
+      {!error && pkgs === null && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => <div key={i} className="card h-72 animate-pulse" />)}
+        </div>
+      )}
       {pkgs && pkgs.length === 0 && (
-        <p className="text-slate-300">
-          Nothing saved yet. <a href="/packages" className="underline">Browse packages</a> and tap ♡ to save one.
-        </p>
+        <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
+          <span className="text-5xl" aria-hidden="true">💛</span>
+          <h2 className="font-display text-xl font-semibold">Nothing saved yet</h2>
+          <p className="max-w-sm text-sm text-slate-400">Tap the heart on any package to keep it here for later.</p>
+          <Link href="/packages" className="btn btn-primary mt-2">Browse packages</Link>
+        </div>
       )}
       {pkgs && pkgs.length > 0 && (
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {pkgs.map((p) => (
             <PackageCard key={p.id} pkg={p} saved onSavedChange={onSavedChange} />
           ))}
