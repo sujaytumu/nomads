@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import TripProgress from "@/components/TripProgress";
 import UpcomingTrip from "@/components/UpcomingTrip";
-import { api } from "@/lib/api";
+import { getCached } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 import { formatCost, isPayable, tripTitle } from "@/lib/tripStatus";
 
@@ -33,7 +33,7 @@ export default function HomeDashboard() {
 
   useEffect(() => {
     fetchMe().then((m) => setName((m.name || "").split(" ")[0])).catch(() => undefined);
-    api.get("/api/trips/me").then((r) => setTrips(r.data || [])).catch(() => setTrips([]));
+    getCached<any[]>("/api/trips/me", { ttl: 15000 }).then((list) => setTrips(list || [])).catch(() => setTrips([]));
   }, []);
 
   const newest = (list: any[]) =>

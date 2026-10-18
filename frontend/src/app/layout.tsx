@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 
 import AppShell from "@/components/AppShell";
 
 const body = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+
+const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const viewport: Viewport = { themeColor: "#FBF8F3" };
 
@@ -25,6 +26,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${body.variable} ${display.variable}`}>
+      <head>
+        {/* Start the connection to the API while the page is still loading */}
+        {apiOrigin && <link rel="preconnect" href={apiOrigin} crossOrigin="anonymous" />}
+        {apiOrigin && <link rel="dns-prefetch" href={apiOrigin} />}
+      </head>
       <body>
         <AppShell>{children}</AppShell>
       </body>

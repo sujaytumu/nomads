@@ -1,37 +1,32 @@
 "use client";
 
-import { fetchMe } from "@/lib/authApi";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 type ProtectedPageProps = {
   children: React.ReactNode;
   requiredRole?: "ADMIN" | "USER";
 };
 
+/**
+ * AppShell already verifies the login once (and signs you out on a 401), so this guard
+ * no longer makes its own server call on every page. Normal pages show immediately;
+ * only role-restricted pages (admin) wait until the role is known.
+ */
 export default function ProtectedPage({ children, requiredRole }: ProtectedPageProps) {
   const router = useRouter();
-  const [allowed, setAllowed] = useState(false);
+  const { state, user } = useAuth();
+  const wrongRole = !!requiredRole && !!user && user.role !== requiredRole;
 
   useEffect(() => {
-    const token = localStorage.getItem("nomad_token");
-    if (!token) {
-      router.replace("/auth");
-      return;
-    }
+    if (state === "out") router.replace("/auth");
+    else if (wrongRole) router.replace("/");
+  }, [state, wrongRole, router]);
 
-    fetchMe()
-      .then((me) => {
-        if (requiredRole && me.role !== requiredRole) {
-          router.replace("/");
-          return;
-        }
-        setAllowed(true);
-      })
-      .catch(() => router.replace("/auth"));
-  }, [router, requiredRole]);
+  if (state === "out" || wrongRole) return null;
 
-  if (!allowed) {
+  if (requiredRole && !user) {
     return (
       <div className="section py-12">
         <div className="card p-6 text-slate-300">Checking access…</div>

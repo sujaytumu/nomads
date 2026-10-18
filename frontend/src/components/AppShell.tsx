@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/api";
-import { fetchMe } from "@/lib/authApi";
+import { clearCache, getCached, peekCached } from "@/lib/api";
+import { fetchMe, type Me } from "@/lib/authApi";
+import { AuthContext } from "@/lib/auth-context";
 import InstallApp from "@/components/InstallApp";
 import { warmUpBackend } from "@/lib/warmup";
 
-type User = { id: number; email: string; name?: string; role?: string };
 type Item = { href: string; label: string; icon: string; badge?: boolean };
 type Group = { title: string; items: Item[] };
 
@@ -49,12 +49,31 @@ const ADMIN_GROUP: Group = {
 // Pages that work without signing in. Everything else sends you to /auth first.
 const isPublic = (path: string) => path === "/auth" || path.startsWith("/share/");
 
-// The four things people do most. Everything else is under "More".
-const TABS: Item[] = [
-  { href: "/", label: "Home", icon: "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
-  { href: "/trip-planner", label: "Plan", icon: "M12 5v14M5 12h14" },
-  { href: "/bookings", label: "My Trips", icon: "M4 7h16v12H4zM9 7V4h6v3", badge: true },
+// Each phone tab owns a group of pages. Anything not listed belongs to "More".
+type Section = "home" | "plan" | "trips" | "more";
+const SECTION_PATHS: Record<Exclude<Section, "more">, string[]> = {
+  home: ["/", "/packages", "/place"],
+  plan: ["/trip-planner"],
+  trips: ["/bookings", "/trip-summary", "/route-view", "/payment", "/group-status", "/pickup"],
+};
+function sectionOf(path: string): Section {
+  if (path === "/") return "home";
+  for (const key of Object.keys(SECTION_PATHS) as Exclude<Section, "more">[]) {
+    if (SECTION_PATHS[key].some((p) => p !== "/" && (path === p || path.startsWith(p + "/")))) return key;
+  }
+  return "more";
+}
+// Pages that shouldn't be reopened later just by tapping a tab.
+const NOT_REMEMBERED = new Set(["/payment", "/auth"]);
+
+// The three things people do most. Everything else is under "More".
+const TABS: (Item & { section: Exclude<Section, "more"> })[] = [
+  { href: "/", label: "Home", section: "home", icon: "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
+  { href: "/trip-planner", label: "Plan", section: "plan", icon: "M12 5v14M5 12h14" },
+  { href: "/bookings", label: "My Trips", section: "trips", icon: "M4 7h16v12H4zM9 7V4h6v3", badge: true },
 ];
+const MORE_ICON = "M4 7h16M4 12h16M4 17h16";
+const LAST_KEY = "nomad_tab_last";
 
 function Logo({ className = "" }: { className?: string }) {
   return (
@@ -86,35 +105,36 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname() ?? "/";
   const router = useRouter();
   const [authState, setAuthState] = useState<"loading" | "out" | "in">("loading");
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Me | null>(null);
   const [open, setOpen] = useState(false);
   const [needsPayment, setNeedsPayment] = useState(0);
+  // Last page opened inside each tab, so coming back to a tab lands where you left it.
+  const [last, setLast] = useState<Partial<Record<Section, string>>>({});
+  const section = sectionOf(path);
 
   useEffect(() => warmUpBackend(), []);
 
+  // Verify the login once (not on every page change). A stored copy of the profile lets the
+  // app paint straight away while the server confirms in the background.
   const load = useCallback(() => {
     if (!localStorage.getItem("nomad_token")) {
       setUser(null);
       setAuthState("out");
       return;
     }
+    setUser((u) => u ?? peekCached<Me>("/api/auth/me") ?? null);
     setAuthState("in");
     fetchMe()
-      .then((d) => setUser({ id: d.id, email: d.email, name: d.name, role: d.role }))
+      .then((d) => setUser(d))
       .catch((err) => {
         const s = err?.response?.status;
         if (s === 401 || s === 403) {
           localStorage.removeItem("nomad_token");
+          clearCache();
           setUser(null);
           setAuthState("out");
         }
       });
-    api
-      .get("/api/trips/me")
-      .then((r) =>
-        setNeedsPayment((r.data || []).filter((t: any) => t.status === "PLANNED" || t.status === "PAYMENT_PENDING").length)
-      )
-      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -122,9 +142,53 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const onStorage = (e: StorageEvent) => e.key === "nomad_token" && load();
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, [load, path]);
+  }, [load]);
+
+  // The "needs payment" badge refreshes as you move around, but shares one cached request.
+  useEffect(() => {
+    if (authState !== "in") return;
+    getCached<any[]>("/api/trips/me", { ttl: 15000 })
+      .then((list) => setNeedsPayment((list || []).filter((t: any) => t.status === "PLANNED" || t.status === "PAYMENT_PENDING").length))
+      .catch(() => undefined);
+  }, [authState, path]);
+
+  // Remember the last page of each tab (kept for the browser session).
+  useEffect(() => {
+    try {
+      setLast(JSON.parse(sessionStorage.getItem(LAST_KEY) || "{}"));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  useEffect(() => {
+    if (NOT_REMEMBERED.has(path) || isPublic(path)) return;
+    const url = path + window.location.search;
+    setLast((prev) => {
+      if (prev[section] === url) return prev;
+      const next = { ...prev, [section]: url };
+      try {
+        sessionStorage.setItem(LAST_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, [path, section]);
 
   useEffect(() => setOpen(false), [path]);
+
+  // While the More sheet is open: Escape closes it and the page behind doesn't scroll.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   // Signed out: the only place to be is the login/register page.
   useEffect(() => {
@@ -133,6 +197,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("nomad_token");
+    clearCache();
+    try {
+      sessionStorage.removeItem(LAST_KEY);
+    } catch {
+      /* ignore */
+    }
     window.location.href = "/";
   };
 
@@ -147,7 +217,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <ul className="space-y-0.5">
             {g.items.map((it) => (
               <li key={it.href}>
-                <Link href={it.href} aria-current={active(path, it.href) ? "page" : undefined} className={`side-link ${active(path, it.href) ? "side-link-active" : ""}`}>
+                <Link href={it.href} onClick={() => setOpen(false)} aria-current={active(path, it.href) ? "page" : undefined} className={`side-link ${active(path, it.href) ? "side-link-active" : ""}`}>
                   <Icon d={it.icon} />
                   <span className="flex-1">{it.label}</span>
                   {it.badge && needsPayment > 0 && (
@@ -167,7 +237,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <InstallApp />
       {authState === "in" ? (
         <div className="space-y-2">
-          <Link href="/profile" className={`side-link ${active(path, "/profile") ? "side-link-active" : ""}`}>
+          <Link href="/profile" onClick={() => setOpen(false)} className={`side-link ${active(path, "/profile") ? "side-link-active" : ""}`}>
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white">{name.trim().charAt(0).toUpperCase()}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm">{name}</span>
@@ -193,7 +263,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   // Not signed in: no menus, just the page (login/register) on its own.
   if (authState !== "in") {
-    if (authState === "out" && isPublic(path)) return <main className="min-h-screen">{children}</main>;
+    if (authState === "out" && isPublic(path)) {
+      return (
+        <AuthContext.Provider value={{ state: authState, user: null }}>
+          <main className="min-h-screen">{children}</main>
+        </AuthContext.Provider>
+      );
+    }
     return (
       <div className="grid min-h-screen place-items-center text-sm text-slate-500">
         <Logo />
@@ -202,9 +278,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const tabClass = (on: boolean) =>
-    `relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-50 text-brand-700" : "text-slate-400"}`;
+    `relative flex min-h-[3.25rem] flex-1 select-none flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-50 text-brand-700" : "text-slate-400"}`;
 
   return (
+    <AuthContext.Provider value={{ state: authState, user }}>
     <div className="min-h-screen pb-28 lg:pb-0 lg:pl-64">
       {/* Desktop sidebar: fixed size, always the same options */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-700/70 bg-slate-900 lg:flex">
@@ -223,22 +300,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile: thumb-reach tab bar. The last tab opens everything else. */}
       <nav aria-label="Quick" className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-3xl border border-slate-700/70 bg-slate-900/95 p-1.5 shadow-lift backdrop-blur lg:hidden">
-        {TABS.map((it) => (
-          <Link key={it.href} href={it.href} aria-current={active(path, it.href) ? "page" : undefined} className={tabClass(active(path, it.href))}>
-            <Icon d={it.icon} />
-            {it.label}
-            {it.badge && needsPayment > 0 && <span className="absolute right-[28%] top-1.5 h-2 w-2 rounded-full bg-brand-500" />}
-          </Link>
-        ))}
-        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={tabClass(open)}>
-          <Icon d={open ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16"} />
-          {open ? "Close" : "More"}
+        {TABS.map((it) => {
+          const here = section === it.section;
+          // On another tab: jump back to where you left it. Already on it: tap goes to its start.
+          const href = here ? it.href : last[it.section] || it.href;
+          return (
+            <Link key={it.section} href={href} onClick={() => setOpen(false)} aria-current={here && !open ? "page" : undefined} className={tabClass(here && !open)}>
+              <Icon d={it.icon} />
+              {it.label}
+              {it.badge && needsPayment > 0 && <span className="absolute right-[28%] top-1.5 h-2 w-2 rounded-full bg-brand-500" />}
+            </Link>
+          );
+        })}
+        {/* Always says "More" and always the same icon; tapping again just closes the list. */}
+        <button type="button" aria-expanded={open} aria-controls="more-sheet" onClick={() => setOpen((v) => !v)} className={tabClass(open || section === "more")}>
+          <Icon d={MORE_ICON} />
+          More
         </button>
       </nav>
 
       {/* Mobile "More" sheet */}
       {open && (
-        <div className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col bg-slate-950 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden">
+        <div id="more-sheet" className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col bg-slate-950 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden">
           {nav}
           {account}
         </div>
@@ -249,5 +332,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         © 2026 NOMAD · Smart Weekend Travel &amp; Assistance
       </footer>
     </div>
+    </AuthContext.Provider>
   );
 }

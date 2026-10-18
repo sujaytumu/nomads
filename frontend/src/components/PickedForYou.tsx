@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import Cover from "@/components/Cover";
-import { api } from "@/lib/api";
+import { api, getCached } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 
 type Pick = { place: any; why: string; score: number };
@@ -27,10 +27,10 @@ export default function PickedForYou() {
         if (!me.latitude || !me.longitude) return live && setPicks([]);
         const [places, trips] = await Promise.all([
           api.get("/api/places/nearby", { params: { city: me.city, latitude: me.latitude, longitude: me.longitude, radiusKm: 50, limit: 60 } }),
-          api.get("/api/trips/me").catch(() => ({ data: [] as any[] })),
+          getCached<any[]>("/api/trips/me", { ttl: 15000 }).catch(() => [] as any[]),
         ]);
         const seen = new Set<string>();
-        (trips.data || [])
+        (trips || [])
           .filter((t: any) => t.status !== "CANCELLED")
           .forEach((t: any) => (t.plans || []).forEach((p: any) => seen.add(String(p.placeName).toLowerCase())));
 

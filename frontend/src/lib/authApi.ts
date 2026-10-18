@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, getCached } from "./api";
 
 export async function register(payload: {
   name: string;
@@ -20,9 +20,7 @@ export async function login(payload: { email: string; password: string }) {
   return data;
 }
 
-export async function fetchMe() {
-  const { data } = await api.get("/api/auth/me");
-  return data as {
+export type Me = {
     id: number;
     email: string;
     name?: string;
@@ -33,5 +31,9 @@ export async function fetchMe() {
     interestType?: string;
     travelPreference?: string;
     role?: string;
-  };
+};
+
+/** Who am I. Shared and briefly cached so the shell, guards and pages don't each refetch it. */
+export function fetchMe(): Promise<Me> {
+  return getCached<Me>("/api/auth/me", { ttl: 60000, persist: true });
 }

@@ -1,9 +1,9 @@
-# Pings the backend every ~10 minutes so Render's free tier doesn't put it to sleep
+# Pings the backend every ~5 minutes so Render's free tier doesn't put it to sleep
 # (it sleeps after 15 idle minutes, and waking takes up to a minute or more).
 name: Keep backend warm
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 jobs:
   ping:
