@@ -122,7 +122,7 @@ export default function ProfilePage() {
 
   const logout = () => {
     localStorage.removeItem("nomad_token");
-    window.location.href = "/";
+    window.location.replace("/");
   };
 
   const initials = (saved.name || saved.email || "N").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
