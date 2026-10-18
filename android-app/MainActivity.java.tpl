@@ -10,12 +10,17 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
+import android.view.View;
+import android.view.autofill.AutofillManager;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebViewClient;
@@ -51,6 +56,7 @@ public class MainActivity extends BridgeActivity {
     + "})();";
 
   private final Handler ui = new Handler(Looper.getMainLooper());
+  private long lastBackPress = 0;
 
   public class NomadNative {
     private final Context ctx;
@@ -96,6 +102,21 @@ public class MainActivity extends BridgeActivity {
       }
     }
 
+    // Called by the login page after a successful login: tells the phone's autofill
+    // service (Google Password Manager etc.) that the form was submitted, so it can ask
+    // "Save password?".
+    @JavascriptInterface
+    public void loginSuccess() {
+      ui.post(() -> {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          try {
+            AutofillManager am = ctx.getSystemService(AutofillManager.class);
+            if (am != null) am.commit();
+          } catch (Exception ignored) { /* autofill not available */ }
+        }
+      });
+    }
+
     @JavascriptInterface
     public void fail(String msg) {
       ui.post(() -> Toast.makeText(ctx, "Download failed: " + msg, Toast.LENGTH_LONG).show());
@@ -111,6 +132,29 @@ public class MainActivity extends BridgeActivity {
     s.setJavaScriptEnabled(true);
     s.setGeolocationEnabled(true);
     wv.addJavascriptInterface(new NomadNative(this), "NomadNative");
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      wv.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
+    }
+
+    // Back button: one step back inside the app. Only when there is nothing left to go back to,
+    // ask for a second press before closing (so it never exits by accident).
+    getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+      @Override
+      public void handleOnBackPressed() {
+        WebView w = getBridge().getWebView();
+        if (w.canGoBack()) {
+          w.goBack();
+          return;
+        }
+        long now = SystemClock.elapsedRealtime();
+        if (now - lastBackPress < 2000) {
+          finish();
+        } else {
+          lastBackPress = now;
+          Toast.makeText(MainActivity.this, "Press back again to exit", Toast.LENGTH_SHORT).show();
+        }
+      }
+    });
 
     if (LAPTOP) {
       s.setUserAgentString("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
