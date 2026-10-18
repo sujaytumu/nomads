@@ -105,6 +105,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname() ?? "/";
   const router = useRouter();
   const [authState, setAuthState] = useState<"loading" | "out" | "in">("loading");
+  const [connectError, setConnectError] = useState(false);
   const [user, setUser] = useState<Me | null>(null);
   const [open, setOpen] = useState(false);
   const [needsPayment, setNeedsPayment] = useState(0);
@@ -122,10 +123,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       setAuthState("out");
       return;
     }
-    setUser((u) => u ?? peekCached<Me>("/api/auth/me") ?? null);
-    setAuthState("in");
+    // The app opens only for a confirmed login. A stored copy of the profile (saved after a
+    // successful login) lets it open instantly; otherwise we wait for the server to confirm.
+    const cached = peekCached<Me>("/api/auth/me") ?? null;
+    if (cached) {
+      setUser((u) => u ?? cached);
+      setAuthState("in");
+    }
+    setConnectError(false);
     fetchMe()
-      .then((d) => setUser(d))
+      .then((d) => {
+        setUser(d);
+        setAuthState("in");
+      })
       .catch((err) => {
         const s = err?.response?.status;
         if (s === 401 || s === 403) {
@@ -133,6 +143,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           clearCache();
           setUser(null);
           setAuthState("out");
+        } else if (!cached) {
+          setConnectError(true);
         }
       });
   }, []);
@@ -203,7 +215,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     } catch {
       /* ignore */
     }
-    window.location.href = "/";
+    window.location.replace("/");
   };
 
   const groups = user?.role === "ADMIN" ? [...GROUPS, ADMIN_GROUP] : GROUPS;
@@ -271,8 +283,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       );
     }
     return (
-      <div className="grid min-h-screen place-items-center text-sm text-slate-500">
-        <Logo />
+      <div className="grid min-h-screen place-items-center px-6 text-center text-sm text-slate-500">
+        <div className="space-y-3">
+          <Logo className="justify-center" />
+          {connectError ? (
+            <>
+              <p>Can't reach the server yet. It may be waking up.</p>
+              <button type="button" className="btn btn-primary btn-sm" onClick={load}>Retry</button>
+            </>
+          ) : (
+            <p>Signing you in…</p>
+          )}
+        </div>
       </div>
     );
   }

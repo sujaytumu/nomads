@@ -20,6 +20,16 @@ export async function login(payload: { email: string; password: string }) {
   return data;
 }
 
+export async function forgotPassword(email: string) {
+  const { data } = await api.post("/api/auth/forgot-password", { email });
+  return data;
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  const { data } = await api.post("/api/auth/reset-password", { token, newPassword });
+  return data;
+}
+
 export type Me = {
     id: number;
     email: string;
