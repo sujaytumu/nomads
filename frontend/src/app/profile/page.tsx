@@ -28,6 +28,15 @@ const INTERESTS = [
   { value: "RELAXATION", label: "Relax", icon: "🧘" },
 ];
 
+const UNIQUE = [
+  { icon: "👥", title: "Auto groups", text: "Same city, interest & weekend? We group you.", href: "/group-status" },
+  { icon: "💸", title: "Split costs", text: "Log shared spends, see who pays whom.", href: "/group-status" },
+  { icon: "🚐", title: "Pickup & driver", text: "Vehicle, driver and live pickup status.", href: "/pickup" },
+  { icon: "🗺️", title: "Day-by-day route", text: "Pick places, we plan days and the route.", href: "/trip-planner" },
+  { icon: "📄", title: "Itinerary anywhere", text: "PDF, email or calendar in one tap.", href: "/bookings" },
+  { icon: "🆘", title: "Trip safety", text: "Emergency card and packing list per trip.", href: "/bookings" },
+];
+
 const chip = (on: boolean) =>
   `rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
     on ? "border-brand-600 bg-brand-600 text-white shadow-md shadow-brand-600/25" : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
@@ -119,10 +128,21 @@ export default function ProfilePage() {
   const initials = (saved.name || saved.email || "N").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   const interest = INTERESTS.find((i) => i.value === saved.interestType);
 
+  // One clear "what to do now" based on where the user is.
+  const next = !saved.city
+    ? { title: "Pick your home city", hint: "5 seconds. Unlocks picks near you.", href: "#city", cta: "Choose city" }
+    : stats && stats.trips === 0
+    ? { title: "Plan your first weekend", hint: "Choose places. We build the days and route.", href: "/trip-planner", cta: "Start planning" }
+    : stats && stats.booked === 0
+    ? { title: "Finish your booking", hint: "Pay to unlock group, pickup and cost split.", href: "/bookings", cta: "Open my trips" }
+    : stats
+    ? { title: "You're all set", hint: "Meet your group, check pickup, split costs.", href: "/group-status", cta: "Open group" }
+    : { title: "Explore places", hint: "See what's around you.", href: "/map", cta: "Explore" };
+
   return (
     <ProtectedPage>
       <div className="section max-w-3xl space-y-5 py-8 pb-28">
-        <PageHeader title="Profile" subtitle="Your city and interests shape the places we suggest." />
+        <PageHeader title="Profile" subtitle="Set your city and style once. We plan the rest." />
 
         {loading && <div className="card h-40 animate-pulse" aria-label="Loading your profile" />}
         {!loading && loadError && (
@@ -153,6 +173,26 @@ export default function ProfilePage() {
               )}
             </div>
 
+            <section className="card flex flex-wrap items-center gap-3 border-brand-600/40 p-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">Do this next</p>
+                <p className="font-display text-base font-semibold">{next.title}</p>
+                <p className="text-sm text-slate-400">{next.hint}</p>
+              </div>
+              <Link href={next.href} className="btn btn-primary btn-sm">{next.cta}</Link>
+            </section>
+
+            <section className="card space-y-3 p-4">
+              <h2 className="font-display text-base font-semibold">How NOMAD works</h2>
+              <ol className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                {["Set city & style", "Plan a weekend", "Book & pay", "Group, pickup, costs"].map((t, i) => (
+                  <li key={t} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 font-semibold text-slate-300">
+                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-600 text-[11px] text-white">{i + 1}</span>{t}
+                  </li>
+                ))}
+              </ol>
+            </section>
+
             <section className="card space-y-4 p-5">
               <h2 className="font-display text-lg font-semibold">About you</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -165,7 +205,7 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            <section className="card space-y-3 p-5">
+            <section id="city" className="card scroll-mt-20 space-y-3 p-5">
               <h2 className="font-display text-lg font-semibold">Home city</h2>
               <div className="flex flex-wrap gap-2">
                 {Object.keys(CITIES).map((c) => (
@@ -189,6 +229,18 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
                 {[{ v: "SOLO", l: "🧍 Solo" }, { v: "GROUP", l: "👥 With a group" }].map((o) => (
                   <button key={o.v} type="button" onClick={() => set({ travelPreference: o.v })} className={chip(form.travelPreference === o.v)}>{o.l}</button>
+                ))}
+              </div>
+            </section>
+
+            <section className="card space-y-3 p-4">
+              <h2 className="font-display text-base font-semibold">What's unique about NOMAD</h2>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {UNIQUE.map((u) => (
+                  <Link key={u.title} href={u.href} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 transition-colors hover:bg-slate-800">
+                    <p className="text-sm font-semibold"><span aria-hidden="true" className="mr-1">{u.icon}</span>{u.title}</p>
+                    <p className="mt-0.5 text-xs leading-snug text-slate-400">{u.text}</p>
+                  </Link>
                 ))}
               </div>
             </section>
