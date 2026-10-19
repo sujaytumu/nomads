@@ -7,6 +7,7 @@ import { clearCache, getCached, peekCached } from "@/lib/api";
 import { fetchMe, type Me } from "@/lib/authApi";
 import { AuthContext } from "@/lib/auth-context";
 import InstallApp from "@/components/InstallApp";
+import UpdatePrompt from "@/components/UpdatePrompt";
 import { warmUpBackend } from "@/lib/warmup";
 
 type Item = { href: string; label: string; icon: string; badge?: boolean };
@@ -305,6 +306,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ state: authState, user }}>
     <div className="min-h-screen pb-28 lg:pb-0 lg:pl-64">
+      <UpdatePrompt />
       {/* Desktop sidebar: fixed size, always the same options */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-700/70 bg-slate-900 lg:flex">
         {brand}

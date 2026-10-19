@@ -10,7 +10,7 @@ export default function InstallApp() {
 
   useEffect(() => {
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => undefined);
-    if (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone) setInstalled(true);
+    if (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone || (window as any).NomadNative) setInstalled(true);
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setPrompt(e);

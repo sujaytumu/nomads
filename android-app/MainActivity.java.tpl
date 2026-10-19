@@ -1,8 +1,12 @@
 package __APP_ID__;
 
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -21,6 +25,7 @@ import android.webkit.WebView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebViewClient;
@@ -57,6 +62,52 @@ public class MainActivity extends BridgeActivity {
 
   private final Handler ui = new Handler(Looper.getMainLooper());
   private long lastBackPress = 0;
+  private long updateDownloadId = -1;
+
+  // When the update APK has finished downloading, open the system installer on it.
+  private final BroadcastReceiver onDownloadDone = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context c, Intent i) {
+      long id = i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+      if (id == -1 || id != updateDownloadId) return;
+      try {
+        DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        Uri uri = dm.getUriForDownloadedFile(id);
+        if (uri == null) {
+          Toast.makeText(MainActivity.this, "Update download failed. Please try again.", Toast.LENGTH_LONG).show();
+          return;
+        }
+        Intent install = new Intent(Intent.ACTION_VIEW);
+        install.setDataAndType(uri, "application/vnd.android.package-archive");
+        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(install);
+      } catch (Exception e) {
+        Toast.makeText(MainActivity.this, "Update downloaded. Open Downloads and tap it to install.", Toast.LENGTH_LONG).show();
+      }
+    }
+  };
+
+  private void startUpdateDownload(String url) {
+    try {
+      DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+      DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url));
+      r.setTitle("NOMAD update");
+      r.setDescription("Downloading the latest version");
+      r.setMimeType("application/vnd.android.package-archive");
+      r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+      r.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "nomad-update-" + System.currentTimeMillis() + ".apk");
+      updateDownloadId = dm.enqueue(r);
+      Toast.makeText(this, "Downloading update... the installer opens when it finishes.", Toast.LENGTH_LONG).show();
+    } catch (Exception e) {
+      Toast.makeText(this, "Could not start the update download.", Toast.LENGTH_LONG).show();
+    }
+  }
+
+  @Override
+  protected void onDestroy() {
+    try { unregisterReceiver(onDownloadDone); } catch (Exception ignored) { /* not registered */ }
+    super.onDestroy();
+  }
 
   public class NomadNative {
     private final Context ctx;
@@ -117,6 +168,32 @@ public class MainActivity extends BridgeActivity {
       });
     }
 
+    // --- in-app updates: the web page compares these with the latest GitHub release ---
+    @JavascriptInterface
+    public int getVersionCode() {
+      try {
+        PackageInfo p = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
+        return p.versionCode;
+      } catch (Exception e) {
+        return 0;
+      }
+    }
+
+    @JavascriptInterface
+    public String getVariant() {
+      return "__VARIANT__";
+    }
+
+    @JavascriptInterface
+    public void downloadUpdate(String url) {
+      // Only ever download from this project's own releases.
+      if (url == null || !url.startsWith("https://github.com/sujaytumu/nomads/releases/download/")) {
+        fail("Invalid update link");
+        return;
+      }
+      ui.post(() -> startUpdateDownload(url));
+    }
+
     @JavascriptInterface
     public void fail(String msg) {
       ui.post(() -> Toast.makeText(ctx, "Download failed: " + msg, Toast.LENGTH_LONG).show());
@@ -132,6 +209,8 @@ public class MainActivity extends BridgeActivity {
     s.setJavaScriptEnabled(true);
     s.setGeolocationEnabled(true);
     wv.addJavascriptInterface(new NomadNative(this), "NomadNative");
+    ContextCompat.registerReceiver(this, onDownloadDone,
+        new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), ContextCompat.RECEIVER_EXPORTED);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       wv.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
     }
