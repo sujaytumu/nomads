@@ -29,7 +29,14 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Build APK
-        run: bash android-app/build-apk.sh ${{ matrix.variant }}
+        run: |
+          set -o pipefail
+          bash android-app/build-apk.sh ${{ matrix.variant }} 2>&1 | tee build.log
+      - name: Surface build errors as annotations
+        if: failure()
+        run: |
+          MSG=$( { grep -E 'error:|FAILED|What went wrong|Caused by|cannot find symbol|symbol:|location:|Execution failed|No such file|syntax error|sed:' -A2 build.log | head -40; echo '--- tail ---'; tail -15 build.log; } | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=APK build failure::${MSG}"
       - uses: actions/upload-artifact@v4
         with:
           name: nomads-${{ matrix.variant }}
