@@ -77,7 +77,7 @@ export default function PickedForYou() {
             <div className="relative">
               <Cover src={place.imageUrl} kind={place.category} className="h-36" />
               <span className="absolute left-3 top-3 rounded-full bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white shadow">{why}</span>
-              {place.rating ? <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-100">★ {Number(place.rating).toFixed(1)}</span> : null}
+              {place.rating ? <span className="absolute right-3 top-3 rounded-full bg-slate-950/75 backdrop-blur ring-1 ring-white/10 px-2.5 py-1 text-xs font-bold text-white">★ {Number(place.rating).toFixed(1)}</span> : null}
             </div>
             <div className="p-3">
               <p className="truncate font-display text-base font-semibold">{place.name}</p>

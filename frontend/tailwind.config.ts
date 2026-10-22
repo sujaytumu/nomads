@@ -1,9 +1,7 @@
 import type { Config } from "tailwindcss";
 
-// "Daylight" theme. The old dark UI was written with the slate scale (950 = page,
-// 900 = surface, 100 = text). Rather than touch every page, the scale is mirrored
-// here so those same class names now give a warm light theme: slate-950 is the
-// sand-coloured page, slate-900 white surfaces, slate-100 deep-navy ink.
+// Midnight theme: the original blue/black look. Tailwind's own slate scale is used as-is
+// (950 = near-black page, 900 = surface, 100 = text) with the electric-blue brand scale.
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
@@ -13,45 +11,46 @@ const config: Config = {
         display: ["var(--font-display)", "Georgia", "serif"],
       },
       boxShadow: {
-        soft: "0 1px 2px rgba(18,38,58,.05), 0 10px 30px -8px rgba(18,38,58,.12)",
-        lift: "0 2px 4px rgba(18,38,58,.06), 0 18px 40px -10px rgba(18,38,58,.22)",
+        soft: "0 1px 2px rgba(0,0,0,.35), 0 10px 30px -8px rgba(0,0,0,.45)",
+        lift: "0 2px 4px rgba(0,0,0,.4), 0 18px 40px -10px rgba(79,108,255,.35)",
+        glow: "0 0 0 1px rgba(111,140,255,.35), 0 8px 28px -6px rgba(79,108,255,.55)",
+      },
+      keyframes: {
+        "heart-pop": {
+          "0%": { transform: "scale(1)" },
+          "30%": { transform: "scale(1.45) rotate(-8deg)" },
+          "60%": { transform: "scale(0.92) rotate(4deg)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "ripple-out": {
+          "0%": { transform: "scale(0)", opacity: "0.45" },
+          "100%": { transform: "scale(1)", opacity: "0" },
+        },
+        "spin-slow": { to: { transform: "rotate(360deg)" } },
+        "pop-in": {
+          "0%": { transform: "translateY(4px) scale(.96)", opacity: "0" },
+          "100%": { transform: "none", opacity: "1" },
+        },
+      },
+      animation: {
+        "heart-pop": "heart-pop .45s cubic-bezier(.22,1,.36,1)",
+        "pop-in": "pop-in .2s ease-out both",
       },
       colors: {
-        slate: {
-          50: "#0B1A2B",
-          100: "#12263A",
-          200: "#24364A",
-          300: "#3C4C5C",
-          400: "#5B6B7B",
-          500: "#7A8794",
-          600: "#C4BAA8",
-          700: "#E3DCCD",
-          800: "#F1ECE2",
-          900: "#FFFFFF",
-          950: "#FBF8F3",
-        },
-        // Sunset coral: calls to action and highlights.
         brand: {
-          50: "#FFF4EF",
-          100: "#FFE6DB",
-          200: "#FFCDB8",
-          300: "#B63A17",
-          400: "#C2410C",
-          500: "#F2653A",
-          600: "#DE4A22",
-          700: "#BF3B18",
-          800: "#9A2F12",
-          900: "#7A250F",
+          50: "#f5f7ff",
+          100: "#eef2ff",
+          200: "#dfe7ff",
+          300: "#c1d0ff",
+          400: "#9bb1ff",
+          500: "#6f8cff",
+          600: "#4f6cff",
+          700: "#3d55f0",
+          800: "#2f41c2",
+          900: "#26379a",
         },
-        // Ocean teal: secondary accent.
-        ocean: { 50: "#ECFAF8", 100: "#CFF1EC", 500: "#14A097", 600: "#0E8077", 700: "#0B6560" },
-        // Text-on-tint shades must stay dark on a light page.
-        green: { 300: "#15803D", 400: "#16A34A" },
-        yellow: { 300: "#A16207", 400: "#CA8A04" },
-        amber: { 300: "#B45309", 400: "#D97706" },
-        red: { 300: "#B91C1C", 400: "#DC2626" },
-        sky: { 300: "#0369A1", 400: "#0284C7" },
-        blue: { 300: "#1D4ED8", 400: "#2563EB", 600: "#2563EB" },
+        // Cool cyan secondary accent that sits well on dark blue.
+        ocean: { 50: "#ecfeff", 100: "#cffafe", 300: "#67e8f9", 400: "#22d3ee", 500: "#06b6d4", 600: "#0891b2", 700: "#0e7490" },
       },
     },
   },

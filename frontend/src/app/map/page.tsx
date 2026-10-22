@@ -126,7 +126,7 @@ export default function MapPage() {
               <Link key={p.id} href={`/place/${p.id}`} className="card group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift">
                 <div className="relative">
                   <Cover src={p.imageUrl} alt={p.name} kind={p.category as string} className="h-36" />
-                  <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-100">★ {p.rating.toFixed(1)}</span>
+                  <span className="absolute right-3 top-3 rounded-full bg-slate-950/75 backdrop-blur ring-1 ring-white/10 px-2.5 py-1 text-xs font-bold text-white">★ {p.rating.toFixed(1)}</span>
                 </div>
                 <div className="p-3">
                   <p className="truncate font-display text-base font-semibold">{p.name}</p>
