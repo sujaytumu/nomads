@@ -16,7 +16,7 @@ export const STAGES: Stage[] = [
 export type JourneyInput = {
   status: string;
   tripDate?: string | null;
-  plans?: { dayNumber?: number | null }[] | null;
+  plans?: unknown[] | null;
 };
 
 export type Journey = {
@@ -40,7 +40,7 @@ export function journeyOf(t: JourneyInput): Journey {
   today.setHours(0, 0, 0, 0);
   const start = new Date(`${t.tripDate}T00:00:00`);
   const daysTo = Math.round((start.getTime() - today.getTime()) / DAY);
-  const lastDay = Math.max(1, ...(t.plans || []).map((p) => p.dayNumber || 1));
+  const lastDay = Math.max(1, ...((t.plans || []) as { dayNumber?: number | null }[]).map((p) => p.dayNumber || 1));
   if (daysTo > 0) return { current: 3, cancelled: false, message: `Booked. ${daysTo === 1 ? "Tomorrow" : `In ${daysTo} days`}: arrange your pickup before you go.` };
   if (daysTo + lastDay - 1 >= 0) return { current: 4, cancelled: false, message: "Your trip is on. Enjoy it, today's stops are on Home." };
   return { current: 5, cancelled: false, message: "Welcome back! Leave a review of the trip." };
