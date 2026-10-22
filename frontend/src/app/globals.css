@@ -179,3 +179,16 @@ main[data-dir="prev"] { animation: slide-prev 0.3s cubic-bezier(0.22, 1, 0.36, 1
   .card { border-radius: 1.25rem; }
   h1 { font-size: 1.5rem; line-height: 1.2; }
 }
+
+/* ---- Colourful titles: one blue > cyan > violet family so everything matches ---- */
+main h1:not([class*="text-white"]),
+main h2:not([class*="text-white"]) {
+  background-image: linear-gradient(100deg, #ffffff 0%, #c1d0ff 38%, #67e8f9 70%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.18em] text-ocean-300; }
+@keyframes pulse-ring { 0%, 100% { box-shadow: 0 0 0 0 rgba(111, 140, 255, 0.55); } 50% { box-shadow: 0 0 0 8px rgba(111, 140, 255, 0); } }
+.animate-pulse-ring { animation: pulse-ring 2s ease-in-out infinite; }

@@ -24,9 +24,9 @@ export default function TripSteps({ current, tripId }: Props) {
         const done = step.n < current;
         const active = step.n === current;
         const circle = done
-          ? "bg-brand-600 text-white"
+          ? "bg-gradient-to-br from-brand-500 to-ocean-400 text-white"
           : active
-            ? "border-2 border-brand-500 text-slate-100"
+            ? "border-2 border-ocean-400 bg-brand-600/20 text-white shadow-glow"
             : "border border-slate-700 text-slate-500";
         const content = (
           <span className="flex items-center gap-2">
@@ -49,7 +49,7 @@ export default function TripSteps({ current, tripId }: Props) {
             ) : (
               content
             )}
-            {i < steps.length - 1 && <span aria-hidden="true" className="h-px w-2 bg-slate-700 sm:w-10" />}
+            {i < steps.length - 1 && <span aria-hidden="true" className={`h-0.5 w-2 rounded-full sm:w-10 ${step.n < current ? "bg-gradient-to-r from-brand-500 to-ocean-400" : "bg-slate-800"}`} />}
           </li>
         );
       })}

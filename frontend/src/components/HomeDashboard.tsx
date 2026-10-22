@@ -68,13 +68,13 @@ export default function HomeDashboard() {
         <div className="card h-28 animate-pulse" />
       ) : focus ? (
         <div className="card space-y-3 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <p className="eyebrow">
             {open ? "Finish booking" : "Your latest trip"}
           </p>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-lg font-semibold">{tripTitle(focus)} · {formatCost(focus.estimatedCost)}</p>
-              <TripProgress status={focus.status} />
+              <TripProgress status={focus.status} tripDate={focus.tripDate} plans={focus.plans} tripId={focus.tripRequestId} />
             </div>
             <div className="flex flex-wrap gap-2">
               {open ? (
@@ -91,6 +91,7 @@ export default function HomeDashboard() {
           <div>
             <p className="text-lg font-semibold">No trips yet</p>
             <p className="text-sm text-slate-400">Tell us what you like and we&apos;ll build your weekend.</p>
+            <div className="mt-3 max-w-md"><TripProgress status="PLANNED" stage={0} compact /></div>
           </div>
           <Link href="/trip-planner" className="btn btn-primary">Plan my first trip →</Link>
         </div>
