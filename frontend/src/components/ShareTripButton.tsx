@@ -25,8 +25,8 @@ export default function ShareTripButton({ token, city, className = "btn btn-seco
 
   return (
     <span className="inline-flex flex-col items-start gap-1">
-      <button type="button" className={className} onClick={share}>Share</button>
-      {msg && <span role="status" className="max-w-[16rem] break-all text-xs text-green-300">{msg}</span>}
+      <button type="button" className={className} onClick={share} data-done={msg === "Link copied" ? "true" : undefined}>{msg === "Link copied" ? "Copied ✓" : "Share"}</button>
+      {msg && msg !== "Link copied" && <span role="status" className="max-w-[16rem] break-all text-xs text-green-300">{msg}</span>}
     </span>
   );
 }

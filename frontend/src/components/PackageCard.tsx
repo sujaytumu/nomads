@@ -41,9 +41,9 @@ export default function PackageCard({ pkg, saved, onSavedChange }: Props) {
     <div className="card group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift">
       <div className="relative">
         <Cover src={pkg.imageUrl} alt={pkg.name} kind="PACKAGE" className="h-48" />
-        <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-sm font-bold text-slate-100 shadow-sm">₹{pkg.price}</span>
+        <span className="absolute bottom-3 left-3 rounded-full bg-slate-950/75 backdrop-blur ring-1 ring-white/10 px-3 py-1 text-sm font-bold text-white shadow-sm">₹{pkg.price}</span>
         {onSavedChange && (
-          <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-brand-600 shadow-sm">
+          <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-slate-950/75 backdrop-blur ring-1 ring-white/10 text-rose-400 shadow-sm">
             <WishlistHeart packageId={pkg.id} saved={!!saved} onChange={onSavedChange} />
           </span>
         )}
@@ -55,7 +55,7 @@ export default function PackageCard({ pkg, saved, onSavedChange }: Props) {
         </div>
         <div className="flex gap-2">
           <Link href={`/packages/${pkg.id}`} className="btn btn-secondary btn-sm flex-1">Explore</Link>
-          <button className="btn btn-primary btn-sm flex-1" onClick={handleEnroll} disabled={loading}>{loading ? 'Enrolling…' : 'Enroll & Pay'}</button>
+          <button className="btn btn-primary btn-sm flex-1" onClick={handleEnroll} disabled={loading} data-loading={loading}>{loading ? 'Enrolling…' : 'Enroll & Pay'}</button>
         </div>
       </div>
     </div>

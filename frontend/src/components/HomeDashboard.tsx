@@ -10,10 +10,10 @@ import { fetchMe } from "@/lib/authApi";
 import { formatCost, isPayable, tripTitle } from "@/lib/tripStatus";
 
 const TILES = [
-  { href: "/trip-planner", title: "Plan a trip", text: "Build a weekend itinerary", icon: "🧭", tint: "bg-brand-100" },
-  { href: "/packages", title: "Packages", text: "Ready-made weekends", icon: "🎒", tint: "bg-ocean-100" },
+  { href: "/trip-planner", title: "Plan a trip", text: "Build a weekend itinerary", icon: "🧭", tint: "bg-brand-600/20" },
+  { href: "/packages", title: "Packages", text: "Ready-made weekends", icon: "🎒", tint: "bg-ocean-500/20" },
   { href: "/map", title: "Map", text: "Explore nearby places", icon: "🗺️", tint: "bg-amber-400/20" },
-  { href: "/wishlist", title: "Wishlist", text: "Places you saved", icon: "💛", tint: "bg-brand-100" },
+  { href: "/wishlist", title: "Wishlist", text: "Places you saved", icon: "💛", tint: "bg-brand-600/20" },
 ];
 
 const INTERESTS = [
@@ -44,7 +44,7 @@ export default function HomeDashboard() {
 
   return (
     <section className="section space-y-6 py-8">
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#FF7A50] via-[#FF9A63] to-[#14A097] p-6 text-white shadow-lift sm:p-10">
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1B2559] via-[#26379a] to-[#4f6cff] border border-brand-500/20 p-6 text-white shadow-lift sm:p-10">
         <div aria-hidden="true" className="absolute -right-10 -top-12 h-52 w-52 rounded-full bg-white/15" />
         <div aria-hidden="true" className="absolute -bottom-16 right-16 h-44 w-44 rounded-full bg-white/10" />
         <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Weekend, sorted</p>
@@ -54,7 +54,7 @@ export default function HomeDashboard() {
         <p className="relative mt-3 max-w-md text-sm text-white/90 sm:text-base">Pick what you feel like. We&apos;ll build the day plan, the route and the pickup.</p>
         <div className="relative mt-6 flex flex-wrap gap-2">
           {INTERESTS.map((i) => (
-            <Link key={i.key} href={`/trip-planner?interest=${i.key}`} className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-slate-100 shadow-sm transition-transform hover:-translate-y-0.5">
+            <Link key={i.key} href={`/trip-planner?interest=${i.key}`} className="chip-btn inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur hover:bg-white/20">
               <span aria-hidden="true">{i.icon}</span>
               {i.label}
             </Link>
@@ -78,7 +78,7 @@ export default function HomeDashboard() {
             </div>
             <div className="flex flex-wrap gap-2">
               {open ? (
-                <Link href={`/payment?tripRequestId=${open.tripRequestId}`} className="btn btn-primary">Pay &amp; book</Link>
+                <Link href={`/payment?tripRequestId=${open.tripRequestId}`} className="btn btn-primary btn-pulse">Pay &amp; book</Link>
               ) : (
                 <Link href={`/pickup?tripId=${booked.tripRequestId}`} className="btn btn-primary">Arrange pickup</Link>
               )}

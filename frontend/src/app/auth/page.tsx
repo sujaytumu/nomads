@@ -131,7 +131,7 @@ export default function AuthPage() {
   const input = "w-full rounded-xl border px-4 py-3 text-base";
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-5 py-10">
-      <div className="relative mb-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#FF7A50] via-[#FF9A63] to-[#14A097] p-7 text-white shadow-lift">
+      <div className="relative mb-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1B2559] via-[#26379a] to-[#4f6cff] border border-brand-500/20 p-7 text-white shadow-lift">
         <div aria-hidden="true" className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/15" />
         <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Nomad</p>
         <h1 className="relative mt-1 font-display text-3xl font-semibold leading-tight">Your weekend,<br />planned in minutes.</h1>

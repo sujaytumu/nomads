@@ -78,7 +78,7 @@ const LAST_KEY = "nomad_tab_last";
 function Logo({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
-      <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-amber-400 text-white shadow-md shadow-brand-600/30">
+      <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-ocean-400 text-white shadow-md shadow-brand-600/30">
         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="9" />
           <path d="M15.5 8.5l-2 5-5 2 2-5z" fill="currentColor" />
@@ -114,6 +114,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const section = sectionOf(path);
 
   useEffect(() => warmUpBackend(), []);
+
+  // Click ripple: any button-styled element gets a soft wave from the tap point.
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const onDown = (e: PointerEvent) => {
+      const el = (e.target as HTMLElement | null)?.closest<HTMLElement>(".btn, .btn-primary, .btn-secondary, .btn-outline, .btn-ghost, .btn-danger");
+      if (!el || (el as HTMLButtonElement).disabled) return;
+      const r = el.getBoundingClientRect();
+      const size = Math.max(r.width, r.height) * 2;
+      const dot = document.createElement("span");
+      dot.className = "btn-ripple";
+      dot.style.width = dot.style.height = `${size}px`;
+      dot.style.left = `${e.clientX - r.left - size / 2}px`;
+      dot.style.top = `${e.clientY - r.top - size / 2}px`;
+      el.appendChild(dot);
+      setTimeout(() => dot.remove(), 650);
+    };
+    document.addEventListener("pointerdown", onDown, { passive: true });
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, []);
 
   // Verify the login once (not on every page change). A stored copy of the profile lets the
   // app paint straight away while the server confirms in the background.
@@ -233,7 +253,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <Icon d={it.icon} />
                   <span className="flex-1">{it.label}</span>
                   {it.badge && needsPayment > 0 && (
-                    <span title="Trips waiting for payment" className="rounded-full bg-brand-500/15 px-2 text-xs font-bold text-brand-700">{needsPayment}</span>
+                    <span title="Trips waiting for payment" className="rounded-full bg-brand-500/15 px-2 text-xs font-bold text-brand-300">{needsPayment}</span>
                   )}
                 </Link>
               </li>
@@ -300,7 +320,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const tabClass = (on: boolean) =>
-    `relative flex min-h-[3.25rem] flex-1 select-none flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-50 text-brand-700" : "text-slate-400"}`;
+    `relative flex min-h-[3.25rem] flex-1 select-none flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-600/25 text-white" : "text-slate-400"}`;
 
   return (
     <AuthContext.Provider value={{ state: authState, user }}>

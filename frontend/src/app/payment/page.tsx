@@ -292,9 +292,10 @@ function PaymentPageInner() {
 
               <div className="flex flex-wrap items-center gap-3">
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-pulse"
                   onClick={handlePay}
                   disabled={!selected || !selectedPayable || !hasCost || paying}
+                  data-loading={paying}
                 >
                   {paying
                     ? "Processing…"

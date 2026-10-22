@@ -256,9 +256,9 @@ export default function ProfilePage() {
             </section>
 
             <div className="fixed inset-x-0 bottom-20 z-30 px-4 sm:static sm:bottom-auto sm:px-0">
-              <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border border-slate-800 bg-white/95 p-3 shadow-lift backdrop-blur sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
-                <button className="btn btn-primary" onClick={handleSave} disabled={!dirty || saving}>{saving ? "Saving…" : "Save changes"}</button>
-                <p role="status" className={`text-sm ${status ? (status.ok ? "text-green-600" : "text-red-400") : "text-slate-400"}`}>
+              <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/95 p-3 shadow-lift backdrop-blur sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+                <button className="btn btn-primary" onClick={handleSave} disabled={!dirty || saving} data-loading={saving}>{saving ? "Saving…" : "Save changes"}</button>
+                <p role="status" className={`text-sm ${status ? (status.ok ? "text-green-400" : "text-red-400") : "text-slate-400"}`}>
                   {status ? status.text : dirty ? "You have unsaved changes" : "All saved"}
                 </p>
               </div>

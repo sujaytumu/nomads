@@ -28,8 +28,8 @@ export default function EmailItineraryButton({ tripId, className = "btn btn-seco
 
   return (
     <span className="inline-flex flex-col items-start gap-1">
-      <button type="button" className={className} onClick={send} disabled={busy}>
-        {busy ? "Sending…" : "Email itinerary"}
+      <button type="button" className={className} onClick={send} disabled={busy} data-loading={busy} data-done={result?.ok ? "true" : undefined}>
+        {busy ? "Sending…" : result?.ok ? "Sent ✓" : "Email itinerary"}
       </button>
       {result && (
         <span role="status" className={`max-w-xs text-xs ${result.ok ? "text-green-300" : "text-red-400"}`}>{result.text}</span>

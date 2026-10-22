@@ -31,7 +31,7 @@ export default function EnrollButton({ packageId, amount }: Props) {
   }
 
   return (
-    <button onClick={handleEnroll} className="btn-primary w-full" disabled={loading}>
+    <button onClick={handleEnroll} className="btn-primary btn-pulse w-full" disabled={loading} data-loading={loading}>
       {loading ? 'Enrolling…' : 'Enroll & Pay'}
     </button>
   );
