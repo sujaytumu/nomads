@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { clearCache, getCached, peekCached } from "@/lib/api";
 import { fetchMe, type Me } from "@/lib/authApi";
 import { AuthContext } from "@/lib/auth-context";
 import InstallApp from "@/components/InstallApp";
+import UpdateButton from "@/components/UpdateButton";
+import { useAppUpdate } from "@/lib/useAppUpdate";
 import { warmUpBackend } from "@/lib/warmup";
 
 type Item = { href: string; label: string; icon: string; badge?: boolean };
@@ -112,6 +114,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // Last page opened inside each tab, so coming back to a tab lands where you left it.
   const [last, setLast] = useState<Partial<Record<Section, string>>>({});
   const section = sectionOf(path);
+  const updateReady = useAppUpdate();
+  const mainRef = useRef<HTMLElement | null>(null);
+  const slideRef = useRef<"next" | "prev" | null>(null);
+  const live = useRef({ section, open, last, path, authState });
+  live.current = { section, open, last, path, authState };
 
   useEffect(() => warmUpBackend(), []);
 
@@ -208,6 +215,101 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [path, section]);
 
   useEffect(() => setOpen(false), [path]);
+  // The slide direction only applies to the page change it was set for.
+  useEffect(() => {
+    slideRef.current = null;
+  }, [path]);
+
+  // Swipe sideways to move between the tabs, like WhatsApp: Home, Plan, My Trips, More.
+  useEffect(() => {
+    if (authState !== "in") return;
+    const ORDER: Section[] = ["home", "plan", "trips", "more"];
+    const FIXED = ["/payment", "/auth"];
+    const SKIP = "input, textarea, select, button, [contenteditable], .leaflet-container, .overflow-x-auto, [data-no-swipe]";
+    let sx = 0, sy = 0, t0 = 0;
+    let mode: "idle" | "x" | "y" = "idle";
+    let on = false;
+
+    const go = (dir: 1 | -1) => {
+      const { section: sec, open: sheet, last: lastPages } = live.current;
+      const idx = sheet ? 3 : ORDER.indexOf(sec);
+      const next = idx + dir;
+      if (next < 0 || next > 3) return false;
+      if (next === 3) {
+        if (sheet || sec === "more") return false;
+        setOpen(true);
+        return true;
+      }
+      const tab = TABS[next];
+      slideRef.current = dir > 0 ? "next" : "prev";
+      setOpen(false);
+      router.push(lastPages[tab.section] || tab.href);
+      return true;
+    };
+    const canGo = (dir: 1 | -1) => {
+      const { section: sec, open: sheet } = live.current;
+      const next = (sheet ? 3 : ORDER.indexOf(sec)) + dir;
+      return next >= 0 && next <= 3 && !(next === 3 && (sheet || sec === "more"));
+    };
+    const settle = () => {
+      const el = mainRef.current;
+      if (!el) return;
+      el.style.transition = "transform .22s cubic-bezier(.22,1,.36,1), opacity .22s";
+      el.style.transform = "";
+      el.style.opacity = "";
+    };
+
+    const onStart = (e: TouchEvent) => {
+      const { path: here } = live.current;
+      on = window.innerWidth < 1024 && e.touches.length === 1 && !FIXED.includes(here) && !(e.target as HTMLElement | null)?.closest?.(SKIP);
+      mode = "idle";
+      if (!on) return;
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+      t0 = Date.now();
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!on || mode === "y") return;
+      const dx = e.touches[0].clientX - sx;
+      const dy = e.touches[0].clientY - sy;
+      if (mode === "idle") {
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+        mode = Math.abs(dx) > Math.abs(dy) * 1.5 ? "x" : "y";
+        if (mode === "y") return;
+      }
+      const el = mainRef.current;
+      if (!el) return;
+      // The page follows the finger a little; it resists when there is no tab that way.
+      const ease = canGo(dx < 0 ? 1 : -1) ? 0.35 : 0.12;
+      const shift = Math.max(-80, Math.min(80, dx * ease));
+      el.style.transition = "none";
+      el.style.transform = `translateX(${shift}px)`;
+      el.style.opacity = String(1 - Math.min(Math.abs(shift) / 220, 0.25));
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (!on || mode !== "x") return;
+      on = false;
+      const dx = e.changedTouches[0].clientX - sx;
+      const fast = Date.now() - t0 < 250 && Math.abs(dx) > 40;
+      if ((Math.abs(dx) > 70 || fast) && go(dx < 0 ? 1 : -1)) return;
+      settle();
+    };
+    const onCancel = () => {
+      if (mode === "x") settle();
+      on = false;
+    };
+
+    document.addEventListener("touchstart", onStart, { passive: true });
+    document.addEventListener("touchmove", onMove, { passive: true });
+    document.addEventListener("touchend", onEnd, { passive: true });
+    document.addEventListener("touchcancel", onCancel, { passive: true });
+    return () => {
+      document.removeEventListener("touchstart", onStart);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onEnd);
+      document.removeEventListener("touchcancel", onCancel);
+    };
+  }, [authState, router]);
 
   // While the More sheet is open: Escape closes it and the page behind doesn't scroll.
   useEffect(() => {
@@ -320,7 +422,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const tabClass = (on: boolean) =>
-    `relative flex min-h-[3.25rem] flex-1 select-none flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-600/25 text-white" : "text-slate-400"}`;
+    `relative flex min-h-[3rem] flex-1 select-none flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-600/25 text-white shadow-[inset_0_2px_0_0_theme(colors.brand.400)]" : "text-slate-400 active:text-slate-200"}`;
 
   return (
     <AuthContext.Provider value={{ state: authState, user }}>
@@ -333,15 +435,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile: slim top bar */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-700/60 bg-slate-950/90 px-4 backdrop-blur lg:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-800/80 bg-slate-950/85 px-4 backdrop-blur-md lg:hidden">
         <Link href="/" aria-label="NOMAD home"><Logo /></Link>
-        <Link href="/profile" aria-label="Profile" className="grid h-8 w-8 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white">
-          {name.trim().charAt(0).toUpperCase()}
-        </Link>
+        <div className="flex items-center gap-2.5">
+          {updateReady && <UpdateButton />}
+          <Link href="/profile" aria-label="Profile" className="grid h-8 w-8 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white ring-2 ring-brand-500/30">
+            {name.trim().charAt(0).toUpperCase()}
+          </Link>
+        </div>
       </header>
 
+      {/* Desktop: the same Update button, top right, only while an update is waiting */}
+      {updateReady && (
+        <div className="sticky top-0 z-30 hidden h-14 items-center justify-end px-6 lg:flex">
+          <UpdateButton className="shadow-lg" />
+        </div>
+      )}
+
       {/* Mobile: thumb-reach tab bar. The last tab opens everything else. */}
-      <nav aria-label="Quick" className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-3xl border border-slate-700/70 bg-slate-900/95 p-1.5 shadow-lift backdrop-blur lg:hidden">
+      <nav aria-label="Quick" className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-3xl border border-slate-700/60 bg-slate-900/90 p-1.5 shadow-2xl shadow-black/50 backdrop-blur-xl lg:hidden">
         {TABS.map((it) => {
           const here = section === it.section;
           // On another tab: jump back to where you left it. Already on it: tap goes to its start.
@@ -369,7 +481,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className="min-h-[calc(100vh-3rem)]">{children}</main>
+      <main key={path} ref={mainRef} data-dir={slideRef.current ?? undefined} className="min-h-[calc(100vh-3rem)]">{children}</main>
       <footer className="hidden border-t border-slate-700/60 px-6 py-4 text-xs text-slate-500 lg:block">
         © 2026 NOMAD · Smart Weekend Travel &amp; Assistance
       </footer>
