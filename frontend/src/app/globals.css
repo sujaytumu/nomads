@@ -166,3 +166,16 @@ a.card:hover, .card.group:hover { border-color: rgba(111, 140, 255, 0.35); }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   .btn-pulse { animation: none !important; }
 }
+
+/* ---- Swipe between tabs: the new page slides in from the side you swiped towards ---- */
+@keyframes slide-next { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: none; } }
+@keyframes slide-prev { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: none; } }
+main[data-dir="next"] { animation: slide-next 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+main[data-dir="prev"] { animation: slide-prev 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ---- Tidier pages: calmer spacing on phones, steadier type ---- */
+@media (max-width: 639px) {
+  .section { padding-left: 1rem; padding-right: 1rem; }
+  .card { border-radius: 1.25rem; }
+  h1 { font-size: 1.5rem; line-height: 1.2; }
+}

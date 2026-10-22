@@ -24,10 +24,10 @@ export default function HomePackages() {
   }, []);
 
   return (
-    <section className="section pb-16">
-      <div className="mb-6">
-        <h2 className="font-display text-2xl font-semibold">Weekend packages</h2>
-        <p className="text-sm text-slate-400">Ready-made weekends. Enroll, pay, and your itinerary PDF lands in your inbox.</p>
+    <section className="section pb-10">
+      <div className="mb-4">
+        <h2 className="font-display text-xl font-semibold sm:text-2xl">Weekend packages</h2>
+        <p className="text-xs text-slate-400 sm:text-sm">Ready-made weekends. Enroll, pay, and your itinerary PDF lands in your inbox.</p>
       </div>
       <div className="-mx-5 flex snap-x scroll-pl-5 gap-4 overflow-x-auto px-5 pb-3 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto">
         {packages === null
@@ -35,7 +35,7 @@ export default function HomePackages() {
           : packages.map((p: any) => <PackageCard key={p.id} pkg={p} />)}
       </div>
       <div className="mt-4 text-right">
-        <Link href="/packages" className="btn btn-secondary">Explore more packages</Link>
+        <Link href="/packages" className="btn btn-secondary btn-sm">Explore more packages →</Link>
       </div>
     </section>
   );
