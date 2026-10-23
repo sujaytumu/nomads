@@ -26,7 +26,7 @@ export default function TripSteps({ current, tripId }: Props) {
         const circle = done
           ? "bg-gradient-to-br from-brand-500 to-ocean-400 text-white"
           : active
-            ? "border-2 border-ocean-400 bg-brand-600/20 text-white shadow-glow"
+            ? "border-2 border-ocean-400 bg-brand-600/20 text-slate-100 shadow-glow"
             : "border border-slate-700 text-slate-500";
         const content = (
           <span className="flex items-center gap-2">
