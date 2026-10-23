@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import InstallApp from "@/components/InstallApp";
+import AppStatus from "@/components/AppStatus";
 import PageHeader from "@/components/PageHeader";
 import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
@@ -218,8 +218,8 @@ export default function ProfilePage() {
 
             <section className="card space-y-3 p-5">
               <h2 className="font-display text-lg font-semibold">App</h2>
+              <AppStatus />
               <div className="flex flex-wrap items-center gap-2">
-                <InstallApp />
                 <Link href="/wishlist" className="btn btn-secondary btn-sm">♡ Wishlist</Link>
                 <Link href="/bookings" className="btn btn-secondary btn-sm">My Trips</Link>
                 <button type="button" onClick={logout} className="btn btn-ghost btn-sm">Log out</button>
