@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+import ActionMenu from "@/components/ActionMenu";
 import DownloadItineraryButton from "@/components/DownloadItineraryButton";
 import EmailItineraryButton from "@/components/EmailItineraryButton";
 import ShareTripButton from "@/components/ShareTripButton";
@@ -240,7 +241,7 @@ function MyTripsPageInner() {
                   return (
                     <div
                       key={trip.tripRequestId}
-                      className={`card p-4 flex flex-wrap items-center justify-between gap-4 ${
+                      className={`card relative p-4 flex flex-wrap items-center justify-between gap-4 has-[[aria-expanded=true]]:z-20 ${
                         trip.tripRequestId === paidId ? "ring-2 ring-green-500/50" : ""
                       }`}
                     >
@@ -267,28 +268,35 @@ function MyTripsPageInner() {
                           View trip
                         </Link>
                         {trip.status === "CONFIRMED" && (
-                          <>
-                            <DownloadItineraryButton tripId={trip.tripRequestId} label="PDF" className="btn btn-secondary btn-sm" />
-                            <EmailItineraryButton tripId={trip.tripRequestId} />
-                            <ShareTripButton token={trip.shareToken} city={trip.city} />
-                            {trip.tripDate && (
-                              <button type="button" className="btn btn-secondary btn-sm" onClick={() => downloadTripCalendar(trip as any)}>Calendar</button>
+                          <Link href={`/pickup?tripId=${trip.tripRequestId}`} className="btn btn-primary btn-sm">Pickup</Link>
+                        )}
+                        {(trip.status === "CONFIRMED" || isCancellable(trip.status) || (tripKind(trip) === "Custom itinerary" && trip.status === "CANCELLED")) && (
+                          <ActionMenu>
+                            {trip.status === "CONFIRMED" && (
+                              <>
+                                <DownloadItineraryButton tripId={trip.tripRequestId} label="Download PDF" className="btn btn-ghost btn-sm w-full justify-start rounded-xl" />
+                                <EmailItineraryButton tripId={trip.tripRequestId} className="btn btn-ghost btn-sm w-full justify-start rounded-xl" />
+                                <ShareTripButton token={trip.shareToken} city={trip.city} className="btn btn-ghost btn-sm w-full justify-start rounded-xl" />
+                                {trip.tripDate && (
+                                  <button type="button" className="btn btn-ghost btn-sm w-full justify-start rounded-xl" onClick={() => downloadTripCalendar(trip as any)}>Add to calendar</button>
+                                )}
+                                <Link href={`/review?tripId=${trip.tripRequestId}`} className="btn btn-ghost btn-sm w-full justify-start rounded-xl">Write a review</Link>
+                              </>
                             )}
-                            <Link href={`/pickup?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Pickup</Link>
-                            <Link href={`/review?tripId=${trip.tripRequestId}`} className="btn btn-secondary btn-sm">Review</Link>
-                          </>
-                        )}
-                        {tripKind(trip) === "Custom itinerary" && (trip.status === "CONFIRMED" || trip.status === "CANCELLED") && (
-                          <Link href={planAgainHref(trip)} className="btn btn-secondary btn-sm">Plan again</Link>
-                        )}
-                        {isCancellable(trip.status) && (
-                          <button
-                            onClick={() => handleCancel(trip)}
-                            disabled={cancellingId === trip.tripRequestId}
-                            className="btn btn-danger btn-sm"
-                          >
-                            {cancellingId === trip.tripRequestId ? "Cancelling…" : "Cancel"}
-                          </button>
+                            {tripKind(trip) === "Custom itinerary" && (trip.status === "CONFIRMED" || trip.status === "CANCELLED") && (
+                              <Link href={planAgainHref(trip)} className="btn btn-ghost btn-sm w-full justify-start rounded-xl">Plan again</Link>
+                            )}
+                            {isCancellable(trip.status) && (
+                              <button
+                                type="button"
+                                onClick={() => handleCancel(trip)}
+                                disabled={cancellingId === trip.tripRequestId}
+                                className="btn btn-sm w-full justify-start rounded-xl text-rose-300 hover:bg-rose-500/10"
+                              >
+                                {cancellingId === trip.tripRequestId ? "Cancelling…" : "Cancel trip"}
+                              </button>
+                            )}
+                          </ActionMenu>
                         )}
                       </div>
                     </div>
