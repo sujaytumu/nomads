@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { addToWishlist, removeFromWishlist } from "../lib/wishlistApi";
+import { errorText, toast } from "@/lib/toast";
 
 type Props = {
   packageId: number;
@@ -24,9 +25,10 @@ export default function WishlistHeart({ packageId, saved, onChange }: Props) {
       } else {
         await addToWishlist(packageId);
       }
+      toast(saved ? "Removed from wishlist" : "Saved to wishlist", "success");
       onChange?.(packageId, !saved);
     } catch (e: any) {
-      alert("Could not update wishlist: " + (e?.message || "unknown error"));
+      toast(errorText(e, "Could not update your wishlist."), "error");
     } finally {
       setBusy(false);
     }
