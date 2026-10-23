@@ -177,7 +177,7 @@ function MyTripsPageInner() {
           {!loading && loadError && (
             <div className="space-y-2">
               <p className="text-sm text-red-400">Couldn't load your trips.</p>
-              <button className="btn btn-secondary btn-sm" onClick={load}>Retry</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => load()}>Retry</button>
             </div>
           )}
 
