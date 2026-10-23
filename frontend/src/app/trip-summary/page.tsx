@@ -18,6 +18,7 @@ import TripSteps from "@/components/TripSteps";
 import { api } from "@/lib/api";
 import { fetchRoute } from "@/lib/routeApi";
 import { fetchTrip } from "@/lib/tripApi";
+import { WeatherDays } from "@/components/WeatherStrip";
 import { fetchTripWeather, WeatherForecast } from "@/lib/weatherApi";
 import {
   formatCost,
@@ -348,20 +349,8 @@ function TripSummaryPageInner() {
                 )}
 
                 {weather && Array.isArray(weather.days) && weather.days.length > 0 && (
-                  <section className="card p-6">
-                    <h3 className="text-lg font-semibold mb-3">Weather in {weather.city}</h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      {weather.days.map((day) => (
-                        <div key={day.date} className="border border-slate-800 rounded-xl p-3 text-center">
-                          <p className="text-xs text-slate-400">{day.date}</p>
-                          <p className="text-sm font-semibold mt-1">{day.description}</p>
-                          <p className="text-sm text-slate-300">
-                            {Math.round(day.minTempC)}°–{Math.round(day.maxTempC)}°C
-                          </p>
-                          <p className="text-xs text-slate-400">{day.precipitationChance}% rain</p>
-                        </div>
-                      ))}
-                    </div>
+                  <section className="card p-5">
+                    <WeatherDays days={weather.days} city={weather.city} />
                   </section>
                 )}
 
