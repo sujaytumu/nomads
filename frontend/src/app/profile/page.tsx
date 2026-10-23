@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import AppStatus from "@/components/AppStatus";
+import ReminderToggle from "@/components/ReminderToggle";
 import ThemeToggle from "@/components/ThemeToggle";
 import PageHeader from "@/components/PageHeader";
 import ProtectedPage from "@/components/ProtectedPage";
@@ -223,6 +224,7 @@ export default function ProfilePage() {
                 <span className="text-sm font-semibold">Appearance</span>
                 <ThemeToggle />
               </div>
+              <ReminderToggle />
               <AppStatus />
               <div className="flex flex-wrap items-center gap-2">
                 <Link href="/wishlist" className="btn btn-secondary btn-sm">♡ Wishlist</Link>
