@@ -11,6 +11,7 @@ import Reminders from "@/components/Reminders";
 import Toaster from "@/components/Toaster";
 import UpdateButton from "@/components/UpdateButton";
 import { useAppUpdate } from "@/lib/useAppUpdate";
+import { saveOfflineTrips } from "@/lib/offlineTrips";
 import { warmUpBackend } from "@/lib/warmup";
 
 type Item = { href: string; label: string; icon: string; badge?: boolean };
@@ -226,7 +227,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (authState !== "in") return;
     getCached<any[]>("/api/trips/me", { ttl: 15000 })
-      .then((list) => setNeedsPayment((list || []).filter((t: any) => t.status === "PLANNED" || t.status === "PAYMENT_PENDING").length))
+      .then((list) => {
+        saveOfflineTrips(list || []);
+        setNeedsPayment((list || []).filter((t: any) => t.status === "PLANNED" || t.status === "PAYMENT_PENDING").length);
+      })
       .catch(() => undefined);
   }, [authState, path]);
 
