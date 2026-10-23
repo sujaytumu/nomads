@@ -44,7 +44,7 @@ export async function notifyOnce(tag: string, title: string, body: string, url =
   } catch {
     /* if storage fails, still show once per page load */
   }
-  const opts: NotificationOptions = { body, tag, icon: "/icon-192.png", badge: "/icon-192.png", data: { url } };
+  const opts: NotificationOptions = { body, tag, icon: "/icon-192.png", data: { url } };
   try {
     const reg = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
     if (reg) await reg.showNotification(title, opts);
