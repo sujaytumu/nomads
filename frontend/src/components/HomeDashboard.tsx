@@ -47,11 +47,9 @@ export default function HomeDashboard() {
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1B2559] via-[#26379a] to-[#4f6cff] border border-brand-500/20 p-5 text-white shadow-lift sm:p-10">
         <div aria-hidden="true" className="absolute -right-10 -top-12 h-52 w-52 rounded-full bg-white/15" />
         <div aria-hidden="true" className="absolute -bottom-16 right-16 h-44 w-44 rounded-full bg-white/10" />
-        <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Weekend, sorted</p>
         <h1 className="relative mt-1.5 max-w-xl font-display text-2xl font-semibold leading-tight sm:text-5xl">
           {name ? `${name}, where to this weekend?` : "Where to this weekend?"}
         </h1>
-        <p className="relative mt-2 max-w-md text-sm text-white/80 sm:mt-3 sm:text-base">Pick what you feel like. We&apos;ll build the day plan, the route and the pickup.</p>
         <div className="relative mt-4 flex gap-2 overflow-x-auto pb-1 sm:mt-6 sm:flex-wrap sm:overflow-visible sm:pb-0">
           {INTERESTS.map((i) => (
             <Link key={i.key} href={`/trip-planner?interest=${i.key}`} className="chip-btn inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur hover:bg-white/20">
