@@ -38,9 +38,9 @@ export default function PackageCard({ pkg, saved, onSavedChange }: Props) {
     <div className="card group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift">
       <div className="relative">
         <Cover src={pkg.imageUrl} alt={pkg.name} kind="PACKAGE" className="h-48" />
-        <span className="absolute bottom-3 left-3 rounded-full bg-slate-950/75 backdrop-blur ring-1 ring-white/10 px-3 py-1 text-sm font-bold text-white shadow-sm">₹{pkg.price}</span>
+        <span className="absolute bottom-3 left-3 rounded-full bg-black/55 backdrop-blur ring-1 ring-white/10 px-3 py-1 text-sm font-bold text-white shadow-sm">₹{pkg.price}</span>
         {onSavedChange && (
-          <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-slate-950/75 backdrop-blur ring-1 ring-white/10 text-rose-400 shadow-sm">
+          <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/55 backdrop-blur ring-1 ring-white/10 text-rose-400 shadow-sm">
             <WishlistHeart packageId={pkg.id} saved={!!saved} onChange={onSavedChange} />
           </span>
         )}

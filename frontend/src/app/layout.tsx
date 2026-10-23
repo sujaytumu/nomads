@@ -24,8 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${body.variable} ${display.variable}`}>
+    <html lang="en" className={`${body.variable} ${display.variable}`} suppressHydrationWarning>
       <head>
+        {/* Apply the saved theme before the page paints, so there is no flash. */}
+        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('nomad_theme')==='light'){document.documentElement.setAttribute('data-theme','light')}}catch(e){}" }} />
         {/* Start the connection to the API while the page is still loading */}
         {apiOrigin && <link rel="preconnect" href={apiOrigin} crossOrigin="anonymous" />}
         {apiOrigin && <link rel="dns-prefetch" href={apiOrigin} />}

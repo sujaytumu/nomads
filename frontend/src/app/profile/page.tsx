@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import AppStatus from "@/components/AppStatus";
+import ThemeToggle from "@/components/ThemeToggle";
 import PageHeader from "@/components/PageHeader";
 import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
@@ -218,6 +219,10 @@ export default function ProfilePage() {
 
             <section className="card space-y-3 p-5">
               <h2 className="font-display text-lg font-semibold">App</h2>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-semibold">Appearance</span>
+                <ThemeToggle />
+              </div>
               <AppStatus />
               <div className="flex flex-wrap items-center gap-2">
                 <Link href="/wishlist" className="btn btn-secondary btn-sm">♡ Wishlist</Link>

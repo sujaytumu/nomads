@@ -460,7 +460,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const tabClass = (on: boolean) =>
-    `relative flex min-h-[3rem] flex-1 select-none flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-600/25 text-white shadow-[inset_0_2px_0_0_theme(colors.brand.400)]" : "text-slate-400 active:text-slate-200"}`;
+    `relative flex min-h-[3rem] flex-1 select-none flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-600/25 text-slate-100 shadow-[inset_0_2px_0_0_theme(colors.brand.400)]" : "text-slate-400 active:text-slate-200"}`;
 
   return (
     <AuthContext.Provider value={{ state: authState, user }}>
@@ -536,7 +536,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         onClick={() => setOpen(false)}
                         aria-current={on ? "page" : undefined}
                         className={`relative flex min-h-[5rem] flex-col items-center justify-center gap-1.5 rounded-2xl border px-1 py-3 text-center text-xs font-semibold transition-all active:scale-95 ${
-                          on ? "border-brand-500/60 bg-brand-600/20 text-white shadow-glow" : "border-slate-800 bg-slate-900/70 text-slate-300"
+                          on ? "border-brand-500/60 bg-brand-600/20 text-slate-100 shadow-glow" : "border-slate-800 bg-slate-900/70 text-slate-300"
                         }`}
                       >
                         <span className={`grid h-9 w-9 place-items-center rounded-xl ${on ? "bg-brand-600 text-white" : "bg-slate-800 text-brand-300"}`}>
