@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 /* Taps respond instantly (no double-tap-zoom delay) and don't flash grey on phones. */
@@ -14,8 +14,8 @@ a, button, [role="button"], summary, label, select {
 
 body {
   @apply bg-slate-950 font-sans text-slate-100 antialiased;
-  background-image: radial-gradient(60rem 28rem at 8% -6%, rgba(255, 190, 150, 0.28), transparent 60%),
-    radial-gradient(48rem 24rem at 100% 0%, rgba(20, 160, 151, 0.12), transparent 60%);
+  background-image: radial-gradient(circle at 15% 0%, rgba(79, 108, 255, 0.14), transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(79, 108, 255, 0.09), transparent 35%);
   background-attachment: fixed;
 }
 
@@ -29,40 +29,46 @@ h1, h2 {
 }
 
 .card {
-  @apply rounded-3xl border border-slate-700/70 bg-slate-900 shadow-soft;
+  @apply rounded-3xl border border-slate-800 bg-slate-900/70 backdrop-blur shadow-xl shadow-black/20;
 }
 
 @layer components {
+  /* One button system. Every button/link-button uses .btn + one variant (+ optional size). */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent px-6 py-2.5 text-sm font-semibold transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-full border border-transparent px-6 py-2.5 text-sm font-semibold transition-all duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-50;
   }
-  .btn-primary { @apply btn bg-brand-600 text-white shadow-md shadow-brand-600/25 hover:bg-brand-700 active:scale-[0.98]; }
-  .btn-secondary, .btn-outline { @apply btn border-slate-600 bg-slate-900 text-slate-100 hover:bg-slate-800 active:scale-[0.98]; }
-  .btn-ghost { @apply btn text-slate-300 hover:bg-slate-800 hover:text-slate-100; }
-  .btn-danger { @apply btn border-red-400/30 bg-red-400/10 text-red-300 hover:bg-red-400/20; }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-lg shadow-brand-600/30 hover:bg-brand-500 hover:shadow-glow active:scale-[0.97] active:bg-brand-700;
+  }
+  .btn-secondary, .btn-outline {
+    @apply btn border-slate-700 bg-slate-800/60 text-slate-100 hover:border-brand-500/60 hover:bg-slate-800 hover:text-white active:scale-[0.97];
+  }
+  .btn-ghost { @apply btn text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.97]; }
+  .btn-danger { @apply btn border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20 active:scale-[0.97]; }
   .btn-sm { @apply px-4 py-1.5 text-xs; }
 
   .side-link {
-    @apply flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100;
+    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition-all duration-200 hover:translate-x-0.5 hover:bg-slate-800 hover:text-white;
   }
-  .side-link-active { @apply bg-ocean-50 font-semibold text-ocean-700; }
+  .side-link-active { @apply bg-brand-600/20 text-white shadow-[inset_3px_0_0_0_theme(colors.brand.500)];  }
 }
 
 .badge {
-  @apply inline-flex items-center rounded-full border border-brand-500/20 bg-brand-500/10 px-3 py-1 text-xs font-semibold text-brand-300;
+  @apply inline-flex items-center rounded-full border border-brand-500/20 bg-brand-500/15 px-3 py-1 text-xs font-semibold text-brand-300;
 }
 
-/* Form controls */
+/* Form controls need explicit dark styling - browsers pick their own light
+   defaults for inputs/selects otherwise, clashing badly with a dark page */
 input, select, textarea {
   @apply rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500;
 }
 
 input:focus, select:focus, textarea:focus {
-  @apply outline-none border-brand-500 ring-2 ring-brand-500/25;
+  @apply outline-none border-brand-500 ring-2 ring-brand-500/40;
 }
 
 /* ---- Finishing touches ---- */
-::selection { background: rgba(228, 76, 30, 0.18); }
+::selection { background: rgba(111, 140, 255, 0.35); }
 html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
 h1 { text-wrap: balance; }
 p { text-wrap: pretty; }
@@ -71,31 +77,118 @@ p { text-wrap: pretty; }
 @keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 main { animation: page-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-/* Cards: a hairline top highlight and a smoother lift. */
-.card { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(18, 38, 58, 0.05), 0 10px 30px -8px rgba(18, 38, 58, 0.12); }
-a.card, .card.group { transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease; }
+/* Cards: a hairline top highlight and a smoother lift with a blue glow. */
+.card { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(0, 0, 0, 0.5); }
+a.card, .card.group { transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease; }
+a.card:hover, .card.group:hover { border-color: rgba(111, 140, 255, 0.35); }
 
-/* Primary buttons: richer than a flat fill. */
+/* ---- Dynamic buttons ---- */
+
+/* Primary: a glossy gradient with a light sweep on hover. */
 .btn-primary {
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%);
+  background-image: linear-gradient(135deg, #5b77ff 0%, #4f6cff 50%, #3d55f0 100%);
 }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -8px rgba(228, 76, 30, 0.55); }
-.btn-secondary:hover, .btn-outline:hover { border-color: rgba(228, 76, 30, 0.45); }
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%) skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  pointer-events: none;
+}
+.btn-primary:hover:not(:disabled)::before { transform: translateX(120%) skewX(-20deg); transition: transform 0.7s ease; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+.btn-primary:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+
+/* Click ripple (spawned by the global handler in AppShell). */
+.btn-ripple {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(0);
+  animation: ripple-out 0.6s ease-out forwards;
+  pointer-events: none;
+}
+.btn-secondary .btn-ripple, .btn-outline .btn-ripple, .btn-ghost .btn-ripple { background: rgba(111, 140, 255, 0.3); }
+@keyframes ripple-out { to { transform: scale(1); opacity: 0; } }
+
+/* Loading state: any button with data-loading="true" shows a spinner and ignores taps. */
+.btn[data-loading="true"] { pointer-events: none; opacity: 0.85; }
+.btn[data-loading="true"]::after {
+  content: "";
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Done state: a quick green flash used after copy / save actions. */
+.btn[data-done="true"] { border-color: rgba(52, 211, 153, 0.6); background-image: none; background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+
+/* Round icon-style buttons (wishlist heart, etc.) */
+.icon-btn {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.icon-btn:hover { transform: scale(1.12); }
+.icon-btn:active { transform: scale(0.9); }
+.icon-btn[aria-pressed="true"] { box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.18), 0 6px 18px -4px rgba(244, 63, 94, 0.55); }
+
+/* Interest chips and tiles on the home page */
+.chip-btn { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
+.chip-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 20px -6px rgba(79, 108, 255, 0.6); }
+.chip-btn:active { transform: scale(0.96); }
+
+/* Floating pay / save bars glow gently so the next step is obvious. */
+@keyframes soft-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(79, 108, 255, 0.45); } 50% { box-shadow: 0 0 0 10px rgba(79, 108, 255, 0); } }
+.btn-pulse:not(:disabled) { animation: soft-pulse 2.4s ease-in-out infinite; }
 
 /* Loading placeholders shimmer. */
 @keyframes shimmer { 100% { transform: translateX(100%); } }
-.animate-pulse { position: relative; overflow: hidden; animation: none; background-color: rgba(18, 38, 58, 0.05); }
+.animate-pulse { position: relative; overflow: hidden; animation: none; background-color: rgba(30, 41, 59, 0.6); }
 .animate-pulse::after {
   content: ""; position: absolute; inset: 0; transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  background: linear-gradient(90deg, transparent, rgba(111, 140, 255, 0.12), transparent);
   animation: shimmer 1.4s infinite;
 }
 
 /* Horizontal scrollers hide their bar; the sidebar and page keep thin ones. */
 .overflow-x-auto { scrollbar-width: none; }
 .overflow-x-auto::-webkit-scrollbar { display: none; }
-* { scrollbar-width: thin; scrollbar-color: rgba(18, 38, 58, 0.25) transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(100, 116, 139, 0.45) transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .btn-pulse { animation: none !important; }
 }
+
+/* ---- Swipe between tabs: the new page slides in from the side you swiped towards ---- */
+@keyframes slide-next { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: none; } }
+@keyframes slide-prev { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: none; } }
+main[data-dir="next"] { animation: slide-next 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+main[data-dir="prev"] { animation: slide-prev 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ---- Tidier pages: calmer spacing on phones, steadier type ---- */
+@media (max-width: 639px) {
+  .section { padding-left: 1rem; padding-right: 1rem; }
+  .card { border-radius: 1.25rem; }
+  h1 { font-size: 1.5rem; line-height: 1.2; }
+}
+
+/* ---- Colourful titles: one blue > cyan > violet family so everything matches ---- */
+main h1:not([class*="text-white"]),
+main h2:not([class*="text-white"]) {
+  background-image: linear-gradient(100deg, #ffffff 0%, #c1d0ff 38%, #67e8f9 70%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.18em] text-ocean-300; }
+@keyframes pulse-ring { 0%, 100% { box-shadow: 0 0 0 0 rgba(111, 140, 255, 0.55); } 50% { box-shadow: 0 0 0 8px rgba(111, 140, 255, 0); } }
+.animate-pulse-ring { animation: pulse-ring 2s ease-in-out infinite; }

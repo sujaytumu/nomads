@@ -177,7 +177,7 @@ export default function TripPlannerPage() {
           <span className="text-sm font-semibold">When are you going? <span className="font-normal text-slate-500">(optional)</span></span>
           <input type="date" min={new Date().toISOString().slice(0, 10)} value={tripDate} onChange={(e) => setTripDateValue(e.target.value)} className="w-full rounded-xl border px-4 py-2" />
         </label>
-        <button className="btn btn-primary w-full sm:w-auto" onClick={handleSubmit} disabled={loadingTrip || loadingUser}>
+        <button className="btn btn-primary btn-pulse w-full sm:w-auto" onClick={handleSubmit} disabled={loadingTrip || loadingUser} data-loading={loadingTrip}>
           {loadingTrip ? "Building your itinerary…" : "Plan my trip →"}
         </button>
         {error && <p className="text-sm text-red-400">{error}</p>}

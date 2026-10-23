@@ -20,7 +20,7 @@ export default function ShareTripPage({ params }: { params: { token: string } })
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-5 py-10">
       <div className="text-center">
-        <p className="text-2xl font-bold tracking-wide text-brand-700">NOMAD</p>
+        <p className="text-2xl font-bold tracking-wide text-brand-300">NOMAD</p>
         <p className="text-sm text-slate-400">A shared weekend itinerary</p>
       </div>
       {error && <p role="alert" className="card p-5 text-center text-sm text-red-400">{error}</p>}

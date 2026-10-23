@@ -9,12 +9,12 @@ const display = Fraunces({ subsets: ["latin"], variable: "--font-display", displ
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export const viewport: Viewport = { themeColor: "#FBF8F3" };
+export const viewport: Viewport = { themeColor: "#020617" };
 
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icon-192.png", apple: "/apple-touch-icon.png" },
-  appleWebApp: { capable: true, title: "NOMAD", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "NOMAD", statusBarStyle: "black-translucent" },
   title: "NOMAD – Smart Weekend Travel",
   description: "Plan weekend city trips with smart recommendations, assistance, and payments.",
 };
