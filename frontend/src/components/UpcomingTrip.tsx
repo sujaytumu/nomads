@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import LiveTrip from "@/components/LiveTrip";
 import TripWeather from "@/components/WeatherStrip";
 
-type Plan = { dayNumber: number; placeName: string; startTime?: string | null; endTime?: string | null };
+type Plan = { dayNumber: number; placeId?: number | null; placeName: string; startTime?: string | null; endTime?: string | null };
 type Trip = { tripRequestId: number; city?: string | null; status: string; tripDate?: string | null; plans?: Plan[] | null };
 
 const DAY = 86_400_000;
@@ -32,8 +33,6 @@ export default function UpcomingTrip({ trips }: { trips: Trip[] }) {
   const underway = daysTo <= 0;
   const stops = (t.plans || []).filter((p) => (p.dayNumber || 1) === dayNumber).sort((a, b) => hm(a.startTime).localeCompare(hm(b.startTime)));
   const label = underway ? (daysTo === 0 ? "Today" : `Day ${dayNumber}`) : daysTo === 1 ? "Tomorrow" : `In ${daysTo} days`;
-  const nowHm = new Date().toTimeString().slice(0, 5);
-  const nextIdx = underway ? stops.findIndex((s) => hm(s.endTime || s.startTime) >= nowHm) : -1;
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-brand-500/30 bg-gradient-to-br from-brand-900/60 via-slate-900 to-slate-900 p-5 shadow-soft sm:p-6">
@@ -57,26 +56,7 @@ export default function UpcomingTrip({ trips }: { trips: Trip[] }) {
         </div>
       )}
 
-      {underway && stops.length > 0 && (
-        <ol className="mt-4 space-y-2">
-          {stops.map((s, i) => {
-            const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${s.placeName} ${t.city || ""}`.trim())}`;
-            const isNext = i === (nextIdx === -1 ? -1 : nextIdx);
-            return (
-              <li key={`${s.placeName}-${i}`} className={`flex items-center gap-3 rounded-2xl border px-3 py-2.5 ${isNext ? "border-brand-500/60 bg-brand-600/15 shadow-glow" : "border-slate-800 bg-slate-900/60"}`}>
-                <span className="w-24 shrink-0 text-xs font-semibold text-slate-400">
-                  {hm(s.startTime)}{s.endTime ? `–${hm(s.endTime)}` : ""}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-                  {s.placeName}
-                  {isNext && <span className="ml-2 rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white">Next</span>}
-                </span>
-                <a href={maps} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm shrink-0">Directions</a>
-              </li>
-            );
-          })}
-        </ol>
-      )}
+      {underway && stops.length > 0 && <LiveTrip tripId={t.tripRequestId} day={dayNumber} city={t.city} stops={stops} />}
     </div>
   );
 }
