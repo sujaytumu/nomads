@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import PlaceCard from "./PlaceCard";
+import { toast } from "@/lib/toast";
 
 export default function PlacesList() {
   const [places, setPlaces] = useState<any[]>([]);
@@ -101,13 +102,13 @@ export default function PlacesList() {
       if (!arr.find((p: any) => p.id === place.id)) {
         arr.push({ id: place.id, name: place.name });
         localStorage.setItem("nomad_tour", JSON.stringify(arr));
-        alert(`${place.name} added to your tour`);
+        toast(`${place.name} added to your tour`, "success");
       } else {
-        alert(`${place.name} already in your tour`);
+        toast(`${place.name} is already in your tour`);
       }
     } catch (err) {
       console.error(err);
-      alert("Unable to add to tour");
+      toast("Couldn't add this place. Please try again.", "error");
     }
   }
 
