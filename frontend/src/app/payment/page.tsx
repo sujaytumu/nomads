@@ -282,7 +282,7 @@ function PaymentPageInner() {
                   </div>
                   <div className="text-right">
                     <p className="eyebrow">Total to pay</p>
-                    <p className="font-display text-4xl font-semibold text-white">{formatCost(selected.estimatedCost)}</p>
+                    <p className="font-display text-4xl font-semibold text-slate-100">{formatCost(selected.estimatedCost)}</p>
                   </div>
                 </div>
               )}
