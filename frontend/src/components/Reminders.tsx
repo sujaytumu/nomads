@@ -73,7 +73,7 @@ export default function Reminders({ updateReady, build }: { updateReady: boolean
         /* offline or server waking up: try again next time */
       }
       // Keep today's markers only.
-      pruneSeen(new Set([...keep]));
+      pruneSeen(keep);
     };
 
     run();
