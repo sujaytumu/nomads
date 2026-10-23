@@ -226,7 +226,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // The "needs payment" badge refreshes as you move around, but shares one cached request.
   useEffect(() => {
     if (authState !== "in") return;
-    getCached<any[]>("/api/trips/me", { ttl: 15000 })
+    getCached<any[]>("/api/trips/me", { ttl: 15000, persist: true })
       .then((list) => {
         saveOfflineTrips(list || []);
         setNeedsPayment((list || []).filter((t: any) => t.status === "PLANNED" || t.status === "PAYMENT_PENDING").length);

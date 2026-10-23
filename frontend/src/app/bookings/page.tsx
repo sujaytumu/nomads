@@ -12,7 +12,7 @@ import { downloadTripCalendar } from "@/lib/calendar";
 import PageHeader from "@/components/PageHeader";
 import TripProgress from "@/components/TripProgress";
 import ProtectedPage from "@/components/ProtectedPage";
-import { api } from "@/lib/api";
+import { getCached, peekCached } from "@/lib/api";
 import { cancelBooking } from "@/lib/paymentApi";
 import {
   formatCost,
@@ -88,13 +88,19 @@ function MyTripsPageInner() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "pay" | "booked" | "cancelled">("all");
 
-  const load = () => {
-    setLoading(true);
+  // Shows the last saved list straight away (when there is one) and refreshes it quietly.
+  const load = (useSaved = false) => {
+    const saved = useSaved ? peekCached<Trip[]>("/api/trips/me") : undefined;
+    if (saved) {
+      setTrips(saved);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setLoadError(false);
-    api
-      .get("/api/trips/me")
-      .then((res) => setTrips(res.data || []))
-      .catch(() => setLoadError(true))
+    getCached<Trip[]>("/api/trips/me", { ttl: 0, persist: true })
+      .then((list) => setTrips(list || []))
+      .catch(() => !saved && setLoadError(true))
       .finally(() => setLoading(false));
   };
 
@@ -117,7 +123,7 @@ function MyTripsPageInner() {
   };
 
   useEffect(() => {
-    load();
+    load(true);
   }, []);
 
   // Remember the just-paid trip for the banner, then drop the parameter from
@@ -162,9 +168,10 @@ function MyTripsPageInner() {
         />
         <div className="space-y-4">
           {loading && (
-            <p className="text-sm text-slate-400">
-              Loading your trips… (may take up to a minute if the server was asleep)
-            </p>
+            <div className="space-y-3" aria-busy="true" aria-label="Loading your trips">
+              {[0, 1].map((i) => <div key={i} className="card h-32 animate-pulse" />)}
+              <p className="text-xs text-slate-500">Waking the server… this can take a little while the first time.</p>
+            </div>
           )}
 
           {!loading && loadError && (
