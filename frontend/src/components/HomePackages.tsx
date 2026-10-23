@@ -27,7 +27,6 @@ export default function HomePackages() {
     <section className="section pb-10">
       <div className="mb-4">
         <h2 className="font-display text-xl font-semibold sm:text-2xl">Weekend packages</h2>
-        <p className="text-xs text-slate-400 sm:text-sm">Ready-made weekends. Enroll, pay, and your itinerary PDF lands in your inbox.</p>
       </div>
       <div className="-mx-5 flex snap-x scroll-pl-5 gap-4 overflow-x-auto px-5 pb-3 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto">
         {packages === null

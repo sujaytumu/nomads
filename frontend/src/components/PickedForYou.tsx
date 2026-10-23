@@ -69,7 +69,6 @@ export default function PickedForYou() {
     <section className="section space-y-3 pb-6">
       <div>
         <h2 className="font-display text-xl font-semibold sm:text-2xl">Picked for you</h2>
-        <p className="text-xs text-slate-400 sm:text-sm">New places, ranked by your interests, rating and distance.</p>
       </div>
       <div className="-mx-5 flex snap-x scroll-pl-5 gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
         {picks.map(({ place, why }) => (

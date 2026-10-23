@@ -28,14 +28,6 @@ const INTERESTS = [
   { value: "RELAXATION", label: "Relax", icon: "🧘" },
 ];
 
-const UNIQUE = [
-  { icon: "👥", title: "Auto groups", text: "Same city, interest & weekend? We group you.", href: "/group-status" },
-  { icon: "💸", title: "Split costs", text: "Log shared spends, see who pays whom.", href: "/group-status" },
-  { icon: "🚐", title: "Pickup & driver", text: "Vehicle, driver and live pickup status.", href: "/pickup" },
-  { icon: "🗺️", title: "Day-by-day route", text: "Pick places, we plan days and the route.", href: "/trip-planner" },
-  { icon: "📄", title: "Itinerary anywhere", text: "PDF, email or calendar in one tap.", href: "/bookings" },
-  { icon: "🆘", title: "Trip safety", text: "Emergency card and packing list per trip.", href: "/bookings" },
-];
 
 const chip = (on: boolean) =>
   `rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
@@ -182,16 +174,6 @@ export default function ProfilePage() {
               <Link href={next.href} className="btn btn-primary btn-sm">{next.cta}</Link>
             </section>
 
-            <section className="card space-y-3 p-4">
-              <h2 className="font-display text-base font-semibold">How NOMAD works</h2>
-              <ol className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-                {["Set city & style", "Plan a weekend", "Book & pay", "Group, pickup, costs"].map((t, i) => (
-                  <li key={t} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 font-semibold text-slate-300">
-                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-600 text-[11px] text-white">{i + 1}</span>{t}
-                  </li>
-                ))}
-              </ol>
-            </section>
 
             <section className="card space-y-4 p-5">
               <h2 className="font-display text-lg font-semibold">About you</h2>
@@ -233,17 +215,6 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            <section className="card space-y-3 p-4">
-              <h2 className="font-display text-base font-semibold">What's unique about NOMAD</h2>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {UNIQUE.map((u) => (
-                  <Link key={u.title} href={u.href} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 transition-colors hover:bg-slate-800">
-                    <p className="text-sm font-semibold"><span aria-hidden="true" className="mr-1">{u.icon}</span>{u.title}</p>
-                    <p className="mt-0.5 text-xs leading-snug text-slate-400">{u.text}</p>
-                  </Link>
-                ))}
-              </div>
-            </section>
 
             <section className="card space-y-3 p-5">
               <h2 className="font-display text-lg font-semibold">App</h2>
