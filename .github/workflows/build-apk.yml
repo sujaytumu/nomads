@@ -44,13 +44,17 @@ jobs:
         with:
           path: apks
           merge-multiple: true
-      - name: Create GitHub release
+      - name: Publish to the fixed "apk" release (link never changes)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="apk-${{ github.run_number }}"
-          gh release create "$TAG" apks/*.apk \
-            --repo "${{ github.repository }}" \
-            --title "NOMAD APKs #${{ github.run_number }}" \
-            --notes "nomads-mobile.apk = phone layout. nomads-laptop.apk = desktop/laptop layout (landscape)."
-          echo "https://github.com/${{ github.repository }}/releases/tag/$TAG"
+          REPO="${{ github.repository }}"
+          NOTES="Latest build (#${{ github.run_number }}). nomads-mobile.apk = phone layout. nomads-laptop.apk = desktop/laptop layout (landscape). These links never change: this release is updated in place."
+          if gh release view apk --repo "$REPO" >/dev/null 2>&1; then
+            gh release upload apk apks/*.apk --clobber --repo "$REPO"
+            gh release edit apk --title "NOMAD app (latest)" --notes "$NOTES" --latest --repo "$REPO"
+          else
+            gh release create apk apks/*.apk --title "NOMAD app (latest)" --notes "$NOTES" --latest --repo "$REPO"
+          fi
+          echo "Phone:  https://github.com/$REPO/releases/download/apk/nomads-mobile.apk"
+          echo "Laptop: https://github.com/$REPO/releases/download/apk/nomads-laptop.apk"
