@@ -11,7 +11,7 @@ export default async function PackagesPage() {
   const pkgs = await fetchPackages();
   return (
     <div className="section py-8">
-      <h1 className="text-2xl font-bold tracking-tight mb-1">Packages</h1><p className="mb-6 text-sm text-slate-400">Ready-made weekends. Enroll, pay, and the itinerary PDF is emailed to you.</p>
+      <h1 className="mb-5 text-2xl font-semibold tracking-tight sm:text-3xl">Packages</h1>
       <PackageBrowser initial={pkgs} />
     </div>
   );
