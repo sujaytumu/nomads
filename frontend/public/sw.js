@@ -17,3 +17,20 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(fetch(e.request).catch(() => caches.match(OFFLINE)));
   }
 });
+
+// Tapping a reminder opens (or focuses) the app on the right page.
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/";
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) {
+        if ("focus" in c) {
+          c.navigate(url).catch(() => undefined);
+          return c.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});
