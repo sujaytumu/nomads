@@ -122,6 +122,40 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => warmUpBackend(), []);
 
+  // After a new release, a screen still running the old version can fail to load a page's code
+  // (the tap does nothing). Reload once to pick up the new version instead of staying stuck.
+  useEffect(() => {
+    const stale = /ChunkLoadError|Loading chunk|Loading CSS chunk|dynamically imported module|Importing a module script failed/i;
+    const recover = () => {
+      try {
+        if (sessionStorage.getItem("nomad_reloaded")) return;
+        sessionStorage.setItem("nomad_reloaded", "1");
+        setTimeout(() => sessionStorage.removeItem("nomad_reloaded"), 15000);
+      } catch {
+        /* ignore */
+      }
+      window.location.reload();
+    };
+    const onError = (e: ErrorEvent) => stale.test(e.message || "") && recover();
+    const onReject = (e: PromiseRejectionEvent) => stale.test(String((e.reason && (e.reason.message || e.reason.name)) || e.reason || "")) && recover();
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onReject);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onReject);
+    };
+  }, []);
+
+  // Tabs must always open: if the in-app navigation hasn't landed shortly, load the page directly.
+  const openTab = (e: React.MouseEvent, href: string) => {
+    setOpen(false);
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    const target = new URL(href, window.location.origin);
+    window.setTimeout(() => {
+      if (window.location.pathname !== target.pathname) window.location.assign(target.pathname + target.search);
+    }, 900);
+  };
+
   // Click ripple: any button-styled element gets a soft wave from the tap point.
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
@@ -225,7 +259,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     if (authState !== "in") return;
     const ORDER: Section[] = ["home", "plan", "trips", "more"];
     const FIXED = ["/payment", "/auth"];
-    const SKIP = "input, textarea, select, button, [contenteditable], .leaflet-container, .overflow-x-auto, [data-no-swipe]";
+    const SKIP = "nav, header, input, textarea, select, button, [contenteditable], .leaflet-container, .overflow-x-auto, [data-no-swipe]";
     let sx = 0, sy = 0, t0 = 0;
     let mode: "idle" | "x" | "y" = "idle";
     let on = false;
@@ -459,7 +493,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           // On another tab: jump back to where you left it. Already on it: tap goes to its start.
           const href = here ? it.href : last[it.section] || it.href;
           return (
-            <Link key={it.section} href={href} onClick={() => setOpen(false)} aria-current={here && !open ? "page" : undefined} className={tabClass(here && !open)}>
+            <Link key={it.section} href={href} onClick={(e) => openTab(e, href)} aria-current={here && !open ? "page" : undefined} className={tabClass(here && !open)}>
               <Icon d={it.icon} />
               {it.label}
               {it.badge && needsPayment > 0 && <span className="absolute right-[28%] top-1.5 h-2 w-2 rounded-full bg-brand-500" />}
@@ -482,9 +516,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <main key={path} ref={mainRef} data-dir={slideRef.current ?? undefined} className="min-h-[calc(100vh-3rem)]">{children}</main>
-      <footer className="hidden border-t border-slate-700/60 px-6 py-4 text-xs text-slate-500 lg:block">
-        © 2026 NOMAD · Smart Weekend Travel &amp; Assistance
-      </footer>
     </div>
     </AuthContext.Provider>
   );

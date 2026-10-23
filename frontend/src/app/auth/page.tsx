@@ -135,7 +135,6 @@ export default function AuthPage() {
         <div aria-hidden="true" className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/15" />
         <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Nomad</p>
         <h1 className="relative mt-1 font-display text-3xl font-semibold leading-tight">Your weekend,<br />planned in minutes.</h1>
-        <p className="relative mt-2 text-sm text-white/90">Itinerary, route, pickup and payment in one place.</p>
       </div>
       <div className="card space-y-5 p-6">
         {(mode === "login" || mode === "register") ? (
