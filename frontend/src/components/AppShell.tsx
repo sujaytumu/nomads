@@ -509,9 +509,51 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile "More" sheet */}
       {open && (
-        <div id="more-sheet" className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col bg-slate-950 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden">
-          {nav}
-          {account}
+        <div id="more-sheet" className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col overflow-y-auto bg-slate-950 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:hidden">
+          <Link href="/profile" onClick={() => setOpen(false)} className="mx-4 mt-4 flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-3 transition-colors active:bg-slate-800">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-ocean-400 text-base font-bold text-white">{name.trim().charAt(0).toUpperCase()}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold">{name}</span>
+              <span className="block text-xs text-slate-400">Profile &amp; settings</span>
+            </span>
+            <span aria-hidden="true" className="text-slate-500">›</span>
+          </Link>
+
+          {groups.map((g) => (
+            <section key={g.title} className="px-4 pt-5">
+              <p className="eyebrow mb-2 px-1">{g.title}</p>
+              <ul className="grid grid-cols-3 gap-2.5">
+                {g.items.map((it) => {
+                  const on = active(path, it.href);
+                  return (
+                    <li key={it.href}>
+                      <Link
+                        href={it.href}
+                        onClick={() => setOpen(false)}
+                        aria-current={on ? "page" : undefined}
+                        className={`relative flex min-h-[5rem] flex-col items-center justify-center gap-1.5 rounded-2xl border px-1 py-3 text-center text-xs font-semibold transition-all active:scale-95 ${
+                          on ? "border-brand-500/60 bg-brand-600/20 text-white shadow-glow" : "border-slate-800 bg-slate-900/70 text-slate-300"
+                        }`}
+                      >
+                        <span className={`grid h-9 w-9 place-items-center rounded-xl ${on ? "bg-brand-600 text-white" : "bg-slate-800 text-brand-300"}`}>
+                          <Icon d={it.icon} />
+                        </span>
+                        {it.label}
+                        {it.badge && needsPayment > 0 && (
+                          <span className="absolute right-2 top-2 grid h-5 min-w-5 place-items-center rounded-full bg-brand-500 px-1 text-[10px] font-bold text-white">{needsPayment}</span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+
+          <div className="mt-5 space-y-2 px-4">
+            <InstallApp />
+            <button type="button" onClick={logout} className="btn btn-ghost btn-sm w-full">Log out</button>
+          </div>
         </div>
       )}
 
