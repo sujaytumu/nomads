@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import TripWeather from "@/components/WeatherStrip";
 
 type Plan = { dayNumber: number; placeName: string; startTime?: string | null; endTime?: string | null };
 type Trip = { tripRequestId: number; city?: string | null; status: string; tripDate?: string | null; plans?: Plan[] | null };
@@ -25,7 +26,7 @@ export default function UpcomingTrip({ trips }: { trips: Trip[] }) {
     .sort((a, b) => a.daysTo - b.daysTo)[0];
 
   if (!upcoming) return null;
-  const { t, start, daysTo } = upcoming;
+  const { t, start, daysTo, lastDay } = upcoming;
 
   const dayNumber = Math.max(1, 1 - daysTo);
   const underway = daysTo <= 0;
@@ -49,6 +50,12 @@ export default function UpcomingTrip({ trips }: { trips: Trip[] }) {
           <Link href={`/pickup?tripId=${t.tripRequestId}`} className="btn btn-secondary btn-sm">Pickup</Link>
         </div>
       </div>
+
+      {daysTo <= 3 && (
+        <div className="mt-4">
+          <TripWeather tripId={t.tripRequestId} start={start} days={lastDay} />
+        </div>
+      )}
 
       {underway && stops.length > 0 && (
         <ol className="mt-4 space-y-2">
