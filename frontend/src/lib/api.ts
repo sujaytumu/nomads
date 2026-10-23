@@ -87,6 +87,8 @@ export function clearCache() {
     Object.keys(localStorage)
       .filter((k) => k.startsWith(PREFIX))
       .forEach((k) => localStorage.removeItem(k));
+    // The offline copy of your trips goes too, so nothing is left behind after logging out.
+    localStorage.removeItem("nomad_offline_trips");
   } catch {
     /* ignore */
   }
