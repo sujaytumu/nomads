@@ -195,10 +195,7 @@ function PaymentPageInner() {
       <div className="section py-8 space-y-6">
         <div className="card p-6 space-y-5">
           <TripSteps current={paid ? 4 : 3} tripId={selected?.tripRequestId ?? (tripId || null)} />
-          <div>
-            <h2 className="text-2xl font-bold">Payment</h2>
-            <p className="text-sm text-slate-300">Pay for a trip to confirm your booking.</p>
-          </div>
+          <h2 className="text-2xl font-semibold sm:text-3xl">Payment</h2>
 
           {!loaded && <p className="text-sm text-slate-400">Loading your trips…</p>}
 
@@ -267,7 +264,7 @@ function PaymentPageInner() {
               </label>
 
               {selected && selectedPayable && (
-                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-500/30 bg-gradient-to-br from-brand-900/50 via-slate-900 to-slate-900 p-5 shadow-soft">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-semibold">{tripTitle(selected)}</p>
@@ -284,15 +281,28 @@ function PaymentPageInner() {
                     </Link>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">Amount</p>
-                    <p className="text-2xl font-bold">{formatCost(selected.estimatedCost)}</p>
+                    <p className="eyebrow">Total to pay</p>
+                    <p className="font-display text-4xl font-semibold text-white">{formatCost(selected.estimatedCost)}</p>
                   </div>
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-3">
+              <ol className="grid grid-cols-3 gap-2 text-center text-xs" aria-label="What happens when you pay">
+                {[
+                  { i: "🔒", t: "Pay securely" },
+                  { i: "🎟️", t: "Trip is Booked" },
+                  { i: "📧", t: "PDF emailed" },
+                ].map((x) => (
+                  <li key={x.t} className="rounded-2xl border border-slate-800 bg-slate-900/60 px-2 py-3 font-semibold text-slate-300">
+                    <span aria-hidden="true" className="block text-xl">{x.i}</span>
+                    {x.t}
+                  </li>
+                ))}
+              </ol>
+
+              <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-950/95 p-2.5 shadow-2xl shadow-black/50 sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
                 <button
-                  className="btn btn-primary btn-pulse"
+                  className="btn btn-primary btn-pulse flex-1 py-3 text-base sm:flex-none sm:py-2.5 sm:text-sm"
                   onClick={handlePay}
                   disabled={!selected || !selectedPayable || !hasCost || paying}
                   data-loading={paying}
@@ -303,16 +313,7 @@ function PaymentPageInner() {
                       ? `Pay ${formatCost(selected.estimatedCost)}`
                       : "Pay"}
                 </button>
-                <Link href="/bookings" className="btn-outline">Back to my trips</Link>
-              </div>
-
-              <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-400">
-                <p className="mb-1 font-semibold text-slate-200">What happens when you pay</p>
-                <ol className="list-decimal space-y-0.5 pl-5">
-                  <li>The payment window opens and you pay securely.</li>
-                  <li>The trip becomes <b className="text-green-300">Booked</b> and moves to My Trips.</li>
-                  <li>One email arrives with your itinerary PDF attached.</li>
-                </ol>
+                <Link href="/bookings" className="btn btn-secondary">Back</Link>
               </div>
 
               {selected && selectedPayable && !hasCost && (
