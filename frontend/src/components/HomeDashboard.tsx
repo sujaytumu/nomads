@@ -12,7 +12,7 @@ import { formatCost, isPayable, tripTitle } from "@/lib/tripStatus";
 const TILES = [
   { href: "/trip-planner", title: "Plan a trip", text: "Build a weekend itinerary", icon: "🧭", tint: "bg-brand-600/20" },
   { href: "/packages", title: "Packages", text: "Ready-made weekends", icon: "🎒", tint: "bg-ocean-500/20" },
-  { href: "/map", title: "Map", text: "Explore nearby places", icon: "🗺️", tint: "bg-amber-400/20" },
+  { href: "/map", title: "Map", text: "Explore nearby places", icon: "🗺️", tint: "bg-violet-500/20" },
   { href: "/wishlist", title: "Wishlist", text: "Places you saved", icon: "💛", tint: "bg-brand-600/20" },
 ];
 

@@ -10,12 +10,12 @@ type Props = JourneyInput & {
 };
 
 const COLOURS = [
-  "from-sky-400 to-brand-500",
+  "from-cyan-300 to-sky-500",
   "from-brand-500 to-violet-500",
-  "from-violet-500 to-fuchsia-500",
-  "from-fuchsia-500 to-rose-400",
-  "from-rose-400 to-amber-400",
-  "from-amber-400 to-emerald-400",
+  "from-violet-500 to-purple-500",
+  "from-violet-400 to-indigo-500",
+  "from-indigo-400 to-sky-400",
+  "from-sky-400 to-cyan-300",
 ];
 
 /** The trip's real-life journey: Plan > Pay > Booked > Pickup > Trip day > Review, with where you are now. */
