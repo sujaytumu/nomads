@@ -32,7 +32,7 @@ export default function DownloadItineraryButton({
 
   return (
     <span className="inline-flex flex-col items-start gap-1">
-      <button type="button" className={className} onClick={handleClick} disabled={busy}>
+      <button type="button" className={className} onClick={handleClick} disabled={busy} data-loading={busy}>
         {busy ? "Preparing PDF…" : label}
       </button>
       {error && (

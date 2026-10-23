@@ -5,8 +5,8 @@
   "start_url": "/bookings",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#FBF8F3",
-  "theme_color": "#FBF8F3",
+  "background_color": "#020617",
+  "theme_color": "#1B2559",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },

@@ -66,10 +66,10 @@ export default function PickedForYou() {
   if (picks.length === 0) return null;
 
   return (
-    <section className="section space-y-3 pb-8">
+    <section className="section space-y-3 pb-6">
       <div>
-        <h2 className="font-display text-2xl font-semibold">Picked for you</h2>
-        <p className="text-sm text-slate-400">New places, ranked by your interests, rating and distance.</p>
+        <h2 className="font-display text-xl font-semibold sm:text-2xl">Picked for you</h2>
+        <p className="text-xs text-slate-400 sm:text-sm">New places, ranked by your interests, rating and distance.</p>
       </div>
       <div className="-mx-5 flex snap-x scroll-pl-5 gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
         {picks.map(({ place, why }) => (
@@ -77,7 +77,7 @@ export default function PickedForYou() {
             <div className="relative">
               <Cover src={place.imageUrl} kind={place.category} className="h-36" />
               <span className="absolute left-3 top-3 rounded-full bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white shadow">{why}</span>
-              {place.rating ? <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-100">★ {Number(place.rating).toFixed(1)}</span> : null}
+              {place.rating ? <span className="absolute right-3 top-3 rounded-full bg-slate-950/75 backdrop-blur ring-1 ring-white/10 px-2.5 py-1 text-xs font-bold text-white">★ {Number(place.rating).toFixed(1)}</span> : null}
             </div>
             <div className="p-3">
               <p className="truncate font-display text-base font-semibold">{place.name}</p>

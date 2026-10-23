@@ -13,6 +13,7 @@ import PackingChecklist from "@/components/PackingChecklist";
 import ShareTripButton from "@/components/ShareTripButton";
 import TripDate from "@/components/TripDate";
 import ProtectedPage from "@/components/ProtectedPage";
+import TripProgress from "@/components/TripProgress";
 import TripSteps from "@/components/TripSteps";
 import { api } from "@/lib/api";
 import { fetchRoute } from "@/lib/routeApi";
@@ -152,6 +153,11 @@ function TripSummaryPageInner() {
           current={summary?.status === "CONFIRMED" ? 4 : 2}
           tripId={summary?.tripRequestId ?? (tripId || null)}
         />
+        {summary && (
+          <div className="card p-4">
+            <TripProgress status={summary.status} tripDate={summary.tripDate} plans={summary.plans} tripId={summary.tripRequestId} />
+          </div>
+        )}
 
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>

@@ -254,7 +254,7 @@ function MyTripsPageInner() {
                           {trip.tripDate ? ` · Going ${new Date(`${trip.tripDate}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : trip.createdAt ? ` · Planned ${new Date(trip.createdAt).toLocaleDateString("en-IN")}` : ""}
                           {` · ${formatCost(trip.estimatedCost)}`}
                         </p>
-                        <TripProgress status={trip.status} />
+                        <TripProgress status={trip.status} tripDate={trip.tripDate} plans={trip.plans} tripId={trip.tripRequestId} />
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">

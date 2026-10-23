@@ -10,6 +10,19 @@ A full-stack travel package booking platform built with Spring Boot (Java) for t
 
 Hosted on render && vercel (Postgres + backend + frontend as separate services in one project).
 
+## Android app (APK)
+
+Permanent download links (they never change; every build updates the same release):
+
+- Phone: https://github.com/sujaytumu/nomads/releases/download/apk/nomads-mobile.apk
+- Laptop / tablet (landscape): https://github.com/sujaytumu/nomads/releases/download/apk/nomads-laptop.apk
+
+Install: open the link on your Android device, tap the downloaded file, allow "Install unknown apps" if asked, then open NOMAD.
+
+The app is a thin wrapper around the live site, so new features and designs arrive without reinstalling. When a new version is ready, an **Update** button appears at the top right of the app. Tap it. A new APK is only needed when the wrapper itself changes (icon, permissions); it installs over the old one and keeps your login.
+
+Build: the "Build Android APKs" GitHub Action (push to the `apk-build` branch, or run it by hand) builds both APKs and updates the `apk` release in place. APKs are signed with `android-app/nomads.keystore`, so updates install over older builds.
+
 ---
 
 ## Features
