@@ -3,13 +3,13 @@
 import { useState } from "react";
 
 const TONES: Record<string, { bg: string; icon: string }> = {
-  FOOD: { bg: "from-orange-700 to-amber-900", icon: "🍜" },
-  CULTURE: { bg: "from-fuchsia-700 to-rose-900", icon: "🏛️" },
-  NATURE: { bg: "from-emerald-700 to-teal-900", icon: "🌿" },
-  ADVENTURE: { bg: "from-red-700 to-orange-900", icon: "🧗" },
-  SHOPPING: { bg: "from-pink-700 to-rose-900", icon: "🛍️" },
-  NIGHTLIFE: { bg: "from-indigo-700 to-violet-900", icon: "🌙" },
-  RELAXATION: { bg: "from-cyan-700 to-teal-900", icon: "🧘" },
+  FOOD: { bg: "from-blue-700 to-slate-900", icon: "🍜" },
+  CULTURE: { bg: "from-violet-700 to-indigo-950", icon: "🏛️" },
+  NATURE: { bg: "from-cyan-700 to-slate-900", icon: "🌿" },
+  ADVENTURE: { bg: "from-indigo-700 to-blue-950", icon: "🧗" },
+  SHOPPING: { bg: "from-purple-700 to-indigo-950", icon: "🛍️" },
+  NIGHTLIFE: { bg: "from-indigo-600 to-slate-950", icon: "🌙" },
+  RELAXATION: { bg: "from-sky-700 to-slate-900", icon: "🧘" },
   PACKAGE: { bg: "from-brand-700 to-slate-900", icon: "🎒" },
 };
 
