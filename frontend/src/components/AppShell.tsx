@@ -7,6 +7,7 @@ import { clearCache, getCached, peekCached } from "@/lib/api";
 import { fetchMe, type Me } from "@/lib/authApi";
 import { AuthContext } from "@/lib/auth-context";
 import InstallApp from "@/components/InstallApp";
+import Toaster from "@/components/Toaster";
 import UpdateButton from "@/components/UpdateButton";
 import { useAppUpdate } from "@/lib/useAppUpdate";
 import { warmUpBackend } from "@/lib/warmup";
@@ -151,6 +152,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     setOpen(false);
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     const target = new URL(href, window.location.origin);
+    try { navigator.vibrate?.(8); } catch { /* not supported */ }
+    // Tapping the tab you are already on scrolls back to the top.
+    if (target.pathname === window.location.pathname) window.scrollTo({ top: 0, behavior: "smooth" });
     window.setTimeout(() => {
       if (window.location.pathname !== target.pathname) window.location.assign(target.pathname + target.search);
     }, 900);
@@ -557,6 +561,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
+      <Toaster />
       <main key={path} ref={mainRef} data-dir={slideRef.current ?? undefined} className="min-h-[calc(100vh-3rem)]">{children}</main>
     </div>
     </AuthContext.Provider>

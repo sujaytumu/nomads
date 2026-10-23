@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "../lib/api";
+import { errorText, toast } from "@/lib/toast";
 
 type Props = { packageId: number | string; amount: number | string };
 
@@ -20,11 +21,7 @@ export default function EnrollButton({ packageId, amount }: Props) {
       setLoading(false);
       return;
     } catch (e: any) {
-      if (e?.response?.data) {
-        alert('Enroll failed: ' + JSON.stringify(e.response.data));
-      } else {
-        alert('Enroll failed: ' + (e?.message || 'unknown error'));
-      }
+      toast(errorText(e, "Couldn't enroll. Please try again."), "error");
       setLoading(false);
       return;
     }
