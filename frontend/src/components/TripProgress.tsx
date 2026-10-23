@@ -48,7 +48,7 @@ export default function TripProgress({ status, tripDate, plans, tripId, compact,
               >
                 {done ? "✓" : s.icon}
               </span>
-              <span className={`w-full truncate text-[10px] leading-tight sm:text-[11px] ${now ? "font-bold text-white" : done ? "text-slate-300" : "text-slate-500"}`}>{s.label}</span>
+              <span className={`w-full truncate text-[10px] leading-tight sm:text-[11px] ${now ? "font-bold text-slate-100" : done ? "text-slate-300" : "text-slate-500"}`}>{s.label}</span>
             </li>
           );
         })}
