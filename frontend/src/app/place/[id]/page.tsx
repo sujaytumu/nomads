@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 export default function PlaceDetailsPage() {
   const params = useParams();
@@ -37,13 +38,13 @@ export default function PlaceDetailsPage() {
       if (!arr.find((p: any) => p.id === place.id)) {
         arr.push({ id: place.id, name: place.name });
         localStorage.setItem("nomad_tour", JSON.stringify(arr));
-        alert(`${place.name} added to your tour`);
+        toast(`${place.name} added to your tour`, "success");
       } else {
-        alert(`${place.name} already in your tour`);
+        toast(`${place.name} is already in your tour`);
       }
     } catch (err) {
       console.error(err);
-      alert("Unable to add to tour");
+      toast("Couldn't add this place. Please try again.", "error");
     }
   }
 

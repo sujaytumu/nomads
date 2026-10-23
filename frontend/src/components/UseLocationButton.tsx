@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "@/lib/toast";
 
 type Props = {
   onSet: (coords: { latitude: number; longitude: number }) => void;
@@ -11,7 +12,7 @@ export default function UseLocationButton({ onSet }: Props) {
 
   const handleClick = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation not supported in this browser");
+      toast("Location isn't available on this device.", "error");
       return;
     }
     setLoading(true);
@@ -22,7 +23,7 @@ export default function UseLocationButton({ onSet }: Props) {
       },
       (err) => {
         setLoading(false);
-        alert("Unable to get location: " + (err.message || err.code));
+        toast("Couldn't get your location. Check that location is allowed.", "error");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );

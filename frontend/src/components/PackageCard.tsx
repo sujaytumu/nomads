@@ -7,6 +7,7 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import WishlistHeart from "./WishlistHeart";
 import Cover from "./Cover";
+import { errorText, toast } from "@/lib/toast";
 
 type Props = {
   pkg: any;
@@ -27,11 +28,7 @@ export default function PackageCard({ pkg, saved, onSavedChange }: Props) {
       setLoading(false);
       return;
     } catch (e: any) {
-      if (e?.response?.data) {
-        alert('Enroll failed: ' + JSON.stringify(e.response.data));
-      } else {
-        alert('Enroll failed: ' + (e?.message || 'unknown error'));
-      }
+      toast(errorText(e, "Couldn't enroll. Please try again."), "error");
       setLoading(false);
       return;
     }
