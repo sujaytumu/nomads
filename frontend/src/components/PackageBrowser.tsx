@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import PackageCard from "./PackageCard";
+import { PackageGridSkeleton } from "./Skeleton";
 import { searchPackages, PackageSort } from "../lib/packageApi";
 import { fetchWishlistIds } from "../lib/wishlistApi";
 
@@ -97,15 +98,15 @@ export default function PackageBrowser({ initial }: { initial: any[] }) {
       </div>
 
       {error && <p className="text-red-400 mb-4">{error}</p>}
-      {loading && <p className="text-slate-400 mb-4">Searching…</p>}
-
-      {!loading && pkgs.length === 0 ? (
+      {loading ? (
+        <PackageGridSkeleton count={Math.min(Math.max(pkgs.length, 3), 6)} />
+      ) : pkgs.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-slate-300 mb-3">No packages match your filters.</p>
           <button className="btn-outline" onClick={reset}>Clear filters</button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {pkgs.map((p: any) => (
             <PackageCard key={p.id} pkg={p} saved={saved.has(p.id)} onSavedChange={onSavedChange} />
           ))}

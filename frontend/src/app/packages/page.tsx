@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import PackageBrowser from "@/components/PackageBrowser";
+import { PackageGridSkeleton } from "@/components/Skeleton";
 import { getCached, peekCached } from "@/lib/api";
 
 const URL_PATH = "/api/packages/all";
@@ -32,9 +33,7 @@ export default function PackagesPage() {
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => window.location.reload()}>Try again</button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
-          {[0, 1, 2].map((i) => <div key={i} className="card h-72 animate-pulse" />)}
-        </div>
+        <PackageGridSkeleton />
       )}
     </div>
   );

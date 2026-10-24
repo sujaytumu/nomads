@@ -1,5 +1,6 @@
 "use client";
 
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,6 +11,7 @@ import { createTrip } from "@/lib/tripApi";
 import { fetchMe } from "@/lib/authApi";
 import { formatCost } from "@/lib/tripStatus";
 
+import { CardSkeleton } from "@/components/Skeleton";
 const INTERESTS = [
   { v: "FOOD", l: "Food", icon: "🍜" },
   { v: "CULTURE", l: "Culture", icon: "🏛️" },
@@ -123,7 +125,7 @@ export default function TripPlannerPage() {
           </p>
         </div>
 
-        {loadingUser && <p className="text-sm text-slate-400">Loading your profile… (may take up to a minute if the server was asleep)</p>}
+        {loadingUser && <CardSkeleton rows={2} label="Loading your profile" />}
 
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2 text-sm">

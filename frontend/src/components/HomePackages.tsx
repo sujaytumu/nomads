@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import PackageCard from "@/components/PackageCard";
+import { PackageCardSkeleton } from "@/components/Skeleton";
 import { getCached, peekCached } from "@/lib/api";
 
 const URL_PATH = "/api/packages/homepage";
@@ -30,7 +31,7 @@ export default function HomePackages() {
       </div>
       <div className="-mx-5 flex snap-x scroll-pl-5 gap-4 overflow-x-auto px-5 pb-3 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto">
         {packages === null
-          ? [0, 1, 2].map((i) => <div key={i} className="card h-64 animate-pulse" />)
+          ? [0, 1, 2].map((i) => <PackageCardSkeleton key={i} />)
           : packages.map((p: any) => <PackageCard key={p.id} pkg={p} />)}
       </div>
       <div className="mt-4 text-right">

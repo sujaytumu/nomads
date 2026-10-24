@@ -14,6 +14,7 @@ import TripProgress from "@/components/TripProgress";
 import ProtectedPage from "@/components/ProtectedPage";
 import { getCached, peekCached } from "@/lib/api";
 import { cancelBooking } from "@/lib/paymentApi";
+import { TripListSkeleton } from "@/components/Skeleton";
 import {
   formatCost,
   isCancellable,
@@ -168,9 +169,9 @@ function MyTripsPageInner() {
         />
         <div className="space-y-4">
           {loading && (
-            <div className="space-y-3" aria-busy="true" aria-label="Loading your trips">
-              {[0, 1].map((i) => <div key={i} className="card h-32 animate-pulse" />)}
-              <p className="text-xs text-slate-500">Waking the server… this can take a little while the first time.</p>
+            <div>
+              <TripListSkeleton />
+              <p className="mt-3 text-xs text-slate-500">Waking the server… this can take a little while the first time.</p>
             </div>
           )}
 

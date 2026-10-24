@@ -30,6 +30,7 @@ import {
   type TripLike,
 } from "@/lib/tripStatus";
 
+import { CardSkeleton, StopListSkeleton } from "@/components/Skeleton";
 export default function TripSummaryPage() {
   return (
     <Suspense fallback={null}>
@@ -195,7 +196,12 @@ function TripSummaryPageInner() {
           </div>
         )}
 
-        {loadingTrip && <p className="text-sm text-slate-400">Loading trip…</p>}
+        {loadingTrip && (
+          <div className="space-y-3">
+            <CardSkeleton rows={2} label="Loading trip" />
+            <StopListSkeleton />
+          </div>
+        )}
         {loadError && (
           <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3" role="alert">
             {loadError}

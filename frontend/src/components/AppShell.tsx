@@ -120,6 +120,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const updateReady = useAppUpdate();
   const mainRef = useRef<HTMLElement | null>(null);
   const slideRef = useRef<"next" | "prev" | null>(null);
+  // Which way the new page slides in: decided by where its tab sits in Home > Plan > My Trips > More,
+  // so tapping a tab slides like a swipe does. Pages inside the same tab just fade up.
+  const navRef = useRef<{ path: string; section: Section; dir: "next" | "prev" | null }>({ path, section, dir: null });
+  if (navRef.current.path !== path) {
+    const order: Section[] = ["home", "plan", "trips", "more"];
+    const from = order.indexOf(navRef.current.section);
+    const to = order.indexOf(section);
+    navRef.current = { path, section, dir: slideRef.current ?? (from === to ? null : to > from ? "next" : "prev") };
+  }
   const live = useRef({ section, open, last, path, authState });
   live.current = { section, open, last, path, authState };
 
@@ -568,7 +577,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       <Toaster />
       <Reminders updateReady={updateReady} build={process.env.NEXT_PUBLIC_BUILD_ID || "dev"} />
-      <main key={path} ref={mainRef} data-dir={slideRef.current ?? undefined} className="min-h-[calc(100vh-3rem)]">{children}</main>
+      <main key={path} ref={mainRef} data-dir={navRef.current.dir ?? undefined} className="min-h-[calc(100vh-3rem)]">{children}</main>
     </div>
     </AuthContext.Provider>
   );

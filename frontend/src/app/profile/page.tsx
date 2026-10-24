@@ -11,6 +11,7 @@ import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 import { updateUser } from "@/lib/profileApi";
+import { CardSkeleton } from "@/components/Skeleton";
 
 const CITIES: Record<string, [number, number]> = {
   Bengaluru: [12.9716, 77.5946],
@@ -138,7 +139,7 @@ export default function ProfilePage() {
       <div className="section max-w-3xl space-y-5 py-8 pb-28">
         <PageHeader title="Profile" subtitle="Set your city and style once. We plan the rest." />
 
-        {loading && <div className="card h-40 animate-pulse" aria-label="Loading your profile" />}
+        {loading && <CardSkeleton rows={5} label="Loading your profile" />}
         {!loading && loadError && (
           <div className="card space-y-3 p-5">
             <p className="text-sm text-red-300">Couldn't load your profile. The server may still be waking up.</p>

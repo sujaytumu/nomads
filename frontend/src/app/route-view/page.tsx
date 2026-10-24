@@ -9,6 +9,7 @@ import TripPicker from "@/components/TripPicker";
 import { fetchRoute } from "@/lib/routeApi";
 import { useTripSelection } from "@/lib/useTripSelection";
 
+import { MapSkeleton } from "@/components/Skeleton";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 const MODES: { value: "driving" | "walking"; label: string }[] = [
@@ -92,7 +93,7 @@ function RouteInner() {
 
         {sel.selected && (
           <div className="card overflow-hidden p-4">
-            {loading && <div className="flex h-[420px] items-center justify-center text-sm text-slate-400">Loading route…</div>}
+            {loading && <MapSkeleton height={420} />}
             {route && !loading && <MapView routeGeoJson={route} />}
           </div>
         )}
