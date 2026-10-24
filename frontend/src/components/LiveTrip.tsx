@@ -41,7 +41,7 @@ export default function LiveTrip({ tripId, day, city, stops }: { tripId: number 
   }, [lateKey]);
 
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 30000);
+    const t = setInterval(() => setNow(new Date()), 10000);
     return () => clearInterval(t);
   }, []);
 
@@ -57,6 +57,7 @@ export default function LiveTrip({ tripId, day, city, stops }: { tripId: number 
   }, []);
 
   const nowMin = now.getHours() * 60 + now.getMinutes();
+  const nowExact = nowMin + now.getSeconds() / 60;
   const rows = useMemo(
     () =>
       stops.map((s) => {
@@ -104,17 +105,23 @@ export default function LiveTrip({ tripId, day, city, stops }: { tripId: number 
 
   const maps = (s: LiveStop) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${s.placeName} ${city || ""}`.trim())}`;
   const away = me && dest ? km(me, dest) : null;
-  const pct = rows.length ? Math.round((doneCount / rows.length) * 100) : 0;
+  // Overall day progress counts the stop you are at as partly done, so the bar moves smoothly.
+  const stopPct = nowIdx >= 0 && focus && focus.a !== null && focus.b !== null && focus.b > focus.a ? Math.min(100, Math.max(0, ((nowExact - focus.a) / (focus.b - focus.a)) * 100)) : 0;
+  const pct = rows.length ? Math.min(100, Math.round(((doneCount + (nowIdx >= 0 ? stopPct / 100 : 0)) / rows.length) * 100)) : 0;
+  const gap = upNext && upNext.a !== null && focus && focus.b !== null ? Math.max(0, upNext.a - focus.b) : null;
 
   if (rows.length === 0) return null;
 
   return (
     <div className="mt-4 space-y-3">
       {/* Now / Next */}
-      <div className="rounded-2xl border border-brand-500/40 bg-brand-600/10 p-4 shadow-glow">
+      <div key={focusIdx} className="pop-in rounded-2xl border border-brand-500/40 bg-brand-600/10 p-4 shadow-glow">
         {focus ? (
           <>
-            <p className="eyebrow">{nowIdx >= 0 ? "Now" : "Next up"}</p>
+            <p className="eyebrow flex items-center gap-2">
+              {nowIdx >= 0 && <span className="live-dot" aria-hidden="true" />}
+              {nowIdx >= 0 ? "Now" : "Next up"}
+            </p>
             <p className="mt-0.5 font-display text-2xl font-semibold">{focus.placeName}</p>
             <p className="mt-1 text-sm text-slate-300">
               {nowIdx >= 0 && focus.b !== null
@@ -124,8 +131,18 @@ export default function LiveTrip({ tripId, day, city, stops }: { tripId: number 
                   : ""}
               {away !== null && ` · ${away < 1 ? `${Math.round(away * 1000)} m` : `${away.toFixed(1)} km`} from you`}
             </p>
+            {nowIdx >= 0 && (
+              <div className="mt-3" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(stopPct)} aria-label="Time at this stop">
+                <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                  <div className="stop-fill h-full rounded-full bg-gradient-to-r from-emerald-400 to-ocean-300" style={{ width: `${stopPct}%` }} />
+                </div>
+              </div>
+            )}
             {upNext && upNext.a !== null && (
-              <p className="mt-1 text-xs text-slate-400">Then {upNext.placeName} at {clock(upNext.a)}</p>
+              <p className="mt-2 text-xs text-slate-400">
+                Then {upNext.placeName} at {clock(upNext.a)}
+                {gap !== null && gap > 0 ? ` · ${span(gap)} to get there` : ""}
+              </p>
             )}
             <div className="mt-3 flex flex-wrap gap-2">
               <a href={maps(focus)} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm">Directions</a>
@@ -146,7 +163,7 @@ export default function LiveTrip({ tripId, day, city, stops }: { tripId: number 
           <span>{pct}%</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
-          <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-ocean-400 transition-all duration-700" style={{ width: `${pct}%` }} />
+          <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-ocean-400 transition-all duration-1000" style={{ width: `${pct}%` }} />
         </div>
       </div>
 

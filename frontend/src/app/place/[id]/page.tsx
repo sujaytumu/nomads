@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/toast";
+import { PlaceSkeleton } from "@/components/Skeleton";
 
 export default function PlaceDetailsPage() {
   const params = useParams();
@@ -48,7 +49,7 @@ export default function PlaceDetailsPage() {
     }
   }
 
-  if (loading) return <div className="text-sm text-slate-400">Loading place… (may take up to a minute on first load if the server was asleep)</div>;
+  if (loading) return <PlaceSkeleton />;
   if (error) return <div className="text-red-400">{error}</div>;
   if (!place) return <div>Place not found.</div>;
 

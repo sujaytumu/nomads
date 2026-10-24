@@ -19,6 +19,7 @@ import {
   type TripLike,
 } from "@/lib/tripStatus";
 
+import { TripListSkeleton } from "@/components/Skeleton";
 export default function PaymentPage() {
   return (
     <Suspense fallback={null}>
@@ -197,7 +198,7 @@ function PaymentPageInner() {
           <TripSteps current={paid ? 4 : 3} tripId={selected?.tripRequestId ?? (tripId || null)} />
           <h2 className="text-2xl font-semibold sm:text-3xl">Payment</h2>
 
-          {!loaded && <p className="text-sm text-slate-400">Loading your trips…</p>}
+          {!loaded && <TripListSkeleton count={1} />}
 
           {loaded && loadError && (
             <p className="text-sm text-red-400">
