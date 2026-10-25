@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import HeroScene, { useGreeting } from "@/components/HeroScene";
+import StoryChips from "@/components/StoryChips";
 import TripProgress from "@/components/TripProgress";
 import UpcomingTrip from "@/components/UpcomingTrip";
 import { getCached } from "@/lib/api";
@@ -15,16 +16,6 @@ const TILES = [
   { href: "/packages", title: "Packages", text: "Ready-made weekends", icon: "🎒", tint: "bg-ocean-500/20" },
   { href: "/map", title: "Map", text: "Explore nearby places", icon: "🗺️", tint: "bg-violet-500/20" },
   { href: "/wishlist", title: "Wishlist", text: "Places you saved", icon: "💛", tint: "bg-brand-600/20" },
-];
-
-const INTERESTS = [
-  { key: "FOOD", label: "Food", icon: "🍜" },
-  { key: "CULTURE", label: "Culture", icon: "🏛️" },
-  { key: "NATURE", label: "Nature", icon: "🌿" },
-  { key: "ADVENTURE", label: "Adventure", icon: "🧗" },
-  { key: "SHOPPING", label: "Shopping", icon: "🛍️" },
-  { key: "NIGHTLIFE", label: "Nightlife", icon: "🌙" },
-  { key: "RELAXATION", label: "Relax", icon: "🧘" },
 ];
 
 /** Signed-in home: one clear next step, then the main doors. */
@@ -53,15 +44,9 @@ export default function HomeDashboard() {
         <h1 className="relative mt-1.5 max-w-xl font-display text-2xl font-semibold leading-tight sm:text-5xl">
           Where to this weekend?
         </h1>
-        <div className="relative mt-4 flex gap-2 overflow-x-auto pb-1 sm:mt-6 sm:flex-wrap sm:overflow-visible sm:pb-0">
-          {INTERESTS.map((i) => (
-            <Link key={i.key} href={`/trip-planner?interest=${i.key}`} className="chip-btn inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur hover:bg-white/20">
-              <span aria-hidden="true">{i.icon}</span>
-              {i.label}
-            </Link>
-          ))}
-        </div>
       </div>
+
+      <StoryChips />
 
       {trips && <UpcomingTrip trips={trips} />}
 

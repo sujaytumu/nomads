@@ -9,7 +9,7 @@ const display = Fraunces({ subsets: ["latin"], variable: "--font-display", displ
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export const viewport: Viewport = { themeColor: "#020617" };
+export const viewport: Viewport = { themeColor: "#000000" };
 
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",

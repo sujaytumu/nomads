@@ -5,8 +5,9 @@
 /* Colours are channel triplets so Tailwind can add opacity. Dark is the default look. */
 :root {
   color-scheme: dark;
-  --s-50: 248 250 252; --s-100: 241 245 249; --s-200: 226 232 240; --s-300: 203 213 225; --s-400: 148 163 184;
-  --s-500: 100 116 139; --s-600: 71 85 105; --s-700: 51 65 85; --s-800: 30 41 59; --s-900: 15 23 42; --s-950: 2 6 23;
+  /* Pure black like Instagram's dark mode: black page, near-black surfaces, neutral greys (no blue tint). */
+  --s-50: 250 250 250; --s-100: 245 245 245; --s-200: 229 229 229; --s-300: 199 199 199; --s-400: 168 168 168;
+  --s-500: 115 115 115; --s-600: 85 85 85; --s-700: 54 54 54; --s-800: 38 38 38; --s-900: 18 18 18; --s-950: 0 0 0;
   --c-brand-200: 223 231 255; --c-brand-300: 193 208 255; --c-brand-400: 155 177 255; --c-ocean-300: 103 232 249;
   --c-emerald-300: 110 231 183; --c-emerald-400: 52 211 153; --c-rose-300: 253 164 175; --c-rose-400: 251 113 133;
   --c-red-300: 252 165 165; --c-red-400: 248 113 113; --c-green-300: 134 239 172; --c-green-400: 74 222 128;
@@ -17,18 +18,16 @@
 /* Light theme: the grey scale flips (950 = page, 900 = surfaces, 100 = ink) and text accents get darker. */
 html[data-theme="light"] {
   color-scheme: light;
-  --s-50: 11 24 40; --s-100: 18 38 58; --s-200: 36 54 74; --s-300: 60 76 92; --s-400: 91 107 123;
-  --s-500: 122 135 148; --s-600: 203 213 225; --s-700: 218 226 238; --s-800: 238 242 249; --s-900: 255 255 255; --s-950: 243 246 252;
+  /* Instagram light: white surfaces, #fafafa page, #dbdbdb lines, #262626 text. */
+  --s-50: 0 0 0; --s-100: 38 38 38; --s-200: 55 55 55; --s-300: 80 80 80; --s-400: 115 115 115;
+  --s-500: 142 142 142; --s-600: 219 219 219; --s-700: 219 219 219; --s-800: 239 239 239; --s-900: 255 255 255; --s-950: 250 250 250;
   --c-brand-200: 38 55 154; --c-brand-300: 61 85 240; --c-brand-400: 47 65 194; --c-ocean-300: 14 116 144;
   --c-emerald-300: 4 120 87; --c-emerald-400: 5 150 105; --c-rose-300: 190 18 60; --c-rose-400: 225 29 72;
   --c-red-300: 185 28 28; --c-red-400: 220 38 38; --c-green-300: 21 128 61; --c-green-400: 22 163 74;
   --c-amber-300: 180 83 9; --c-yellow-300: 161 98 7; --c-sky-300: 3 105 161;
   --title-grad: linear-gradient(100deg, #12263a 0%, #2f41c2 55%, #0e7490 100%);
 }
-html[data-theme="light"] body {
-  background-image: radial-gradient(circle at 15% 0%, rgba(79, 108, 255, 0.12), transparent 40%),
-    radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.08), transparent 35%);
-}
+html[data-theme="light"] body { background-image: none; }
 html[data-theme="light"] .card { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(18, 38, 58, 0.06), 0 10px 30px -10px rgba(18, 38, 58, 0.14); }
 html[data-theme="light"] .animate-pulse { background-color: rgba(18, 38, 58, 0.06); }
 html[data-theme="light"] .animate-pulse::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent); }
@@ -43,9 +42,7 @@ a, button, [role="button"], summary, label, select {
 
 body {
   @apply bg-slate-950 font-sans text-slate-100 antialiased;
-  background-image: radial-gradient(circle at 15% 0%, rgba(79, 108, 255, 0.14), transparent 40%),
-    radial-gradient(circle at 85% 15%, rgba(79, 108, 255, 0.09), transparent 35%);
-  background-attachment: fixed;
+  background-image: none;
 }
 
 h1, h2 {
@@ -179,7 +176,7 @@ a.card:hover, .card.group:hover { border-color: rgba(111, 140, 255, 0.35); }
 
 /* Loading placeholders shimmer. */
 @keyframes shimmer { 100% { transform: translateX(100%); } }
-.animate-pulse { position: relative; overflow: hidden; animation: none; background-color: rgba(30, 41, 59, 0.6); }
+.animate-pulse { position: relative; overflow: hidden; animation: none; background-color: rgba(255, 255, 255, 0.08); }
 .animate-pulse::after {
   content: ""; position: absolute; inset: 0; transform: translateX(-100%);
   background: linear-gradient(90deg, transparent, rgba(111, 140, 255, 0.12), transparent);
@@ -327,3 +324,13 @@ main h2:not([class*="text-white"]) {
 .ig-bar { padding-bottom: env(safe-area-inset-bottom); }
 .ig-tab { transition: transform 0.15s ease, color 0.15s ease; }
 .ig-tab:active { transform: scale(0.85); }
+
+/* Flat cards like Instagram posts: hairline border, no heavy shadow. */
+.card { box-shadow: none; }
+html[data-theme="light"] .card { box-shadow: none; border-color: #dbdbdb; }
+
+/* ---- Story chips: the colourful ring (grey once opened) ---- */
+.story-ring { background: linear-gradient(45deg, #feda75 0%, #fa7e1e 25%, #d62976 50%, #962fbf 75%, #4f5bd5 100%); transition: transform 0.15s ease; }
+.story-ring-seen { background: rgb(var(--s-700)); }
+html[data-theme="light"] .story-ring-seen { background: #dbdbdb; }
+.story:active .story-ring { transform: scale(0.94); }

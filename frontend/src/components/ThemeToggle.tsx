@@ -13,7 +13,7 @@ export function applyTheme(t: Theme) {
     /* private mode: the choice just lasts until you close the app */
   }
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", t === "light" ? "#f3f6fc" : "#020617");
+  if (meta) meta.setAttribute("content", t === "light" ? "#fafafa" : "#000000");
 }
 
 /** Dark / Light switch. Dark is the default. */
