@@ -28,7 +28,7 @@ cat > capacitor.config.json <<JSON
     "cleartext": false,
     "allowNavigation": ["*"]
   },
-  "android": { "allowMixedContent": false, "backgroundColor": "#020617" }
+  "android": { "allowMixedContent": false, "backgroundColor": "#000000" }
 }
 JSON
 
