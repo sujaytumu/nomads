@@ -18,6 +18,7 @@ public class UserResponse {
     private String name;
     private String email;
     private String phoneNumber;
+    private String upiId;
     private String city;
     private Double latitude;
     private Double longitude;

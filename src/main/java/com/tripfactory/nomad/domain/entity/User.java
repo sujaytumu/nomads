@@ -39,6 +39,10 @@ public class User {
     @Column
     private String phoneNumber;
 
+    /** Where friends can send this user money for shared costs (e.g. name@bank). Optional. */
+    @Column(length = 100)
+    private String upiId;
+
     @Column(nullable = false)
     private String city;
 
