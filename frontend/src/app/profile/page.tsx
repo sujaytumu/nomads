@@ -37,8 +37,8 @@ const chip = (on: boolean) =>
     on ? "border-brand-600 bg-brand-600 text-white shadow-md shadow-brand-600/25" : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
   }`;
 
-type Form = { id: string; email: string; name: string; phoneNumber: string; city: string; latitude: string; longitude: string; interestType: string; travelPreference: string };
-const EMPTY: Form = { id: "", email: "", name: "", phoneNumber: "", city: "", latitude: "", longitude: "", interestType: "CULTURE", travelPreference: "SOLO" };
+type Form = { id: string; email: string; name: string; phoneNumber: string; upiId: string; city: string; latitude: string; longitude: string; interestType: string; travelPreference: string };
+const EMPTY: Form = { id: "", email: "", name: "", phoneNumber: "", upiId: "", city: "", latitude: "", longitude: "", interestType: "CULTURE", travelPreference: "SOLO" };
 
 export default function ProfilePage() {
   const [form, setForm] = useState<Form>(EMPTY);
@@ -59,6 +59,7 @@ export default function ProfilePage() {
           email: d.email ?? "",
           name: d.name ?? "",
           phoneNumber: d.phoneNumber ?? "",
+          upiId: d.upiId ?? "",
           city: d.city ?? "",
           latitude: String(d.latitude ?? ""),
           longitude: String(d.longitude ?? ""),
@@ -101,6 +102,7 @@ export default function ProfilePage() {
         name: form.name,
         city: form.city,
         phoneNumber: form.phoneNumber || undefined,
+        upiId: form.upiId.trim(),
         latitude: Number(form.latitude),
         longitude: Number(form.longitude),
         interestType: form.interestType,
@@ -183,6 +185,9 @@ export default function ProfilePage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1 text-sm font-medium">Name
                   <input value={form.name} onChange={(e) => set({ name: e.target.value })} autoComplete="name" className="mt-1 w-full rounded-xl border px-4 py-2.5" />
+                </label>
+                <label className="space-y-1 text-sm font-medium">UPI ID (so friends can pay you back)
+                  <input value={form.upiId} onChange={(e) => set({ upiId: e.target.value })} autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="name@bank" className="mt-1 w-full rounded-xl border px-4 py-2.5" />
                 </label>
                 <label className="space-y-1 text-sm font-medium">Phone (for pickup updates)
                   <input value={form.phoneNumber} onChange={(e) => set({ phoneNumber: e.target.value })} inputMode="tel" autoComplete="tel" placeholder="+91…" className="mt-1 w-full rounded-xl border px-4 py-2.5" />
