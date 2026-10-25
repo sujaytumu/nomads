@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Suspense, useEffect, useState } from "react";
 
 import ExpenseSplitter from "@/components/ExpenseSplitter";
+import GroupPolls from "@/components/GroupPolls";
 import PageHeader from "@/components/PageHeader";
 import ProtectedPage from "@/components/ProtectedPage";
 import TripPicker from "@/components/TripPicker";
@@ -28,7 +29,7 @@ function GroupInner() {
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"people" | "chat" | "split">("people");
+  const [tab, setTab] = useState<"people" | "chat" | "polls" | "split">("people");
 
   useEffect(() => {
     setGroup(null);
@@ -64,7 +65,7 @@ function GroupInner() {
               <span className="text-slate-400">{group.size} {group.size === 1 ? "traveller" : "travellers"}</span>
             </div>
             <div className="flex gap-2">
-              {([["people", "People"], ["chat", "Chat"], ["split", "Split costs"]] as const).map(([k, label]) => (
+              {([["people", "People"], ["chat", "Chat"], ["polls", "Polls"], ["split", "Split costs"]] as const).map(([k, label]) => (
                 <button key={k} type="button" className={`btn btn-sm ${tab === k ? "btn-primary" : "btn-secondary"}`} onClick={() => setTab(k)}>{label}</button>
               ))}
             </div>
@@ -87,6 +88,7 @@ function GroupInner() {
               </div>
             )}
             {tab === "chat" && <GroupChat groupId={group.id} />}
+            {tab === "polls" && <GroupPolls groupId={group.id} />}
             {tab === "split" && <ExpenseSplitter groupId={group.id} />}
           </div>
         )}
