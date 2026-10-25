@@ -7,6 +7,7 @@ import { clearCache, getCached, peekCached } from "@/lib/api";
 import { fetchMe, type Me } from "@/lib/authApi";
 import { AuthContext } from "@/lib/auth-context";
 import InstallApp from "@/components/InstallApp";
+import NetworkStatus from "@/components/NetworkStatus";
 import Reminders from "@/components/Reminders";
 import Toaster from "@/components/Toaster";
 import UpdateButton from "@/components/UpdateButton";
@@ -576,6 +577,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <Toaster />
+      <NetworkStatus />
       <Reminders updateReady={updateReady} build={process.env.NEXT_PUBLIC_BUILD_ID || "dev"} />
       <main key={path} ref={mainRef} data-dir={navRef.current.dir ?? undefined} className="min-h-[calc(100vh-3rem)]">{children}</main>
     </div>

@@ -244,3 +244,26 @@ main h2:not([class*="text-white"]) {
 @keyframes tick { 0% { transform: translateY(-35%); opacity: 0.2; } 100% { transform: none; opacity: 1; } }
 .tick { animation: tick 0.25s ease-out both; }
 .stop-fill { transition: width 1s linear; }
+
+/* ---- Confetti burst on a successful booking ---- */
+@keyframes confetti-fall {
+  0% { transform: translate(0, 55vh) rotate(0); opacity: 1; }
+  25% { transform: translate(calc(var(--dx) * 0.5), var(--rise)) rotate(calc(var(--rot) * 0.4)); opacity: 1; }
+  100% { transform: translate(var(--dx), 105vh) rotate(var(--rot)); opacity: 0; }
+}
+.confetti-piece { position: absolute; top: 0; animation-name: confetti-fall; animation-timing-function: cubic-bezier(0.22, 0.7, 0.4, 1); animation-fill-mode: both; will-change: transform; }
+
+/* ---- Offline banner ---- */
+@keyframes banner-in { from { opacity: 0; transform: translateY(-14px) scale(0.97); } to { opacity: 1; transform: none; } }
+.banner-in { animation: banner-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ---- Home hero scene ---- */
+@keyframes route-flow { to { stroke-dashoffset: -40; } }
+.route-dash { animation: route-flow 2.2s linear infinite; }
+@keyframes drift { 0% { transform: translateX(-30px); } 50% { transform: translateX(30px); } 100% { transform: translateX(-30px); } }
+.cloud-a { animation: drift 16s ease-in-out infinite; }
+.cloud-b { animation: drift 22s ease-in-out infinite reverse; }
+@keyframes twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+.star { animation: twinkle 2.6s ease-in-out infinite; }
+@keyframes orb-glow { 0%, 100% { filter: drop-shadow(0 0 6px rgba(253, 230, 138, 0.5)); } 50% { filter: drop-shadow(0 0 16px rgba(253, 230, 138, 0.8)); } }
+.orb { animation: orb-glow 4s ease-in-out infinite; }

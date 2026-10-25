@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import HeroScene, { useGreeting } from "@/components/HeroScene";
 import TripProgress from "@/components/TripProgress";
 import UpcomingTrip from "@/components/UpcomingTrip";
 import { getCached } from "@/lib/api";
@@ -36,6 +37,8 @@ export default function HomeDashboard() {
     getCached<any[]>("/api/trips/me", { ttl: 15000 }).then((list) => setTrips(list || [])).catch(() => setTrips([]));
   }, []);
 
+  const { phase, greeting } = useGreeting(name);
+
   const newest = (list: any[]) =>
     [...list].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())[0];
   const open = newest((trips || []).filter((t) => isPayable(t.status)));
@@ -45,10 +48,10 @@ export default function HomeDashboard() {
   return (
     <section className="section space-y-4 py-5 sm:space-y-6 sm:py-8">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1B2559] via-[#26379a] to-[#4f6cff] border border-brand-500/20 p-5 text-white shadow-lift sm:p-10">
-        <div aria-hidden="true" className="absolute -right-10 -top-12 h-52 w-52 rounded-full bg-white/15" />
-        <div aria-hidden="true" className="absolute -bottom-16 right-16 h-44 w-44 rounded-full bg-white/10" />
+        <HeroScene phase={phase} />
+        <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-white/70">{greeting}</p>
         <h1 className="relative mt-1.5 max-w-xl font-display text-2xl font-semibold leading-tight sm:text-5xl">
-          {name ? `${name}, where to this weekend?` : "Where to this weekend?"}
+          Where to this weekend?
         </h1>
         <div className="relative mt-4 flex gap-2 overflow-x-auto pb-1 sm:mt-6 sm:flex-wrap sm:overflow-visible sm:pb-0">
           {INTERESTS.map((i) => (
