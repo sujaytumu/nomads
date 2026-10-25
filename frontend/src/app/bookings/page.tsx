@@ -15,6 +15,7 @@ import ProtectedPage from "@/components/ProtectedPage";
 import { getCached, peekCached } from "@/lib/api";
 import { cancelBooking } from "@/lib/paymentApi";
 import { TripListSkeleton } from "@/components/Skeleton";
+import Confetti from "@/components/Confetti";
 import {
   formatCost,
   isCancellable,
@@ -211,6 +212,7 @@ function MyTripsPageInner() {
           <p className="text-sm text-slate-400">No trips match. <button type="button" className="underline" onClick={() => { setQuery(""); setFilter("all"); }}>Clear filters</button></p>
         )}
 
+        {paidId && <Confetti />}
         {paidId && (
           <div
             className="rounded-2xl border border-green-500/30 bg-green-500/10 p-5 flex flex-wrap items-center justify-between gap-4"
