@@ -22,6 +22,10 @@ public class UserUpdateRequest {
 
     private String phoneNumber;
 
+    /** Optional. Null leaves it unchanged; an empty string clears it. */
+    @jakarta.validation.constraints.Size(max = 100)
+    private String upiId;
+
     @NotNull
     private Double latitude;
 

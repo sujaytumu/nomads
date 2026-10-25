@@ -17,6 +17,8 @@ public class ExpenseSummaryResponse {
     private List<Item> expenses;
     private List<Balance> balances;
     private List<Settlement> settlements;
+    /** Pay-backs members have recorded (newest first). */
+    private List<PaidBack> payments;
 
     @Getter
     @Setter
@@ -48,6 +50,21 @@ public class ExpenseSummaryResponse {
         private String fromName;
         private Long toUserId;
         private String toName;
+        /** Where the payer can send the money; null when the receiver has not added one. */
+        private String toUpiId;
         private BigDecimal amount;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class PaidBack {
+        private Long id;
+        private Long fromUserId;
+        private String fromName;
+        private Long toUserId;
+        private String toName;
+        private BigDecimal amount;
+        private LocalDateTime createdAt;
     }
 }
