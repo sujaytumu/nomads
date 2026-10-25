@@ -99,9 +99,9 @@ function active(path: string, href: string) {
   return href === "/" ? path === "/" : path === href || path.startsWith(href + "/");
 }
 
-function Icon({ d }: { d: string }) {
+function Icon({ d, on = false, size = 18 }: { d: string; on?: boolean; size?: number }) {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" viewBox="0 0 24 24" style={{ width: size, height: size }} className="shrink-0" fill={on ? "currentColor" : "none"} fillOpacity={on ? 0.28 : undefined} stroke="currentColor" strokeWidth={on ? 2.3 : 1.8} strokeLinecap="round" strokeLinejoin="round">
       <path d={d} />
     </svg>
   );
@@ -474,12 +474,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Instagram-style: icon only, the active one is bold and filled, the rest are quiet.
   const tabClass = (on: boolean) =>
-    `relative flex min-h-[3rem] flex-1 select-none flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[11px] font-semibold transition-colors ${on ? "bg-brand-600/25 text-slate-100 shadow-[inset_0_2px_0_0_theme(colors.brand.400)]" : "text-slate-400 active:text-slate-200"}`;
+    `ig-tab relative grid min-h-[3rem] flex-1 select-none place-items-center ${on ? "text-slate-50" : "text-slate-400"}`;
 
   return (
     <AuthContext.Provider value={{ state: authState, user }}>
-    <div className="min-h-screen pb-28 lg:pb-0 lg:pl-64">
+    <div className="min-h-screen pb-24 lg:pb-0 lg:pl-64">
       {/* Desktop sidebar: fixed size, always the same options */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-700/70 bg-slate-900 lg:flex">
         {brand}
@@ -506,29 +507,29 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Mobile: thumb-reach tab bar. The last tab opens everything else. */}
-      <nav aria-label="Quick" className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-3xl border border-slate-700/60 bg-slate-900/90 p-1.5 shadow-2xl shadow-black/50 backdrop-blur-xl lg:hidden">
+      <nav aria-label="Quick" className="ig-bar fixed inset-x-0 bottom-0 z-40 flex border-t border-slate-800 bg-slate-950/95 backdrop-blur-xl lg:hidden">
         {TABS.map((it) => {
           const here = section === it.section;
           // On another tab: jump back to where you left it. Already on it: tap goes to its start.
           const href = here ? it.href : last[it.section] || it.href;
           return (
-            <Link key={it.section} href={href} onClick={(e) => openTab(e, href)} aria-current={here && !open ? "page" : undefined} className={tabClass(here && !open)}>
-              <Icon d={it.icon} />
-              {it.label}
-              {it.badge && needsPayment > 0 && <span className="absolute right-[28%] top-1.5 h-2 w-2 rounded-full bg-brand-500" />}
+            <Link key={it.section} href={href} onClick={(e) => openTab(e, href)} aria-label={it.label} aria-current={here && !open ? "page" : undefined} className={tabClass(here && !open)}>
+              <Icon d={it.icon} on={here && !open} size={26} />
+              <span className="sr-only">{it.label}</span>
+              {it.badge && needsPayment > 0 && <span className="absolute right-[32%] top-2.5 h-2.5 w-2.5 rounded-full bg-[#ff3040] ring-2 ring-slate-950" />}
             </Link>
           );
         })}
         {/* Always says "More" and always the same icon; tapping again just closes the list. */}
-        <button type="button" aria-expanded={open} aria-controls="more-sheet" onClick={() => setOpen((v) => !v)} className={tabClass(open || section === "more")}>
-          <Icon d={MORE_ICON} />
-          More
+        <button type="button" aria-label="More" aria-expanded={open} aria-controls="more-sheet" onClick={() => setOpen((v) => !v)} className={tabClass(open || section === "more")}>
+          <Icon d={MORE_ICON} on={open || section === "more"} size={26} />
+          <span className="sr-only">More</span>
         </button>
       </nav>
 
       {/* Mobile "More" sheet */}
       {open && (
-        <div id="more-sheet" className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col overflow-y-auto bg-slate-950 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:hidden">
+        <div id="more-sheet" className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col overflow-y-auto bg-slate-950 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:hidden">
           <Link href="/profile" onClick={() => setOpen(false)} className="mx-4 mt-4 flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-3 transition-colors active:bg-slate-800">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-ocean-400 text-base font-bold text-white">{name.trim().charAt(0).toUpperCase()}</span>
             <span className="min-w-0 flex-1">

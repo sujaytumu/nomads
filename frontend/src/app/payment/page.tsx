@@ -301,7 +301,7 @@ function PaymentPageInner() {
                 ))}
               </ol>
 
-              <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-950/95 p-2.5 shadow-2xl shadow-black/50 sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+              <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-950/95 p-2.5 shadow-2xl shadow-black/50 sm:static sm:z-auto sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
                 <button
                   className="btn btn-primary btn-pulse flex-1 py-3 text-base sm:flex-none sm:py-2.5 sm:text-sm"
                   onClick={handlePay}

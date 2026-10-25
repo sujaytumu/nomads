@@ -267,3 +267,63 @@ main h2:not([class*="text-white"]) {
 .star { animation: twinkle 2.6s ease-in-out infinite; }
 @keyframes orb-glow { 0%, 100% { filter: drop-shadow(0 0 6px rgba(253, 230, 138, 0.5)); } 50% { filter: drop-shadow(0 0 16px rgba(253, 230, 138, 0.8)); } }
 .orb { animation: orb-glow 4s ease-in-out infinite; }
+
+/* =====================================================================
+   Instagram-style buttons and controls (override of the earlier button look).
+   Flat, 8px corners, Instagram blue for the main action, soft grey for the rest,
+   and a simple "dim on press" feel instead of glow, sweep and ripple.
+   ===================================================================== */
+.btn, .btn-primary, .btn-secondary, .btn-outline, .btn-ghost, .btn-danger {
+  border-radius: 0.5rem;
+  border: 0;
+  padding: 0.45rem 1rem;
+  min-height: 2.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  box-shadow: none;
+  transition: background-color 0.15s ease, opacity 0.15s ease, color 0.15s ease;
+}
+.btn-sm { padding: 0.3rem 0.8rem; min-height: 1.9rem; font-size: 0.8125rem; }
+
+.btn-primary { background-image: none; background-color: #0095f6; color: #fff; }
+.btn-primary::before { display: none; }
+.btn-primary:hover:not(:disabled) { background-color: #1877f2; box-shadow: none; transform: none; }
+
+.btn-secondary, .btn-outline { background-color: rgb(var(--s-800)); color: rgb(var(--s-100)); border: 0; }
+.btn-secondary:hover, .btn-outline:hover { background-color: rgb(var(--s-700)); color: rgb(var(--s-100)); border: 0; }
+
+.btn-ghost { background-color: transparent; color: #0095f6; }
+.btn-ghost:hover { background-color: transparent; color: #1877f2; }
+
+.btn-danger { background-color: rgb(var(--s-800)); color: #ed4956; border: 0; }
+.btn-danger:hover { background-color: rgb(var(--s-700)); }
+
+/* Press = dim, like Instagram. No squish, no ripple, no pulsing glow. */
+.btn:active:not(:disabled), .btn-primary:active:not(:disabled), .btn-secondary:active, .btn-outline:active, .btn-ghost:active, .btn-danger:active { transform: none; opacity: 0.65; }
+.btn-ripple { display: none; }
+.btn-pulse:not(:disabled) { animation: none; }
+.btn[data-done="true"] { background-color: rgb(var(--s-800)); color: #34d399; border: 0; }
+
+/* Round icon buttons (like, save): no background, bigger tap target, a quick scale on press. */
+.icon-btn:hover { transform: none; }
+.icon-btn:active { transform: scale(0.85); }
+.icon-btn[aria-pressed="true"] { box-shadow: none; }
+
+/* Chips on the home page look like Instagram's story pills: flat and rounded. */
+.chip-btn:hover { transform: none; box-shadow: none; }
+
+/* Double-tap to like: a big white heart pops over the picture, then fades. */
+@keyframes heart-burst {
+  0% { opacity: 0; transform: scale(0.3); }
+  20% { opacity: 1; transform: scale(1.15); }
+  40% { transform: scale(0.95); }
+  55% { transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.25) translateY(-8px); }
+}
+.heart-burst { animation: heart-burst 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45)); }
+
+/* Instagram-style bottom bar: flat, full width, icons only, a thin line on top. */
+.ig-bar { padding-bottom: env(safe-area-inset-bottom); }
+.ig-tab { transition: transform 0.15s ease, color 0.15s ease; }
+.ig-tab:active { transform: scale(0.85); }
