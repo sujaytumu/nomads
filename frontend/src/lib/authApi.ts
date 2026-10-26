@@ -35,6 +35,7 @@ export type Me = {
     email: string;
     name?: string;
     phoneNumber?: string;
+    upiId?: string | null;
     city?: string;
     latitude?: number;
     longitude?: number;

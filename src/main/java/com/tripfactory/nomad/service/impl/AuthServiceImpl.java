@@ -104,6 +104,7 @@ public class AuthServiceImpl implements AuthService {
         response.setName(user.getName());
         response.setEmail(user.getEmail());
         response.setPhoneNumber(user.getPhoneNumber());
+        response.setUpiId(user.getUpiId());
         response.setCity(user.getCity());
         response.setLatitude(user.getLatitude());
         response.setLongitude(user.getLongitude());

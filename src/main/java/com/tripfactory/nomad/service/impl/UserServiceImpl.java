@@ -47,6 +47,16 @@ public class UserServiceImpl implements UserService {
         user.setName(request.getName());
         user.setCity(request.getCity());
         user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getUpiId() != null) {
+            String upi = request.getUpiId().trim();
+            if (upi.isEmpty()) {
+                user.setUpiId(null);
+            } else if (!upi.matches("^[A-Za-z0-9._\\-]{2,64}@[A-Za-z][A-Za-z0-9]{1,63}$")) {
+                throw new com.tripfactory.nomad.service.exception.BadRequestException("That UPI ID doesn't look right (example: name@bank)");
+            } else {
+                user.setUpiId(upi);
+            }
+        }
         user.setLatitude(request.getLatitude());
         user.setLongitude(request.getLongitude());
         user.setInterestType(request.getInterestType());
@@ -61,6 +71,7 @@ public class UserServiceImpl implements UserService {
         response.setName(user.getName());
         response.setEmail(user.getEmail());
         response.setPhoneNumber(user.getPhoneNumber());
+        response.setUpiId(user.getUpiId());
         response.setCity(user.getCity());
         response.setLatitude(user.getLatitude());
         response.setLongitude(user.getLongitude());
