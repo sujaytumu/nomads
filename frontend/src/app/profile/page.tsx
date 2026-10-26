@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import AppStatus from "@/components/AppStatus";
 import ReminderToggle from "@/components/ReminderToggle";
 import ThemeToggle from "@/components/ThemeToggle";
+import TravelStats from "@/components/TravelStats";
 import PageHeader from "@/components/PageHeader";
 import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
@@ -138,6 +139,8 @@ export default function ProfilePage() {
     <ProtectedPage>
       <div className="section max-w-3xl space-y-5 py-8 pb-28">
         <PageHeader title="Profile" subtitle="Set your city and style once. We plan the rest." />
+
+        <TravelStats />
 
         {loading && <CardSkeleton rows={5} label="Loading your profile" />}
         {!loading && loadError && (

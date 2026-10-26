@@ -17,6 +17,7 @@ import com.tripfactory.nomad.domain.enums.TripStatus;
 import com.tripfactory.nomad.repository.PaymentRepository;
 import com.tripfactory.nomad.repository.TripRequestRepository;
 import com.tripfactory.nomad.service.PaymentService;
+import com.tripfactory.nomad.service.InboxService;
 import com.tripfactory.nomad.service.NotificationService;
 import com.tripfactory.nomad.service.exception.BadRequestException;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
@@ -45,6 +46,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final NotificationService notificationService;
     private final AuthorizationService authorizationService;
     private final ItineraryEmailService itineraryEmailService;
+    private final InboxService inboxService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
     @Value("${nomad.dev-payments:false}")
@@ -144,6 +146,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment saved = paymentRepository.save(payment);
 
         TripRequest tripRequest = saved.getTripRequest();
+        boolean firstConfirmation = tripRequest.getStatus() != TripStatus.CONFIRMED;
         tripRequest.setStatus(TripStatus.CONFIRMED);
         tripRequestRepository.save(tripRequest);
 
@@ -152,8 +155,30 @@ public class PaymentServiceImpl implements PaymentService {
         if (phone != null && !phone.isBlank()) {
             notificationService.sendSms(phone, "NOMAD: Payment confirmed for trip " + tripRequest.getId());
         }
+        if (firstConfirmation) {
+            notifyBooked(tripRequest);
+        }
 
         return toResponse(saved);
+    }
+
+    private void notifyBooked(TripRequest tripRequest) {
+        pushInbox(tripRequest, "BOOKING_CONFIRMED", "Booking confirmed \uD83C\uDF89",
+            "Your " + cityOf(tripRequest) + " weekend is booked. Set your trip date and arrange pickup.", "/bookings");
+    }
+
+    private static String cityOf(TripRequest tripRequest) {
+        String city = tripRequest.getCity();
+        return city == null || city.isBlank() ? "weekend" : city;
+    }
+
+    /** In-app notification. Best effort: a problem here must never undo or fail the payment/cancellation. */
+    private void pushInbox(TripRequest tripRequest, String type, String title, String body, String link) {
+        try {
+            inboxService.push(tripRequest.getUser().getId(), type, title, body, link);
+        } catch (Exception ex) {
+            log.warn("Could not add inbox notification {} for trip {}: {}", type, tripRequest.getId(), ex.getMessage());
+        }
     }
 
     /**
@@ -195,6 +220,7 @@ public class PaymentServiceImpl implements PaymentService {
                 paymentRepository.save(payment);
 
                 TripRequest tripRequest = payment.getTripRequest();
+                boolean firstConfirmation = tripRequest.getStatus() != TripStatus.CONFIRMED;
                 tripRequest.setStatus(TripStatus.CONFIRMED);
                 tripRequestRepository.save(tripRequest);
 
@@ -203,6 +229,9 @@ public class PaymentServiceImpl implements PaymentService {
                 if (phone != null && !phone.isBlank()) {
                     notificationService.sendSms(phone,
                         "NOMAD: Payment confirmed for trip " + tripRequest.getId());
+                }
+                if (firstConfirmation) {
+                    notifyBooked(tripRequest);
                 }
             } else if ("payment.failed".equals(event)) {
                 payment.setPaymentStatus(PaymentStatus.FAILED);
@@ -217,6 +246,8 @@ public class PaymentServiceImpl implements PaymentService {
                     notificationService.sendSms(phone,
                         "NOMAD: Payment failed for trip " + tripRequest.getId());
                 }
+                pushInbox(tripRequest, "PAYMENT_FAILED", "Payment didn't go through",
+                    "Your " + cityOf(tripRequest) + " trip was not booked. You can plan it again any time.", "/trip-planner");
             }
         } catch (BadRequestException ex) {
             throw ex;
@@ -267,6 +298,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         tripRequest.setStatus(TripStatus.CANCELLED);
         tripRequestRepository.save(tripRequest);
+
+        boolean refunded = payment != null;
+        pushInbox(tripRequest, "BOOKING_CANCELLED", "Trip cancelled",
+            "Your " + cityOf(tripRequest) + " trip was cancelled." + (refunded ? " Your refund is on its way." : ""), "/bookings");
 
         return payment != null ? toResponse(payment) : null;
     }
