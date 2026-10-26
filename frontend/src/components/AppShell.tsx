@@ -8,6 +8,7 @@ import { fetchMe, type Me } from "@/lib/authApi";
 import { AuthContext } from "@/lib/auth-context";
 import InstallApp from "@/components/InstallApp";
 import NetworkStatus from "@/components/NetworkStatus";
+import NotificationBell from "@/components/NotificationBell";
 import Reminders from "@/components/Reminders";
 import Toaster from "@/components/Toaster";
 import UpdateButton from "@/components/UpdateButton";
@@ -493,18 +494,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Link href="/" aria-label="NOMAD home"><Logo /></Link>
         <div className="flex items-center gap-2.5">
           {updateReady && <UpdateButton />}
+          <NotificationBell />
           <Link href="/profile" aria-label="Profile" className="grid h-8 w-8 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white ring-2 ring-brand-500/30">
             {name.trim().charAt(0).toUpperCase()}
           </Link>
         </div>
       </header>
 
-      {/* Desktop: the same Update button, top right, only while an update is waiting */}
-      {updateReady && (
-        <div className="sticky top-0 z-30 hidden h-14 items-center justify-end px-6 lg:flex">
-          <UpdateButton className="shadow-lg" />
-        </div>
-      )}
+      {/* Desktop: bell (and the Update button while an update is waiting), top right */}
+      <div className="sticky top-0 z-30 hidden h-14 items-center justify-end gap-3 px-6 lg:flex">
+        {updateReady && <UpdateButton className="shadow-lg" />}
+        <NotificationBell />
+      </div>
 
       {/* Mobile: thumb-reach tab bar. The last tab opens everything else. */}
       <nav aria-label="Quick" className="ig-bar fixed inset-x-0 bottom-0 z-40 flex border-t border-slate-800 bg-slate-950/95 backdrop-blur-xl lg:hidden">

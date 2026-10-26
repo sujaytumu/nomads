@@ -19,6 +19,24 @@ This file lists all REST endpoints implemented in the backend with example reque
   - `POST   /api/wishlist/{packageId}` (idempotent)
   - `DELETE /api/wishlist/{packageId}` (idempotent)
 
+- **PlaceSearchController / PlaceDetailController** — base `/api/places` (public)
+  - `GET /api/places/search?q=&city=&category=&minRating=&sort=relevance|rating|name|distance&lat=&lon=&page=&size=`
+    returns `items`, paging totals and `facets` (`categories`, `cities` with counts; each facet ignores its own filter)
+  - `GET /api/places/{id}`
+
+- **RecommendationController** — base `/api/recommendations` (auth required)
+  - `GET /api/recommendations/places?limit=10&interest=&maxKm=` (scored on taste, rating, closeness and novelty, with variety; each item lists its `reasons`)
+
+- **StatsController** — base `/api/me` (auth required)
+  - `GET /api/me/stats` (trips, places, cities, km, spend, XP level, badges with progress, next badge)
+
+- **InboxController** — base `/api/inbox` (auth required, scoped to the caller)
+  - `GET  /api/inbox?unreadOnly=false&page=0&size=20`
+  - `GET  /api/inbox/unread-count`
+  - `POST /api/inbox/{id}/read`
+  - `POST /api/inbox/read-all`
+  - Items are added automatically when a booking is confirmed, a payment fails, or a trip is cancelled.
+
 - **UserController** — base `/api/users`
   - `POST /api/users` (create user)
   - `GET  /api/users/{id}`

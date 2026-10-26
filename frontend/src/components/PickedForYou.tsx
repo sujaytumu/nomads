@@ -23,6 +23,16 @@ export default function PickedForYou() {
     let live = true;
     (async () => {
       try {
+        // The server ranks places for this traveller (taste, rating, closeness, novelty, variety) and says why.
+        try {
+          const { data } = await api.get("/api/recommendations/places", { params: { limit: 6 } });
+          if (Array.isArray(data) && data.length > 0) {
+            if (live) setPicks(data.map((p: any) => ({ place: p, why: (p.reasons && p.reasons[0]) || "Picked for you", score: p.score })));
+            return;
+          }
+        } catch {
+          /* older server without recommendations: fall back to the on-device ranking below */
+        }
         const me = await fetchMe();
         if (!me.latitude || !me.longitude) return live && setPicks([]);
         const [places, trips] = await Promise.all([
