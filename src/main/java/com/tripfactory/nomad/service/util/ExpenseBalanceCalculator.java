@@ -43,6 +43,14 @@ public final class ExpenseBalanceCalculator {
         return net;
     }
 
+    /** Recorded pay-backs: the payer's balance goes up (owes less), the receiver's goes down (is owed less). */
+    public static void applyTransfers(Map<Long, Long> net, List<Transfer> done) {
+        for (Transfer t : done) {
+            net.merge(t.fromUserId(), t.amountMinor(), Long::sum);
+            net.merge(t.toUserId(), -t.amountMinor(), Long::sum);
+        }
+    }
+
     /** Greedy settle-up: fewest practical transfers that zero every balance. */
     public static List<Transfer> settle(Map<Long, Long> net) {
         List<long[]> debtors = new ArrayList<>();
