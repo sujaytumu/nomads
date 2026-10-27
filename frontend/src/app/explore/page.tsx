@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import Cover from "@/components/Cover";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import PageHeader from "@/components/PageHeader";
 import { Bone } from "@/components/Skeleton";
 import { fetchMe } from "@/lib/authApi";
@@ -135,6 +136,8 @@ export default function ExplorePage() {
           {[0, 1, 2, 3, 4, 5].map((i) => <Bone key={i} className="h-56 rounded-3xl" />)}
         </div>
       )}
+
+      {!q && !city && !category && !minRating && <RecentlyViewed />}
 
       {!loading && !error && meta && items.length === 0 && (
         <div className="card p-8 text-center">
