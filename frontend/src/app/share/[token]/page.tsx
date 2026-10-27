@@ -1,16 +1,19 @@
 "use client";
 
 import { fetchSharedTrip } from "@/lib/shareApi";
+import { fetchSharedPhotos, TripPhoto } from "@/lib/photoApi";
 import { useEffect, useState } from "react";
 
 export default function ShareTripPage({ params }: { params: { token: string } }) {
   const [trip, setTrip] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<TripPhoto[]>([]);
 
   useEffect(() => {
     fetchSharedTrip(params.token)
       .then((data) => setTrip(data))
       .catch(() => setError("Shared trip not found"));
+    fetchSharedPhotos(params.token).then(setPhotos).catch(() => setPhotos([]));
   }, [params.token]);
 
   const days: Record<number, any[]> = {};
@@ -41,6 +44,19 @@ export default function ShareTripPage({ params }: { params: { token: string } })
               </ol>
             </section>
           ))}
+          {photos.length > 0 && (
+            <section className="card space-y-3 p-5">
+              <p className="text-sm font-semibold uppercase tracking-wide text-brand-400">Photos</p>
+              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {photos.map((ph) => (
+                  <li key={ph.id} className="aspect-square overflow-hidden rounded-xl border border-slate-700">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={ph.dataUrl} alt={ph.caption || "Trip photo"} className="h-full w-full object-cover" loading="lazy" />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <div className="text-center">
             <a href="/auth?mode=register" className="btn btn-primary">Plan your own weekend</a>
           </div>
