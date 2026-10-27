@@ -45,7 +45,10 @@ export default function ExplorePage() {
 
   // Your home location lets "Nearest" sort and show kilometres.
   useEffect(() => {
-    fetchMe().then((m) => m.latitude && m.longitude && setHome((cur) => cur ?? { lat: m.latitude, lon: m.longitude })).catch(() => undefined);
+    fetchMe().then((m) => {
+      const { latitude, longitude } = m;
+      if (latitude && longitude) setHome((cur) => cur ?? { lat: latitude, lon: longitude });
+    }).catch(() => undefined);
   }, []);
 
   // Any change starts again from the first page (after a short pause while typing).
