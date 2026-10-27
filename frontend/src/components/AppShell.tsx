@@ -26,6 +26,7 @@ const GROUPS: Group[] = [
     title: "Discover",
     items: [
       { href: "/", label: "Home", icon: "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
+      { href: "/explore", label: "Explore", icon: "M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" },
       { href: "/packages", label: "Packages", icon: "M4 8l8-4 8 4-8 4-8-4zM4 8v8l8 4 8-4V8" },
       { href: "/map", label: "Map", icon: "M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" },
       { href: "/wishlist", label: "Wishlist", icon: "M12 21s-8-5.4-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.6-8 11-8 11z" },
@@ -59,7 +60,7 @@ const isPublic = (path: string) => path === "/auth" || path.startsWith("/share/"
 // Each phone tab owns a group of pages. Anything not listed belongs to "More".
 type Section = "home" | "plan" | "trips" | "more";
 const SECTION_PATHS: Record<Exclude<Section, "more">, string[]> = {
-  home: ["/", "/packages", "/place"],
+  home: ["/", "/packages", "/place", "/explore"],
   plan: ["/trip-planner"],
   trips: ["/bookings", "/trip-summary", "/route-view", "/payment", "/group-status", "/pickup"],
 };
