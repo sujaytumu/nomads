@@ -116,3 +116,4 @@ Generated on: 2026-01-27
 | POST/DELETE | `/api/me/saved-places/{placeId}` | signed in | Save or unsave (idempotent) |
 
 Trip reminders run on a schedule (`nomad.reminders.enabled`) and post to the inbox; there is no endpoint for them.
+| GET | `/api/places/trending?limit=8` | public | Places in recently booked trips, hottest first |

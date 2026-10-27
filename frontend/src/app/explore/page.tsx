@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Cover from "@/components/Cover";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import TrendingPlaces from "@/components/TrendingPlaces";
 import PageHeader from "@/components/PageHeader";
 import { Bone } from "@/components/Skeleton";
 import { toast } from "@/lib/toast";
@@ -169,7 +170,12 @@ export default function ExplorePage() {
         </div>
       )}
 
-      {!q && !city && !category && !minRating && <RecentlyViewed />}
+      {!q && !city && !category && !minRating && (
+        <>
+          <RecentlyViewed />
+          <TrendingPlaces />
+        </>
+      )}
 
       {!loading && !error && meta && items.length === 0 && (
         <div className="card p-8 text-center">
