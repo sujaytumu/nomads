@@ -20,6 +20,8 @@ public interface InboxNotificationRepository extends JpaRepository<InboxNotifica
 
     long countByUserIdAndReadAtIsNull(Long userId);
 
+    boolean existsByDedupeKey(String dedupeKey);
+
     Optional<InboxNotification> findByIdAndUserId(Long id, Long userId);
 
     @Modifying

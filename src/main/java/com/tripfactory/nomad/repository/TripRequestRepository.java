@@ -13,6 +13,8 @@ public interface TripRequestRepository extends JpaRepository<TripRequest, Long> 
 
     List<TripRequest> findByUserId(Long userId);
 
+    List<TripRequest> findByStatusIn(java.util.Collection<com.tripfactory.nomad.domain.enums.TripStatus> statuses);
+
     Optional<TripRequest> findByShareToken(String shareToken);
 
     long countByGroupId(Long groupId);

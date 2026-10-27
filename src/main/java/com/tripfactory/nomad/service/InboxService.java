@@ -8,6 +8,13 @@ public interface InboxService {
     /** Adds an item to a user's inbox. Callers should treat this as best-effort and never let it break their own work. */
     void push(Long userId, String type, String title, String body, String link);
 
+    /**
+     * Like {@link #push} but stored at most once per {@code dedupeKey}.
+     *
+     * @return true if it was added, false if that key had already been used
+     */
+    boolean pushOnce(Long userId, String dedupeKey, String type, String title, String body, String link);
+
     InboxPageResponse list(String email, boolean unreadOnly, int page, int size);
 
     long unreadCount(String email);

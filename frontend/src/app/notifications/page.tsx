@@ -12,6 +12,12 @@ const ICONS: Record<string, string> = {
   BOOKING_CONFIRMED: "🎉",
   BOOKING_CANCELLED: "🛑",
   PAYMENT_FAILED: "⚠️",
+  TRIP_TODAY: "🌄",
+  TRIP_TOMORROW: "🎒",
+  TRIP_WEEK: "📅",
+  REVIEW_PROMPT: "⭐",
+  SET_DATE: "🗓️",
+  PAY_NUDGE: "💳",
 };
 
 function ago(iso: string) {
