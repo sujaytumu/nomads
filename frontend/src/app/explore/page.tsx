@@ -7,6 +7,8 @@ import Cover from "@/components/Cover";
 import PageHeader from "@/components/PageHeader";
 import { Bone } from "@/components/Skeleton";
 import { fetchMe } from "@/lib/authApi";
+import SavedPlaceHeart from "@/components/SavedPlaceHeart";
+import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
 import { searchPlaces, type SearchItem, type SearchResult } from "@/lib/placeSearchApi";
 
 const ICONS: Record<string, string> = { FOOD: "🍜", CULTURE: "🏛️", NATURE: "🌿", ADVENTURE: "🧗", SHOPPING: "🛍️", NIGHTLIFE: "🌙", RELAXATION: "🧘" };
@@ -27,6 +29,14 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const seq = useRef(0);
+  const [saved, setSaved] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (!localStorage.getItem("nomad_token")) return;
+    fetchSavedPlaceIds().then(setSaved).catch(() => {});
+  }, []);
+
+  const onSaved = (id: number, on: boolean) => setSaved((prev) => (on ? [...prev, id] : prev.filter((x) => x !== id)));
 
   // Your home location lets "Nearest" sort and show kilometres.
   useEffect(() => {
@@ -141,7 +151,8 @@ export default function ExplorePage() {
             <Link key={p.id} href={`/place/${p.id}`} className="card group block overflow-hidden transition-all hover:-translate-y-0.5">
               <div className="relative">
                 <Cover src={p.imageUrl} alt={p.name} kind={p.category} className="h-36" />
-                <span className="absolute right-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-bold text-white ring-1 ring-white/10 backdrop-blur">★ {p.rating.toFixed(1)}</span>
+                <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-bold text-white ring-1 ring-white/10 backdrop-blur">★ {p.rating.toFixed(1)}</span>
+                <SavedPlaceHeart className="absolute right-3 top-3" placeId={p.id} saved={saved.includes(p.id)} onChange={onSaved} />
               </div>
               <div className="p-3">
                 <p className="truncate font-display text-base font-semibold">{p.name}</p>

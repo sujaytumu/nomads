@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/toast";
 import { PlaceSkeleton } from "@/components/Skeleton";
+import SavedPlaceHeart from "@/components/SavedPlaceHeart";
+import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
 import PlaceRatingsSection from "@/components/PlaceRatings";
 
 export default function PlaceDetailsPage() {
@@ -13,6 +15,12 @@ export default function PlaceDetailsPage() {
   const [place, setPlace] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!id || !localStorage.getItem("nomad_token")) return;
+    fetchSavedPlaceIds().then((ids) => setSaved(ids.includes(Number(id)))).catch(() => {});
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
@@ -74,6 +82,7 @@ export default function PlaceDetailsPage() {
             </div>
             <div className="flex gap-2">
               <button className="btn-primary" onClick={handleAdd}>Add to tour</button>
+              <SavedPlaceHeart placeId={place.id} saved={saved} onChange={(_, on) => setSaved(on)} />
             </div>
           </div>
         </div>

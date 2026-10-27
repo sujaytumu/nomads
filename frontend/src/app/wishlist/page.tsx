@@ -6,10 +6,19 @@ import PageHeader from "@/components/PageHeader";
 import PackageCard from "@/components/PackageCard";
 import ProtectedPage from "@/components/ProtectedPage";
 import { fetchWishlist } from "@/lib/wishlistApi";
+import Cover from "@/components/Cover";
+import SavedPlaceHeart from "@/components/SavedPlaceHeart";
+import { fetchSavedPlaces } from "@/lib/savedPlacesApi";
+import type { SearchItem } from "@/lib/placeSearchApi";
 
 function WishlistContent() {
   const [pkgs, setPkgs] = useState<any[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [places, setPlaces] = useState<SearchItem[] | null>(null);
+
+  useEffect(() => {
+    fetchSavedPlaces().then(setPlaces).catch(() => setPlaces([]));
+  }, []);
 
   useEffect(() => {
     fetchWishlist()
@@ -31,13 +40,32 @@ function WishlistContent() {
           {[0, 1, 2].map((i) => <div key={i} className="card h-72 animate-pulse" />)}
         </div>
       )}
-      {pkgs && pkgs.length === 0 && (
+      {pkgs && pkgs.length === 0 && places && places.length === 0 && (
         <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
           <span className="text-5xl" aria-hidden="true">💛</span>
           <h2 className="font-display text-xl font-semibold">Nothing saved yet</h2>
           <p className="max-w-sm text-sm text-slate-400">Tap the heart on any package to keep it here for later.</p>
           <Link href="/packages" className="btn btn-primary mt-2">Browse packages</Link>
         </div>
+      )}
+      {places && places.length > 0 && (
+        <section className="space-y-3" aria-label="Saved places">
+          <h2 className="font-display text-lg font-semibold">Saved places</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {places.map((p) => (
+              <Link key={p.id} href={`/place/${p.id}`} className="card group block overflow-hidden transition-all hover:-translate-y-0.5">
+                <div className="relative">
+                  <Cover src={p.imageUrl} alt={p.name} kind={p.category} className="h-32" />
+                  <SavedPlaceHeart className="absolute right-3 top-3" placeId={p.id} saved onChange={(id) => setPlaces((prev) => (prev ? prev.filter((x) => x.id !== id) : prev))} />
+                </div>
+                <div className="p-3">
+                  <p className="truncate font-display text-base font-semibold">{p.name}</p>
+                  <p className="text-xs text-slate-400">{p.city} · ★ {p.rating.toFixed(1)}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
       {pkgs && pkgs.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

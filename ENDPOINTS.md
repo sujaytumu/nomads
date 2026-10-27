@@ -101,3 +101,18 @@ curl -i http://localhost:8080/api/trips/1
 
 
 Generated on: 2026-01-27
+
+## More endpoints
+
+| Method | Path | Who | What |
+|---|---|---|---|
+| GET | `/api/places/{id}` | public | One place |
+| GET/POST | `/api/places/{placeId}/ratings` | GET public, POST signed in | Blended rating summary and reviews; add or change your rating |
+| GET/POST | `/api/trips/{tripId}/notes` | trip members | Trip journal notes |
+| GET | `/api/trips/{tripId}/notes/export` | trip members | Journal as a text export |
+| GET | `/api/admin/analytics?days=30` | admin | Totals, funnel, daily series, top cities, interest mix |
+| GET | `/api/me/saved-places` | signed in | Saved places, newest first |
+| GET | `/api/me/saved-places/ids` | signed in | Ids only, for filling hearts |
+| POST/DELETE | `/api/me/saved-places/{placeId}` | signed in | Save or unsave (idempotent) |
+
+Trip reminders run on a schedule (`nomad.reminders.enabled`) and post to the inbox; there is no endpoint for them.
