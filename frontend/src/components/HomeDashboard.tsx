@@ -48,6 +48,11 @@ export default function HomeDashboard() {
 
       <StoryChips />
 
+      <Link href="/explore" className="flex items-center gap-3 rounded-xl bg-slate-800 px-4 py-3 text-sm text-slate-400 transition-opacity active:opacity-70">
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" /></svg>
+        Search places, cities…
+      </Link>
+
       {trips && <UpcomingTrip trips={trips} />}
 
       {trips === null ? (
