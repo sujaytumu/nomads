@@ -18,4 +18,10 @@ public interface TripPlanRepository extends JpaRepository<TripPlan, Long> {
     long countVisits(@org.springframework.data.repository.query.Param("userId") Long userId,
                      @org.springframework.data.repository.query.Param("status") com.tripfactory.nomad.domain.enums.TripStatus status,
                      @org.springframework.data.repository.query.Param("placeId") Long placeId);
+
+    /** [placeId, tripId, trip createdAt] for every stop of a CONFIRMED trip created on or after {@code since}. */
+    @org.springframework.data.jpa.repository.Query("select tp.place.id, tp.tripRequest.id, tp.tripRequest.createdAt from TripPlan tp "
+            + "where tp.tripRequest.status = com.tripfactory.nomad.domain.enums.TripStatus.CONFIRMED "
+            + "and tp.tripRequest.createdAt >= :since and tp.place is not null")
+    List<Object[]> confirmedStopsSince(@org.springframework.data.repository.query.Param("since") java.time.LocalDateTime since);
 }
