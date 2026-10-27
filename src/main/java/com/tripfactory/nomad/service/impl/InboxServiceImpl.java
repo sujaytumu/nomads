@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,29 @@ public class InboxServiceImpl implements InboxService {
         n.setBody(clip(body, 500));
         n.setLink(clip(link, 200));
         inboxRepository.save(n);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean pushOnce(Long userId, String dedupeKey, String type, String title, String body, String link) {
+        if (inboxRepository.existsByDedupeKey(dedupeKey)) {
+            return false;
+        }
+        User user = userRepository.getReferenceById(userId);
+        InboxNotification n = new InboxNotification();
+        n.setUser(user);
+        n.setDedupeKey(clip(dedupeKey, 80));
+        n.setType(clip(type, 40));
+        n.setTitle(clip(title, 120));
+        n.setBody(clip(body, 500));
+        n.setLink(clip(link, 200));
+        try {
+            inboxRepository.saveAndFlush(n);
+            return true;
+        } catch (DataIntegrityViolationException raceLost) {
+            // Another instance stored the same reminder a moment ago: exactly what the key is for.
+            return false;
+        }
     }
 
     @Override

@@ -46,6 +46,13 @@ public class InboxNotification {
     @Column(length = 200)
     private String link;
 
+    /**
+     * Optional. When set it is stored only once, so a scheduled reminder can run as often as it likes without
+     * ever notifying twice. Null for one-off notifications.
+     */
+    @Column(length = 80, unique = true)
+    private String dedupeKey;
+
     /** Null until the user has seen it. */
     @Column
     private LocalDateTime readAt;
