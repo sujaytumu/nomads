@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/toast";
 import { PlaceSkeleton } from "@/components/Skeleton";
+import PlaceRatingsSection from "@/components/PlaceRatings";
 
 export default function PlaceDetailsPage() {
   const params = useParams();
@@ -77,6 +78,7 @@ export default function PlaceDetailsPage() {
           </div>
         </div>
       </div>
+      <PlaceRatingsSection placeId={place.id} />
     </div>
   );
 }
