@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/toast";
 import { PlaceSkeleton } from "@/components/Skeleton";
+import SharePlaceButton from "@/components/SharePlaceButton";
 import SavedPlaceHeart from "@/components/SavedPlaceHeart";
 import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
 import { rememberPlace } from "@/lib/recentPlaces";
@@ -87,6 +88,7 @@ export default function PlaceDetailsPage() {
             </div>
             <div className="flex gap-2">
               <button className="btn-primary" onClick={handleAdd}>Add to tour</button>
+              <SharePlaceButton placeId={place.id} name={place.name} city={place.city} />
               <SavedPlaceHeart placeId={place.id} saved={saved} onChange={(_, on) => setSaved(on)} />
             </div>
           </div>
