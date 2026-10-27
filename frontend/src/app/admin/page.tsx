@@ -1,5 +1,6 @@
 "use client";
 
+import AdminAnalytics from "@/components/AdminAnalytics";
 import ProtectedPage from "@/components/ProtectedPage";
 import {
     createPlace,
@@ -98,6 +99,8 @@ export default function AdminPage() {
           <h2 className="text-2xl font-bold">Admin Console</h2>
           <p className="text-slate-300">Manage Places and Vehicles (admin role required).</p>
         </div>
+
+        <AdminAnalytics />
 
         {error && <p className="text-sm text-red-400">{error}</p>}
 
