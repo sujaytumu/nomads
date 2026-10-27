@@ -7,6 +7,7 @@ import Cover from "@/components/Cover";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import PageHeader from "@/components/PageHeader";
 import { Bone } from "@/components/Skeleton";
+import { toast } from "@/lib/toast";
 import { fetchMe } from "@/lib/authApi";
 import SavedPlaceHeart from "@/components/SavedPlaceHeart";
 import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
@@ -22,6 +23,9 @@ export default function ExplorePage() {
   const [category, setCategory] = useState("");
   const [minRating, setMinRating] = useState("");
   const [sort, setSort] = useState<"relevance" | "rating" | "name" | "distance">("relevance");
+  const [locating, setLocating] = useState(false);
+  const [canLocate, setCanLocate] = useState(false);
+  useEffect(() => setCanLocate("geolocation" in navigator), []);
   const [home, setHome] = useState<{ lat: number; lon: number } | null>(null);
 
   const [items, setItems] = useState<SearchItem[]>([]);
@@ -41,7 +45,7 @@ export default function ExplorePage() {
 
   // Your home location lets "Nearest" sort and show kilometres.
   useEffect(() => {
-    fetchMe().then((m) => m.latitude && m.longitude && setHome({ lat: m.latitude, lon: m.longitude })).catch(() => undefined);
+    fetchMe().then((m) => m.latitude && m.longitude && setHome((cur) => cur ?? { lat: m.latitude, lon: m.longitude })).catch(() => undefined);
   }, []);
 
   // Any change starts again from the first page (after a short pause while typing).
@@ -116,6 +120,31 @@ export default function ExplorePage() {
           <option value="name">Name A–Z</option>
         </select>
       </div>
+
+      {!home && canLocate && (
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          disabled={locating}
+          onClick={() => {
+            setLocating(true);
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                setHome({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+                setSort("distance");
+                setLocating(false);
+              },
+              () => {
+                setLocating(false);
+                toast("Couldn't get your location. Check the browser's location permission.", "error");
+              },
+              { timeout: 10000, maximumAge: 300000 }
+            );
+          }}
+        >
+          {locating ? "Finding you…" : "📍 Use my location"}
+        </button>
+      )}
 
       {meta && !error && (
         <p className="text-xs text-slate-400">
