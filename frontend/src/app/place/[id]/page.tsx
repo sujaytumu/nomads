@@ -7,6 +7,7 @@ import { toast } from "@/lib/toast";
 import { PlaceSkeleton } from "@/components/Skeleton";
 import SavedPlaceHeart from "@/components/SavedPlaceHeart";
 import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
+import { rememberPlace } from "@/lib/recentPlaces";
 import PlaceRatingsSection from "@/components/PlaceRatings";
 
 export default function PlaceDetailsPage() {
@@ -29,7 +30,11 @@ export default function PlaceDetailsPage() {
       setLoading(true);
       try {
         const res = await api.get(`/api/places/${id}`);
-        if (!cancelled) setPlace(res.data);
+        if (!cancelled) {
+          setPlace(res.data);
+          const d = res.data;
+          if (d && typeof d.id === "number") rememberPlace({ id: d.id, name: d.name, city: d.city, category: d.category, imageUrl: d.imageUrl });
+        }
       } catch (e: any) {
         if (!cancelled) setError(e?.response?.data?.message || e.message || "Failed to load place");
       } finally {

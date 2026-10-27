@@ -1,5 +1,6 @@
 import HomeDashboard from "@/components/HomeDashboard";
 import HomePackages from "@/components/HomePackages";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import PickedForYou from "@/components/PickedForYou";
 
 // No server-side data fetch here: the page shell is instant and each block loads in the
@@ -8,6 +9,7 @@ export default function HomePage() {
   return (
     <div>
       <HomeDashboard />
+      <div className="section"><RecentlyViewed /></div>
       <PickedForYou />
       <HomePackages />
     </div>
