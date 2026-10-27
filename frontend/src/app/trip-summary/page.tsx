@@ -271,7 +271,7 @@ function TripSummaryPageInner() {
 
             {summary.status === "CONFIRMED" && (
               <div className="grid gap-6 lg:grid-cols-2 items-start">
-                <PackingChecklist tripId={summary.tripRequestId} />
+                <PackingChecklist tripId={summary.tripRequestId} trip={{ interest: summary.interest, weekendType: summary.weekendType, travelMode: summary.travelMode, groupSize: summary.groupSize, pickupRequired: summary.pickupRequired, tripDate: summary.tripDate }} />
                 <EmergencyCard tripId={summary.tripRequestId} city={summary.city} />
               </div>
             )}
