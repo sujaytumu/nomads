@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { disableReminders, enableReminders, remindersOn, remindersPermission } from "@/lib/reminders";
+import { pushSupported, subscribePush, unsubscribePush } from "@/lib/push";
 import { toast } from "@/lib/toast";
 
 /** Profile row: turn trip reminders on or off. */
@@ -17,6 +18,7 @@ export default function ReminderToggle() {
   const flip = async () => {
     if (on) {
       disableReminders();
+      unsubscribePush();
       setOn(false);
       toast("Reminders off");
       return;
@@ -25,7 +27,8 @@ export default function ReminderToggle() {
     setPerm(remindersPermission());
     if (r === "on") {
       setOn(true);
-      toast("Reminders on. We'll nudge you about payments and trip days.", "success");
+      const pushed = pushSupported() ? await subscribePush() : false;
+      toast(pushed ? "Reminders on, even when the app is closed." : "Reminders on. We'll nudge you about payments and trip days.", "success");
     } else if (r === "denied") {
       toast("Notifications are blocked. Allow them in your browser or phone settings.", "error");
     }
@@ -37,7 +40,7 @@ export default function ReminderToggle() {
       : perm === "denied"
         ? "Blocked in settings. Allow notifications to turn this on."
         : on
-          ? "Payment, trip-tomorrow, trip-day and next-stop reminders while the app is open."
+          ? "Payment, trip-tomorrow and trip-day reminders. Some only appear while the app is open."
           : "Get nudges for payments, the day before, and each stop.";
 
   return (
