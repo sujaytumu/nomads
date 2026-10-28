@@ -14,7 +14,7 @@ export default function PackingChecklist({ tripId, trip }: { tripId: number | st
   const [saved, setSaved] = useState<Saved>({ done: [], custom: [] });
   const [draft, setDraft] = useState("");
 
-  const sections = useMemo(() => packingPlan(trip ?? {}), [trip?.interest, trip?.weekendType, trip?.travelMode, trip?.groupSize, trip?.pickupRequired, trip?.tripDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  const sections = useMemo(() => packingPlan(trip ?? {}), [trip?.interest, trip?.weekendType, trip?.days, trip?.travelMode, trip?.groupSize, trip?.pickupRequired, trip?.tripDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     try {

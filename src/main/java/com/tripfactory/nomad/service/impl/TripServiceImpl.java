@@ -49,6 +49,9 @@ public class TripServiceImpl implements TripService {
     private static final BigDecimal BASE_COST_PER_PLACE = new BigDecimal("500");
     private static final BigDecimal PICKUP_COST = new BigDecimal("300");
     private static final int MIN_PLACES = 1;
+    private static final int MAX_DAYS = 7;
+    private static final int MAX_SOLO_DAYS = 2;
+    private static final int MAX_GROUP_SIZE = 8;
     private static final int MAX_PLACES_PER_DAY = 4;
 
     private final UserRepository userRepository;
@@ -85,12 +88,27 @@ public class TripServiceImpl implements TripService {
         TripRequest tripRequest = new TripRequest();
         tripRequest.setUser(user);
         tripRequest.setCity(city);
-        tripRequest.setWeekendType(Objects.requireNonNullElse(request.getWeekendType(), WeekendType.ONE_DAY));
+        int days = request.getDays() != null ? request.getDays()
+                : (request.getWeekendType() == WeekendType.TWO_DAY ? 2 : 1);
+        if (days < 1 || days > MAX_DAYS) {
+            throw new BadRequestException("Trips can last from 1 to " + MAX_DAYS + " days");
+        }
+        tripRequest.setTripDays(days);
+        tripRequest.setWeekendType(days == 1 ? WeekendType.ONE_DAY : WeekendType.TWO_DAY);
         tripRequest.setInterest(Objects.requireNonNullElse(request.getInterest(), user.getInterestType()));
         tripRequest.setTravelMode(Objects.requireNonNullElseGet(request.getTravelMode(),
             () -> com.tripfactory.nomad.domain.enums.TravelMode.valueOf(user.getTravelPreference().name())));
         tripRequest.setPickupRequired(Boolean.TRUE.equals(request.getPickupRequired()));
-        tripRequest.setRequestedGroupSize(request.getGroupSize());
+        if (tripRequest.getTravelMode() == TravelMode.SOLO && days > MAX_SOLO_DAYS) {
+            throw new BadRequestException("Solo trips can last up to " + MAX_SOLO_DAYS + " days. Choose group travel for longer trips.");
+        }
+        if (tripRequest.getTravelMode() == TravelMode.GROUP) {
+            Integer size = request.getGroupSize();
+            if (size != null && (size < 2 || size > MAX_GROUP_SIZE)) {
+                throw new BadRequestException("A group can have 2 to " + MAX_GROUP_SIZE + " people");
+            }
+            tripRequest.setRequestedGroupSize(size);
+        }
         if (request.getTripDate() != null) {
             requireFutureDate(request.getTripDate());
             tripRequest.setTripDate(request.getTripDate());
@@ -110,11 +128,11 @@ public class TripServiceImpl implements TripService {
             throw new BadRequestException("No places found for the city");
         }
 
-        int totalSlots = savedRequest.getWeekendType() == WeekendType.TWO_DAY ? 6 : 4;
-        int dayCount = savedRequest.getWeekendType() == WeekendType.TWO_DAY ? 2 : 1;
-        int perDay = (int) Math.ceil((double) totalSlots / dayCount);
+        // 4 stops for a single day, then 3 a day so longer trips stay relaxed.
+        int dayCount = dayCount(savedRequest);
+        int totalSlots = dayCount == 1 ? 4 : dayCount * 3;
 
-        List<TripPlan> plans = buildPlans(savedRequest, rankedPlaces, totalSlots, perDay);
+        List<TripPlan> plans = buildPlans(savedRequest, rankedPlaces.subList(0, Math.min(totalSlots, rankedPlaces.size())), dayCount);
         tripPlanRepository.saveAll(plans);
 
         savedRequest.setStatus(TripStatus.PLANNED);
@@ -250,11 +268,10 @@ public class TripServiceImpl implements TripService {
             throw new BadRequestException("Your profile location is needed to plan the route");
         }
 
-        int perDay = (int) Math.ceil((double) chosen.size() / dayCount(trip));
         // Cached routes belong to the old stops, so they go too.
         tripRouteRepository.deleteByTripRequestId(tripRequestId);
         tripPlanRepository.deleteByTripRequestId(tripRequestId);
-        List<TripPlan> plans = buildPlans(trip, chosen, chosen.size(), perDay);
+        List<TripPlan> plans = buildPlans(trip, chosen, dayCount(trip));
         tripPlanRepository.saveAll(plans);
 
         trip.setEstimatedCost(estimateCost(plans.size(), Boolean.TRUE.equals(trip.getPickupRequired())));
@@ -308,6 +325,9 @@ public class TripServiceImpl implements TripService {
     }
 
     private int dayCount(TripRequest trip) {
+        if (trip.getTripDays() != null) {
+            return Math.max(1, Math.min(MAX_DAYS, trip.getTripDays()));
+        }
         return trip.getWeekendType() == WeekendType.TWO_DAY ? 2 : 1;
     }
 
@@ -323,36 +343,61 @@ public class TripServiceImpl implements TripService {
         return estimateCost(plans.size(), Boolean.TRUE.equals(trip.getPickupRequired()));
     }
 
+    /**
+     * Best value first: places that match the interest, then the highest rated, with a penalty for distance
+     * (travel costs time and money) and a bigger one for places that are a long drive out of the city.
+     */
     private List<Place> rankPlaces(List<Place> places, double userLat, double userLon,
             com.tripfactory.nomad.domain.enums.InterestType interest) {
         return places.stream()
                 .sorted(Comparator
                         .comparing((Place p) -> interest != null && interest == p.getCategory() ? 0 : 1)
-                        .thenComparing(p -> GeoUtils.haversineKm(userLat, userLon, p.getLatitude(), p.getLongitude()))
-                        .thenComparing(Place::getRating, Comparator.reverseOrder()))
+                        .thenComparing(p -> -valueScore(p, userLat, userLon)))
                 .collect(Collectors.toList());
     }
 
-    private List<TripPlan> buildPlans(TripRequest tripRequest, List<Place> rankedPlaces, int totalSlots, int perDay) {
+    private double valueScore(Place p, double userLat, double userLon) {
+        double km = GeoUtils.haversineKm(userLat, userLon, p.getLatitude(), p.getLongitude());
+        double score = p.getRating() * 2 - km * 0.12;
+        if (km > 45) {
+            score -= 4;
+        }
+        return score;
+    }
+
+    /**
+     * Splits the chosen places over the days. The places are first ordered as one short route starting from
+     * home, then cut into consecutive days, so each day stays in one part of the city and there is little
+     * back-and-forth driving.
+     */
+    private List<TripPlan> buildPlans(TripRequest tripRequest, List<Place> chosen, int dayCount) {
         List<TripPlan> plans = new ArrayList<>();
-        List<Place> candidates = rankedPlaces.subList(0, Math.min(totalSlots, rankedPlaces.size()));
-        List<Place> unassigned = new ArrayList<>(candidates);
+        if (chosen.isEmpty()) {
+            return plans;
+        }
+        double homeLat = tripRequest.getUser().getLatitude();
+        double homeLon = tripRequest.getUser().getLongitude();
 
-        int dayCount = (int) Math.ceil((double) totalSlots / perDay);
-        for (int day = 1; day <= dayCount; day++) {
-            List<Place> dayPlaces = new ArrayList<>();
-            double currentLat = tripRequest.getUser().getLatitude();
-            double currentLon = tripRequest.getUser().getLongitude();
+        List<Place> route = new ArrayList<>();
+        List<Place> left = new ArrayList<>(chosen);
+        double curLat = homeLat;
+        double curLon = homeLon;
+        while (!left.isEmpty()) {
+            Place next = findNearestPlace(curLat, curLon, left);
+            route.add(next);
+            left.remove(next);
+            curLat = next.getLatitude();
+            curLon = next.getLongitude();
+        }
 
-            while (dayPlaces.size() < perDay && !unassigned.isEmpty()) {
-                Place next = findNearestPlace(currentLat, currentLon, unassigned);
-                dayPlaces.add(next);
-                unassigned.remove(next);
-                currentLat = next.getLatitude();
-                currentLon = next.getLongitude();
-            }
-
-            dayPlaces = reorderForTimeWindows(dayPlaces);
+        int days = Math.min(dayCount, route.size());
+        int base = route.size() / days;
+        int extra = route.size() % days;
+        int index = 0;
+        for (int day = 1; day <= days; day++) {
+            int count = base + (day <= extra ? 1 : 0);
+            List<Place> dayPlaces = reorderForTimeWindows(new ArrayList<>(route.subList(index, index + count)));
+            index += count;
 
             LocalTime start = LocalTime.of(9, 0);
             Place previous = null;
@@ -364,9 +409,7 @@ public class TripServiceImpl implements TripService {
                 plan.setStartTime(start);
                 plan.setEndTime(start.plusHours(2));
                 double distance = previous == null
-                        ? GeoUtils.haversineKm(tripRequest.getUser().getLatitude(),
-                                tripRequest.getUser().getLongitude(),
-                                place.getLatitude(), place.getLongitude())
+                        ? GeoUtils.haversineKm(homeLat, homeLon, place.getLatitude(), place.getLongitude())
                         : GeoUtils.haversineKm(previous.getLatitude(), previous.getLongitude(),
                                 place.getLatitude(), place.getLongitude());
                 plan.setDistanceFromPrevious(distance);
@@ -410,6 +453,7 @@ public class TripServiceImpl implements TripService {
         response.setCity(tripRequest.getCity());
         response.setShareToken(tripRequest.getShareToken());
         response.setWeekendType(tripRequest.getWeekendType() == null ? null : tripRequest.getWeekendType().name());
+        response.setDays(dayCount(tripRequest));
         response.setInterest(tripRequest.getInterest() == null ? null : tripRequest.getInterest().name());
         response.setTravelMode(tripRequest.getTravelMode() == null ? null : tripRequest.getTravelMode().name());
         response.setPickupRequired(tripRequest.getPickupRequired());
