@@ -37,9 +37,10 @@ npx cap add android
 # --- icons (use the site's own 512px icon) ---
 for d in android/app/src/main/res/mipmap-*; do
   case "$d" in *anydpi*) rm -rf "$d"; continue;; esac
-  for n in ic_launcher ic_launcher_round ic_launcher_foreground; do
+  for n in ic_launcher ic_launcher_foreground; do
     cp "$ROOT/frontend/public/icon-512.png" "$d/$n.png"
   done
+  cp "$SRC/icon-round-512.png" "$d/ic_launcher_round.png"
 done
 
 # --- native activity (downloads + laptop mode) ---
