@@ -13,6 +13,7 @@ import PackingChecklist from "@/components/PackingChecklist";
 import ShareTripButton from "@/components/ShareTripButton";
 import TripJournal from "@/components/TripJournal";
 import TripPhotos from "@/components/TripPhotos";
+import TripEssentials from "@/components/TripEssentials";
 import TripDate from "@/components/TripDate";
 import ProtectedPage from "@/components/ProtectedPage";
 import TripProgress from "@/components/TripProgress";
@@ -280,6 +281,8 @@ function TripSummaryPageInner() {
             {summary.status === "CONFIRMED" && (
               <TripJournal tripId={summary.tripRequestId} city={summary.city} days={Math.max(1, ...((summary.plans || []) as { dayNumber?: number }[]).map((p) => p.dayNumber || 1))} />
             )}
+
+            {summary.status !== "CANCELLED" && <TripEssentials tripId={Number(summary.tripRequestId)} />}
 
             {summary.status !== "CANCELLED" && <TripPhotos tripId={Number(summary.tripRequestId)} />}
 
