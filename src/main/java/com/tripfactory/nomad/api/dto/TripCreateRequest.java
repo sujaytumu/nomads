@@ -22,6 +22,8 @@ public class TripCreateRequest {
     private TravelMode travelMode;
     private Boolean pickupRequired;
     private Integer groupSize;
+    /** Trip length in days, 1 to 7 (solo travellers: up to 2). */
+    private Integer days;
     private Double userLatitude;
     private Double userLongitude;
     private java.time.LocalDate tripDate;

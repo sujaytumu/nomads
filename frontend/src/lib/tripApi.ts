@@ -5,6 +5,7 @@ export type TripCreatePayload = {
   userId: number;
   city?: string;
   weekendType?: string;
+  days?: number;
   interest?: string;
   travelMode?: string;
   pickupRequired?: boolean;
