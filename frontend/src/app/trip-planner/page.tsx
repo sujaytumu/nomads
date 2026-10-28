@@ -22,6 +22,11 @@ const INTERESTS = [
   { v: "RELAXATION", l: "Relax", icon: "🧘" },
 ];
 
+const MAX_SOLO_DAYS = 2;
+const MAX_DAYS = 7;
+const MAX_PEOPLE = 8;
+const clampDays = (d: number, mode: string) => Math.max(1, Math.min(mode === "GROUP" ? MAX_DAYS : MAX_SOLO_DAYS, d || 2));
+
 const chip = (on: boolean) =>
   `rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
     on ? "border-brand-600 bg-brand-600 text-white shadow-md shadow-brand-600/25" : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
@@ -34,6 +39,7 @@ export default function TripPlannerPage() {
     userId: "",
     city: "",
     weekendType: "TWO_DAY",
+    days: 2,
     interest: "CULTURE",
     travelMode: "SOLO",
     pickupRequired: false,
@@ -61,6 +67,7 @@ export default function TripPlannerPage() {
           interest: qs.get("interest") ?? user.interestType ?? prev.interest,
           travelMode: qs.get("mode") ?? user.travelPreference ?? prev.travelMode,
           weekendType: qs.get("weekend") ?? prev.weekendType,
+          days: clampDays(Number(qs.get("days")) || (qs.get("weekend") === "ONE_DAY" ? 1 : prev.days), qs.get("mode") ?? user.travelPreference ?? prev.travelMode),
           groupSize: qs.get("group") ?? prev.groupSize,
           pickupRequired: qs.get("pickup") === "1" ? true : prev.pickupRequired,
         }));
@@ -90,13 +97,14 @@ export default function TripPlannerPage() {
     const payload = {
       userId: Number(form.userId),
       city: form.city || undefined,
-      weekendType: form.weekendType,
+      weekendType: form.days === 1 ? "ONE_DAY" : "TWO_DAY",
+      days: form.days,
       interest: form.interest,
       travelMode: form.travelMode,
       pickupRequired: form.pickupRequired,
       userLatitude: form.userLatitude ? Number(form.userLatitude) : undefined,
       userLongitude: form.userLongitude ? Number(form.userLongitude) : undefined,
-      groupSize: form.groupSize ? Number(form.groupSize) : undefined,
+      groupSize: form.travelMode === "GROUP" ? Number(form.groupSize) || 2 : undefined,
       tripDate: tripDate || undefined,
     };
 
@@ -119,9 +127,9 @@ export default function TripPlannerPage() {
         <div className="card space-y-6 p-5 sm:p-8">
         <TripSteps current={created ? 2 : 1} tripId={created?.tripRequestId} />
         <div>
-          <h1 className="font-display text-2xl font-semibold">Plan your weekend</h1>
+          <h1 className="font-display text-2xl font-semibold">Plan your trip</h1>
           <p className="text-slate-400">
-            Tell us what you like and we'll build a weekend itinerary. Nothing is booked until you pay.
+            Tell us what you like and we'll build your itinerary. Nothing is booked until you pay.
           </p>
         </div>
 
@@ -132,15 +140,6 @@ export default function TripPlannerPage() {
             <span className="font-semibold">Starting from</span>
             <span className="badge">📍 {form.city || "your city"}</span>
             {cityLocked && <Link href="/profile" className="text-xs text-brand-600 underline">Change in profile</Link>}
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-semibold">How long?</p>
-            <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
-              {[{ v: "ONE_DAY", l: "One day" }, { v: "TWO_DAY", l: "Two days" }].map((o) => (
-                <button key={o.v} type="button" onClick={() => setForm((p) => ({ ...p, weekendType: o.v }))} className={chip(form.weekendType === o.v)}>{o.l}</button>
-              ))}
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -158,12 +157,41 @@ export default function TripPlannerPage() {
             <p className="text-sm font-semibold">Who's going?</p>
             <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
               {[{ v: "SOLO", l: "🧍 Solo" }, { v: "GROUP", l: "👥 Group" }].map((o) => (
-                <button key={o.v} type="button" onClick={() => setForm((p) => ({ ...p, travelMode: o.v }))} className={chip(form.travelMode === o.v)}>{o.l}</button>
+                <button
+                  key={o.v}
+                  type="button"
+                  onClick={() => setForm((p) => ({ ...p, travelMode: o.v, days: clampDays(p.days, o.v), groupSize: o.v === "GROUP" ? p.groupSize || "2" : p.groupSize }))}
+                  className={chip(form.travelMode === o.v)}
+                >
+                  {o.l}
+                </button>
               ))}
             </div>
-            {form.travelMode === "GROUP" && (
-              <input name="groupSize" type="number" min={2} value={form.groupSize} onChange={handleChange} placeholder="How many people?" aria-label="Group size" className="w-full rounded-xl border px-4 py-2.5 sm:max-w-sm" />
-            )}
+          </div>
+
+          {form.travelMode === "GROUP" && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold">How many people? <span className="font-normal text-slate-500">(up to {MAX_PEOPLE})</span></p>
+              <div className="flex flex-wrap gap-2">
+                {Array.from({ length: MAX_PEOPLE - 1 }, (_, i) => i + 2).map((n) => (
+                  <button key={n} type="button" aria-label={`${n} people`} onClick={() => setForm((p) => ({ ...p, groupSize: String(n) }))} className={`${chip(Number(form.groupSize || 2) === n)} min-w-[3rem]`}>{n}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">How many days?</p>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: form.travelMode === "GROUP" ? MAX_DAYS : MAX_SOLO_DAYS }, (_, i) => i + 1).map((n) => (
+                <button key={n} type="button" aria-label={n === 1 ? "1 day" : `${n} days`} onClick={() => setForm((p) => ({ ...p, days: n }))} className={`${chip(form.days === n)} min-w-[3rem]`}>{n}</button>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400">
+              {form.travelMode === "GROUP"
+                ? `${form.days === 1 ? "A day trip" : `${form.days} days`}: about ${form.days === 1 ? 4 : form.days * 3} stops, grouped by area to save time and money.`
+                : "Solo trips are 1 or 2 days. Pick Group for trips of up to 7 days."}
+            </p>
           </div>
 
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-slate-700 px-4 py-3 sm:max-w-sm">

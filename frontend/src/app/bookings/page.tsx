@@ -32,6 +32,7 @@ type Trip = TripLike & {
   shareToken?: string;
   tripDate?: string | null;
   weekendType?: string | null;
+  days?: number | null;
   interest?: string | null;
   travelMode?: string | null;
   pickupRequired?: boolean | null;
@@ -41,7 +42,8 @@ type Trip = TripLike & {
 function planAgainHref(t: Trip): string {
   const q = new URLSearchParams();
   if (t.interest) q.set("interest", t.interest);
-  if (t.weekendType) q.set("weekend", t.weekendType);
+  if (t.days) q.set("days", String(t.days));
+  else if (t.weekendType) q.set("weekend", t.weekendType);
   if (t.travelMode) q.set("mode", t.travelMode);
   if (t.groupSize) q.set("group", String(t.groupSize));
   if (t.pickupRequired) q.set("pickup", "1");

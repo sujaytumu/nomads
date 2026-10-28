@@ -220,7 +220,7 @@ function TripSummaryPageInner() {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${meta.badge}`}>{meta.label}</span>
                 </div>
                 <p className="text-sm text-slate-400">
-                  #{summary.tripRequestId} · {tripKind(summary)}
+                  #{summary.tripRequestId} · {tripKind(summary)}{summary.days ? ` · ${summary.days} ${summary.days === 1 ? "day" : "days"}` : ""}
                 </p>
                 <p className="text-sm text-slate-300">{meta.hint}</p>
                 <TripDate trip={summary} onChange={(u: any) => setSummary((prev: any) => ({ ...prev, tripDate: u.tripDate }))} />
@@ -272,7 +272,7 @@ function TripSummaryPageInner() {
 
             {summary.status === "CONFIRMED" && (
               <div className="grid gap-6 lg:grid-cols-2 items-start">
-                <PackingChecklist tripId={summary.tripRequestId} trip={{ interest: summary.interest, weekendType: summary.weekendType, travelMode: summary.travelMode, groupSize: summary.groupSize, pickupRequired: summary.pickupRequired, tripDate: summary.tripDate }} />
+                <PackingChecklist tripId={summary.tripRequestId} trip={{ interest: summary.interest, weekendType: summary.weekendType, days: summary.days, travelMode: summary.travelMode, groupSize: summary.groupSize, pickupRequired: summary.pickupRequired, tripDate: summary.tripDate }} />
                 <EmergencyCard tripId={summary.tripRequestId} city={summary.city} />
               </div>
             )}
