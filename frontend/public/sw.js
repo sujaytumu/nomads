@@ -1,6 +1,6 @@
 // Minimal service worker: makes NOMAD installable and shows a friendly page when offline.
 // It never caches API calls or pages (trip and payment data must always be fresh).
-const CACHE = "nomad-shell-v3";
+const CACHE = "nomad-shell-v4";
 const OFFLINE = "/offline.html";
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([OFFLINE, "/icon-192.png"])));
