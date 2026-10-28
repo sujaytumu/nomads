@@ -49,6 +49,7 @@ public class SeedDataRunner implements CommandLineRunner {
             addPlacesForNewCities();
             backfillMissingImageUrls();
         }
+        addMissingCatalogPlaces();
 
         if (vehicleRepository.count() == 0) {
             vehicleRepository.saveAll(buildVehicles());
@@ -147,6 +148,23 @@ public class SeedDataRunner implements CommandLineRunner {
             }
         }
         List<Place> toAdd = buildNewCityPlaces().stream().filter(p -> missing.contains(p.getCity())).toList();
+        if (!toAdd.isEmpty()) {
+            placeRepository.saveAll(toAdd);
+        }
+    }
+
+    /** Adds every catalog place that isn't in the database yet (matched by city and name), so existing data keeps its ids. */
+    private void addMissingCatalogPlaces() {
+        java.util.Set<String> have = new java.util.HashSet<>();
+        for (Place p : placeRepository.findAll()) {
+            have.add(p.getCity().toLowerCase() + "|" + p.getName().toLowerCase());
+        }
+        List<Place> toAdd = new java.util.ArrayList<>();
+        for (PlaceCatalog.Entry e : PlaceCatalog.entries()) {
+            if (have.add(e.city().toLowerCase() + "|" + e.name().toLowerCase())) {
+                toAdd.add(createPlace(e.name(), e.city(), e.lat(), e.lon(), e.category(), e.rating()));
+            }
+        }
         if (!toAdd.isEmpty()) {
             placeRepository.saveAll(toAdd);
         }

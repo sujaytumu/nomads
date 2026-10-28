@@ -172,6 +172,8 @@ public class ItineraryPdfGenerator {
         }
         if (plans.isEmpty()) {
             parts.add("Package getaway");
+        } else if (trip.getTripDays() != null) {
+            parts.add(trip.getTripDays() == 1 ? "One-day getaway" : trip.getTripDays() + "-day getaway");
         } else if (trip.getWeekendType() != null) {
             parts.add("TWO_DAY".equals(trip.getWeekendType().name()) ? "Two-day getaway" : "One-day getaway");
         }

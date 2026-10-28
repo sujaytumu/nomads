@@ -4,6 +4,7 @@ export type PackSection = { title: string; items: PackItem[] };
 export type PackInput = {
   interest?: string | null;
   weekendType?: string | null;
+  days?: number | null;
   travelMode?: string | null;
   groupSize?: number | null;
   pickupRequired?: boolean | null;
@@ -36,7 +37,7 @@ export function seasonOf(iso?: string | null): "rain" | "hot" | "cool" | null {
 /** A packing list that fits the trip: essentials, then what the days, season, interest and group call for. Same input always gives the same list. */
 export function packingPlan(input: PackInput): PackSection[] {
   const sections: PackSection[] = [];
-  const two = input.weekendType === "TWO_DAY";
+  const two = input.days != null ? input.days >= 2 : input.weekendType === "TWO_DAY";
   const group = input.travelMode === "GROUP" || (input.groupSize ?? 1) > 1;
 
   sections.push({
