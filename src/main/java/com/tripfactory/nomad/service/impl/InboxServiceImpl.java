@@ -18,6 +18,7 @@ import com.tripfactory.nomad.domain.entity.User;
 import com.tripfactory.nomad.repository.InboxNotificationRepository;
 import com.tripfactory.nomad.repository.UserRepository;
 import com.tripfactory.nomad.service.InboxService;
+import com.tripfactory.nomad.service.PushService;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class InboxServiceImpl implements InboxService {
 
     private final InboxNotificationRepository inboxRepository;
     private final UserRepository userRepository;
+    private final PushService pushService;
 
     /**
      * Runs in its own transaction so a problem writing a notification can never roll back the payment or
@@ -46,6 +48,7 @@ public class InboxServiceImpl implements InboxService {
         n.setBody(clip(body, 500));
         n.setLink(clip(link, 200));
         inboxRepository.save(n);
+        pushService.sendToUser(userId, n.getTitle(), n.getBody(), n.getLink());
     }
 
     @Override
@@ -64,6 +67,7 @@ public class InboxServiceImpl implements InboxService {
         n.setLink(clip(link, 200));
         try {
             inboxRepository.saveAndFlush(n);
+            pushService.sendToUser(userId, n.getTitle(), n.getBody(), n.getLink());
             return true;
         } catch (DataIntegrityViolationException raceLost) {
             // Another instance stored the same reminder a moment ago: exactly what the key is for.

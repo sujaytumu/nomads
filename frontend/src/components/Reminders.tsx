@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { getCached } from "@/lib/api";
 import { notifyOnce, pruneSeen, remindersOn } from "@/lib/reminders";
+import { pushActive, pushSupported, subscribePush } from "@/lib/push";
 import { formatCost, isPayable, tripTitle } from "@/lib/tripStatus";
 
 const DAY = 86_400_000;
@@ -15,6 +16,12 @@ const mins = (t?: string | null) => {
 export default function Reminders({ updateReady, build }: { updateReady: boolean; build: string }) {
   const ready = useRef(updateReady);
   ready.current = updateReady;
+
+  // People who turned reminders on before push existed get signed up quietly.
+  useEffect(() => {
+    if (!remindersOn() || !pushSupported()) return;
+    pushActive().then((on) => (on ? undefined : subscribePush()));
+  }, []);
 
   useEffect(() => {
     let stop = false;
