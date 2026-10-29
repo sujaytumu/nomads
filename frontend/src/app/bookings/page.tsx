@@ -25,6 +25,7 @@ import {
   tripTitle,
   type TripLike,
 } from "@/lib/tripStatus";
+import LoadingHint from "@/components/LoadingHint";
 
 type Trip = TripLike & {
   tripRequestId: number;
@@ -174,7 +175,7 @@ function MyTripsPageInner() {
           {loading && (
             <div>
               <TripListSkeleton />
-              <p className="mt-3 text-xs text-slate-500">Waking the server… this can take a little while the first time.</p>
+              <div className="mt-3"><LoadingHint label="Loading your trips" /></div>
             </div>
           )}
 

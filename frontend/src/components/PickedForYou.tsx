@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Cover from "@/components/Cover";
 import { api, getCached } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
+import { Bone } from "@/components/Skeleton";
 
 type Pick = { place: any; why: string; score: number };
 
@@ -72,7 +73,24 @@ export default function PickedForYou() {
     };
   }, []);
 
-  if (picks === null) return <div className="section"><div className="card h-40 animate-pulse" /></div>;
+  if (picks === null) {
+    return (
+      <section className="section space-y-3 pb-6" aria-busy="true" aria-label="Loading picks for you">
+        <Bone className="h-5 w-40" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="card flex items-center gap-3 p-3">
+              <Bone className="h-16 w-16 shrink-0 rounded-xl" />
+              <div className="flex-1 space-y-2">
+                <Bone className="h-4 w-2/3" />
+                <Bone className="h-3 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
   if (picks.length === 0) return null;
 
   return (

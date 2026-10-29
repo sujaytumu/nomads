@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { closePoll, createPoll, fetchPolls, votePoll, type Poll } from "@/lib/pollApi";
 import { errorText, toast } from "@/lib/toast";
+import { CardSkeleton } from "@/components/Skeleton";
 
 /** Group polls: ask the group to choose a place, a date or a plan. One vote each, changeable until the poll closes. */
 export default function GroupPolls({ groupId }: { groupId: number }) {
@@ -115,7 +116,7 @@ export default function GroupPolls({ groupId }: { groupId: number }) {
           <button type="button" className="btn btn-secondary btn-sm" onClick={load}>Retry</button>
         </div>
       )}
-      {polls === null && !failed && <div className="card h-28 animate-pulse" />}
+      {polls === null && !failed && <CardSkeleton rows={2} label="Loading polls" />}
       {polls && polls.length === 0 && !adding && (
         <div className="card p-6 text-center text-sm text-slate-400">No polls yet. Start one to decide a place or a plan together.</div>
       )}

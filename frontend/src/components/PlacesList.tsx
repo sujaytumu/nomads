@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import PlaceCard from "./PlaceCard";
 import { toast } from "@/lib/toast";
+import LoadingHint from "@/components/LoadingHint";
+import { StopListSkeleton } from "@/components/Skeleton";
 
 export default function PlacesList() {
   const [places, setPlaces] = useState<any[]>([]);
@@ -113,8 +115,9 @@ export default function PlacesList() {
   }
 
   if (loading) return (
-    <div className="text-sm text-slate-400">
-      Loading nearby places… (may take up to a minute on first load if the server was asleep)
+    <div className="space-y-3">
+      <StopListSkeleton count={5} />
+      <LoadingHint label="Finding places near you" />
     </div>
   );
   if (error) return (

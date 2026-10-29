@@ -10,6 +10,7 @@ import UpcomingTrip from "@/components/UpcomingTrip";
 import { getCached } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 import { formatCost, isPayable, tripTitle } from "@/lib/tripStatus";
+import { TripCardSkeleton } from "@/components/Skeleton";
 
 const TILES = [
   { href: "/trip-planner", title: "Plan a trip", text: "Build a weekend itinerary", icon: "🧭", tint: "bg-brand-600/20" },
@@ -56,7 +57,7 @@ export default function HomeDashboard() {
       {trips && <UpcomingTrip trips={trips} />}
 
       {trips === null ? (
-        <div className="card h-28 animate-pulse" />
+        <TripCardSkeleton />
       ) : focus ? (
         <div className="card space-y-3 p-5">
           <p className="eyebrow">

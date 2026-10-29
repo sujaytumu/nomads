@@ -13,6 +13,7 @@ import { api } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 import { updateUser } from "@/lib/profileApi";
 import { CardSkeleton } from "@/components/Skeleton";
+import LoadingHint from "@/components/LoadingHint";
 
 const CITIES: Record<string, [number, number]> = {
   Bengaluru: [12.9716, 77.5946],
@@ -144,7 +145,12 @@ export default function ProfilePage() {
 
         <TravelStats />
 
-        {loading && <CardSkeleton rows={5} label="Loading your profile" />}
+        {loading && (
+          <div className="space-y-3">
+            <CardSkeleton rows={5} label="Loading your profile" />
+            <LoadingHint label="Loading your profile" />
+          </div>
+        )}
         {!loading && loadError && (
           <div className="card space-y-3 p-5">
             <p className="text-sm text-red-300">Couldn't load your profile. The server may still be waking up.</p>

@@ -3,6 +3,7 @@
 import { fetchSharedTrip } from "@/lib/shareApi";
 import { fetchSharedPhotos, TripPhoto } from "@/lib/photoApi";
 import { useEffect, useState } from "react";
+import { TripListSkeleton } from "@/components/Skeleton";
 
 export default function ShareTripPage({ params }: { params: { token: string } }) {
   const [trip, setTrip] = useState<any>(null);
@@ -27,7 +28,7 @@ export default function ShareTripPage({ params }: { params: { token: string } })
         <p className="text-sm text-slate-400">A shared weekend itinerary</p>
       </div>
       {error && <p role="alert" className="card p-5 text-center text-sm text-red-400">{error}</p>}
-      {!trip && !error && <div className="card h-40 animate-pulse" />}
+      {!trip && !error && <TripListSkeleton count={1} label="Loading trip" />}
       {trip && (
         <>
           <h1 className="text-center text-3xl font-bold">{trip.city ? `${trip.city} weekend` : "Weekend trip"}</h1>
