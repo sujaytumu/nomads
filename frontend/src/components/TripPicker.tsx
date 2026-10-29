@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { formatCost, statusMeta, tripTitle } from "@/lib/tripStatus";
 import type { MyTrip } from "@/lib/useTripSelection";
+import { Bone } from "@/components/Skeleton";
 
 /** Dropdown of the user's trips, or a clear empty state with where to go next. */
 export default function TripPicker({
@@ -21,7 +22,7 @@ export default function TripPicker({
   emptyText: string;
   onRetry: () => void;
 }) {
-  if (loading) return <p className="text-sm text-slate-400">Loading your trips…</p>;
+  if (loading) return <div className="space-y-2" aria-busy="true"><Bone className="h-14 w-full rounded-xl" /><Bone className="h-14 w-full rounded-xl" /></div>;
   if (error)
     return (
       <div className="flex items-center gap-3">

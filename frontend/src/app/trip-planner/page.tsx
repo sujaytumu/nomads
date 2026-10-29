@@ -12,6 +12,7 @@ import { fetchMe } from "@/lib/authApi";
 import { formatCost } from "@/lib/tripStatus";
 
 import { CardSkeleton } from "@/components/Skeleton";
+import LoadingHint from "@/components/LoadingHint";
 const INTERESTS = [
   { v: "FOOD", l: "Food", icon: "🍜" },
   { v: "CULTURE", l: "Culture", icon: "🏛️" },
@@ -133,7 +134,12 @@ export default function TripPlannerPage() {
           </p>
         </div>
 
-        {loadingUser && <CardSkeleton rows={2} label="Loading your profile" />}
+        {loadingUser && (
+          <div className="space-y-2">
+            <CardSkeleton rows={2} label="Loading your profile" />
+            <LoadingHint label="Loading your profile" />
+          </div>
+        )}
 
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2 text-sm">
