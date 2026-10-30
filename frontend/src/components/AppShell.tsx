@@ -12,6 +12,7 @@ import NotificationBell from "@/components/NotificationBell";
 import Reminders from "@/components/Reminders";
 import Toaster from "@/components/Toaster";
 import UpdateButton from "@/components/UpdateButton";
+import UpdatePrompt from "@/components/UpdatePrompt";
 import { useAppUpdate } from "@/lib/useAppUpdate";
 import { saveOfflineTrips } from "@/lib/offlineTrips";
 import { warmUpBackend } from "@/lib/warmup";
@@ -489,6 +490,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {nav}
         {account}
       </aside>
+
+      <UpdatePrompt />
 
       {/* Mobile: slim top bar */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-800/80 bg-slate-950/85 px-4 backdrop-blur-md lg:hidden">

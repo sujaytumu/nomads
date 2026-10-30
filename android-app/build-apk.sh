@@ -46,14 +46,22 @@ done
 # --- native activity (downloads + laptop mode) ---
 PKG_DIR="android/app/src/main/java/$(echo "$APP_ID" | tr . /)"
 mkdir -p "$PKG_DIR"
-sed -e "s/__APP_ID__/$APP_ID/" -e "s/__LAPTOP__/$LAPTOP/" "$SRC/MainActivity.java.tpl" > "$PKG_DIR/MainActivity.java"
+sed -e "s/__APP_ID__/$APP_ID/" -e "s/__LAPTOP__/$LAPTOP/" -e "s/__VARIANT__/$VARIANT/" "$SRC/MainActivity.java.tpl" > "$PKG_DIR/MainActivity.java"
 
 MANIFEST=android/app/src/main/AndroidManifest.xml
 # permissions: location (maps/pickup), legacy storage for Android 9 and below
-sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />#' "$MANIFEST"
+sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />#' "$MANIFEST"
 if [ "$LAPTOP" = true ]; then
   sed -i 's#<activity#<activity android:screenOrientation="sensorLandscape"#' "$MANIFEST"
 fi
+
+# --- version: always higher than the previous build, so a new APK installs OVER the old one
+# (same app id + same keystore + bigger versionCode = a clean update, never a conflict).
+# The release notes carry "versionCode: <n>" so the app can tell when a newer build exists.
+RUN="${GITHUB_RUN_NUMBER:-1}"
+VCODE=$((100 + RUN))
+sed -i -E "s/versionCode [0-9]+/versionCode $VCODE/; s/versionName \"[^\"]*\"/versionName \"1.$RUN\"/" android/app/build.gradle
+grep -nE "versionCode|versionName" android/app/build.gradle
 
 # --- signing with the repo keystore so updates install over older builds ---
 cat >> android/app/build.gradle <<GRADLE
