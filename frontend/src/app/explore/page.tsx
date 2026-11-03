@@ -24,6 +24,34 @@ export default function ExplorePage() {
   const [category, setCategory] = useState("");
   const [minRating, setMinRating] = useState("");
   const [sort, setSort] = useState<"relevance" | "rating" | "name" | "distance">("relevance");
+  const [urlReady, setUrlReady] = useState(false);
+
+  // Read filters from the address once (so a shared link opens the same search), then keep the address in step.
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    setQ(sp.get("q") || "");
+    setCity(sp.get("city") || "");
+    const c = sp.get("category") || "";
+    setCategory(c in ICONS ? c : "");
+    const r = sp.get("minRating") || "";
+    setMinRating(r === "4" || r === "4.5" ? r : "");
+    const so = sp.get("sort");
+    if (so === "rating" || so === "name") setSort(so);
+    setUrlReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!urlReady) return;
+    const sp = new URLSearchParams();
+    if (q) sp.set("q", q);
+    if (city) sp.set("city", city);
+    if (category) sp.set("category", category);
+    if (minRating) sp.set("minRating", minRating);
+    if (sort === "rating" || sort === "name") sp.set("sort", sort);
+    const qs = sp.toString();
+    window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+  }, [urlReady, q, city, category, minRating, sort]);
+
   const [locating, setLocating] = useState(false);
   const [canLocate, setCanLocate] = useState(false);
   useEffect(() => setCanLocate("geolocation" in navigator), []);
@@ -54,10 +82,11 @@ export default function ExplorePage() {
 
   // Any change starts again from the first page (after a short pause while typing).
   useEffect(() => {
+    if (!urlReady) return;
     const t = setTimeout(() => run(0), q ? 280 : 0);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, city, category, minRating, sort, home]);
+  }, [urlReady, q, city, category, minRating, sort, home]);
 
   function run(p: number) {
     const mine = ++seq.current;
