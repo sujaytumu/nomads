@@ -9,6 +9,7 @@ import SharePlaceButton from "@/components/SharePlaceButton";
 import SavedPlaceHeart from "@/components/SavedPlaceHeart";
 import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
 import { rememberPlace } from "@/lib/recentPlaces";
+import SimilarPlaces from "@/components/SimilarPlaces";
 import PlaceRatingsSection from "@/components/PlaceRatings";
 
 export default function PlaceDetailsPage() {
@@ -95,6 +96,7 @@ export default function PlaceDetailsPage() {
         </div>
       </div>
       <PlaceRatingsSection placeId={place.id} />
+      <SimilarPlaces placeId={place.id} city={place.city} category={place.category} />
     </div>
   );
 }
