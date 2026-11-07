@@ -1,6 +1,10 @@
 // Minimal service worker: makes NOMAD installable and shows a friendly page when offline.
 // It never caches API calls or pages (trip and payment data must always be fresh).
-const CACHE = "nomad-shell-v4";
+// The app's own scripts, styles and fonts under /_next/static/ have a new file name on every release, so they
+// are kept on the device and open instantly the next time.
+const CACHE = "nomad-shell-v5";
+const STATIC = "nomad-static-v1";
+const MAX_STATIC = 160;
 const OFFLINE = "/offline.html";
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([OFFLINE, "/icon-192.png"])));
@@ -8,13 +12,35 @@ self.addEventListener("install", (e) => {
 });
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== STATIC).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
+async function remember(req, res) {
+  const cache = await caches.open(STATIC);
+  await cache.put(req, res);
+  const keys = await cache.keys();
+  if (keys.length > MAX_STATIC) await Promise.all(keys.slice(0, keys.length - MAX_STATIC + 30).map((k) => cache.delete(k)));
+}
+
 self.addEventListener("fetch", (e) => {
-  if (e.request.mode === "navigate") {
-    e.respondWith(fetch(e.request).catch(() => caches.match(OFFLINE)));
+  const req = e.request;
+  if (req.mode === "navigate") {
+    e.respondWith(fetch(req).catch(() => caches.match(OFFLINE)));
+    return;
+  }
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin === self.location.origin && url.pathname.startsWith("/_next/static/")) {
+    e.respondWith(
+      caches.match(req).then((hit) => {
+        if (hit) return hit;
+        return fetch(req).then((res) => {
+          if (res.ok) e.waitUntil(remember(req, res.clone()));
+          return res;
+        });
+      })
+    );
   }
 });
 

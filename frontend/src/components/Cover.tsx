@@ -22,6 +22,7 @@ export default function Cover({ src, alt = "", kind = "PACKAGE", className = "h-
         src={src}
         alt={alt}
         loading="lazy"
+        decoding="async"
         onError={() => setBroken(true)}
         className={`w-full bg-slate-800 object-cover transition-transform duration-500 group-hover:scale-105 ${className}`}
       />

@@ -175,6 +175,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }, 900);
   };
 
+  // Once the page has settled, load the main screens in the background so tapping a tab is instant.
+  useEffect(() => {
+    const warm = () => ["/trip-planner", "/bookings", "/explore", "/profile"].forEach((h) => { try { router.prefetch(h); } catch { /* ignore */ } });
+    const w = window as any;
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(warm, { timeout: 4000 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const t = window.setTimeout(warm, 2500);
+    return () => window.clearTimeout(t);
+  }, [router]);
+
   // Click ripple: any button-styled element gets a soft wave from the tap point.
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
