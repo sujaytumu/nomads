@@ -17,7 +17,10 @@ function WishlistContent() {
   const [places, setPlaces] = useState<SearchItem[] | null>(null);
   const [cityFilter, setCityFilter] = useState("");
   const savedCities = Array.from(new Set((places || []).map((p) => p.city).filter(Boolean))).sort();
-  const shownPlaces = (places || []).filter((p) => !cityFilter || p.city === cityFilter);
+  const [placeSort, setPlaceSort] = useState<"saved" | "rating" | "name">("saved");
+  const shownPlaces = (places || [])
+    .filter((p) => !cityFilter || p.city === cityFilter)
+    .sort((a, b) => (placeSort === "rating" ? b.rating - a.rating : placeSort === "name" ? a.name.localeCompare(b.name) : 0)); // "saved" keeps the server's newest-first order
 
   useEffect(() => {
     fetchSavedPlaces().then(setPlaces).catch(() => setPlaces([]));
@@ -54,6 +57,13 @@ function WishlistContent() {
       {places && places.length > 0 && (
         <section className="space-y-3" aria-label="Saved places">
           <h2 className="font-display text-lg font-semibold">Saved places</h2>
+          {places && places.length > 1 && (
+            <select value={placeSort} onChange={(e) => setPlaceSort(e.target.value as typeof placeSort)} aria-label="Sort saved places" className="rounded-xl border-0 bg-slate-800 px-3 py-2 text-sm">
+              <option value="saved">Recently saved</option>
+              <option value="rating">Highest rated</option>
+              <option value="name">Name A–Z</option>
+            </select>
+          )}
           {savedCities.length > 1 && (
             <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Filter by city">
               <button type="button" onClick={() => setCityFilter("")} className={`chip-btn shrink-0 rounded-lg px-3 py-1 text-sm font-semibold ${cityFilter === "" ? "bg-slate-100 text-slate-950" : "bg-slate-800 text-slate-100"}`}>All</button>
