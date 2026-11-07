@@ -48,6 +48,15 @@ export default function PlaceDetailsPage() {
     return () => { cancelled = true; };
   }, [id]);
 
+  async function copyText(text: string, done: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(done, "success");
+    } catch {
+      toast("Couldn't copy. Select the text and copy it instead.", "error");
+    }
+  }
+
   function handleAdd() {
     if (!place) return;
     try {
@@ -83,6 +92,14 @@ export default function PlaceDetailsPage() {
             <div>
               <h4 className="font-semibold">Details</h4>
               <p className="text-sm text-slate-300 mt-1">{place.address || "Address not available"}</p>
+              {(place.address || (typeof place.latitude === "number" && typeof place.longitude === "number")) && (
+                <div className="mt-1 flex flex-wrap gap-3 text-xs">
+                  {place.address && <button type="button" className="font-semibold text-[#0095f6]" onClick={() => copyText(place.address, "Address copied")}>Copy address</button>}
+                  {typeof place.latitude === "number" && typeof place.longitude === "number" && (
+                    <button type="button" className="font-semibold text-[#0095f6]" onClick={() => copyText(`${place.latitude}, ${place.longitude}`, "Coordinates copied")}>Copy coordinates</button>
+                  )}
+                </div>
+              )}
             </div>
             <div>
               <h4 className="font-semibold">Timings</h4>
