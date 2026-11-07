@@ -334,3 +334,13 @@ html[data-theme="light"] .card { box-shadow: none; border-color: #dbdbdb; }
 .story-ring-seen { background: rgb(var(--s-700)); }
 html[data-theme="light"] .story-ring-seen { background: #dbdbdb; }
 .story:active .story-ring { transform: scale(0.94); }
+
+/* Print: plain black-on-white, no app chrome, so a trip page makes a clean one-page itinerary. */
+@media print {
+  html, body { background: #fff !important; }
+  body * { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+  aside, header, nav, .ig-bar, .no-print, button, [role="status"], [role="dialog"], .leaflet-container { display: none !important; }
+  [class*="lg:pl-"], [class*="lg:ml-"] { padding-left: 0 !important; margin-left: 0 !important; }
+  .card { border: 1px solid #ccc !important; break-inside: avoid; }
+  a { text-decoration: none !important; }
+}

@@ -236,6 +236,7 @@ function TripSummaryPageInner() {
                 <div className="flex flex-wrap items-start gap-3">
                   {summary.status !== "CANCELLED" && <DownloadItineraryButton tripId={summary.tripRequestId} label="Download PDF" />}
                   <ShareTripButton token={summary.shareToken} city={summary.city} className="btn btn-secondary" />
+                  <button type="button" className="btn btn-secondary" onClick={() => window.print()}>Print</button>
                   <Link href="/bookings" className="btn-outline">My trips</Link>
                 </div>
               </div>
