@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import Cover from "@/components/Cover";
+import ComparePlaces from "@/components/ComparePlaces";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import SurpriseMeButton from "@/components/SurpriseMeButton";
 import TrendingPlaces from "@/components/TrendingPlaces";
@@ -87,6 +88,10 @@ export default function ExplorePage() {
     if (!localStorage.getItem("nomad_token")) return;
     fetchSavedPlaceIds().then(setSaved).catch(() => {});
   }, []);
+
+  const [compare, setCompare] = useState<SearchItem[]>([]);
+  const toggleCompare = (p: SearchItem) =>
+    setCompare((cur) => (cur.some((x) => x.id === p.id) ? cur.filter((x) => x.id !== p.id) : cur.length >= 3 ? (toast("You can compare up to 3 places", "info"), cur) : [...cur, p]));
 
   const onSaved = (id: number, on: boolean) => setSaved((prev) => (on ? [...prev, id] : prev.filter((x) => x !== id)));
 
@@ -267,6 +272,14 @@ export default function ExplorePage() {
               <div className="relative">
                 <Cover src={p.imageUrl} alt={p.name} kind={p.category} className="h-36" />
                 <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-bold text-white ring-1 ring-white/10 backdrop-blur">★ {p.rating.toFixed(1)}</span>
+                <button
+                  type="button"
+                  aria-pressed={compare.some((x) => x.id === p.id)}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCompare(p); }}
+                  className={`absolute bottom-3 left-3 rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-white/10 backdrop-blur ${compare.some((x) => x.id === p.id) ? "bg-white text-slate-950" : "bg-black/55 text-white"}`}
+                >
+                  {compare.some((x) => x.id === p.id) ? "✓ Comparing" : "+ Compare"}
+                </button>
                 <SavedPlaceHeart className="absolute right-3 top-3" placeId={p.id} saved={saved.includes(p.id)} onChange={onSaved} />
               </div>
               <div className="p-3">
@@ -280,6 +293,8 @@ export default function ExplorePage() {
           ))}
         </div>
       )}
+
+      <ComparePlaces picked={compare} onRemove={(id) => setCompare((c) => c.filter((x) => x.id !== id))} onClear={() => setCompare([])} />
 
       {more && (
         <div className="text-center">
