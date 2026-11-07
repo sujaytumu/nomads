@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Cover from "@/components/Cover";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import SurpriseMeButton from "@/components/SurpriseMeButton";
 import TrendingPlaces from "@/components/TrendingPlaces";
 import PageHeader from "@/components/PageHeader";
 import { Bone } from "@/components/Skeleton";
@@ -166,6 +167,8 @@ export default function ExplorePage() {
           <option value="name">Name A–Z</option>
         </select>
       </div>
+
+      <div className="flex flex-wrap gap-2"><SurpriseMeButton /></div>
 
       {!home && canLocate && (
         <button
