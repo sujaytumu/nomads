@@ -27,6 +27,20 @@ export default function ExplorePage() {
   const [minRating, setMinRating] = useState("");
   const [sort, setSort] = useState<"relevance" | "rating" | "name" | "distance">("relevance");
   const [urlReady, setUrlReady] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // "/" jumps to the search box, like on most sites (ignored while typing somewhere else).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const [recent, setRecent] = useState<string[]>([]);
   useEffect(() => setRecent(readSearches()), []);
 
@@ -126,7 +140,7 @@ export default function ExplorePage() {
 
       <div className="relative">
         <svg aria-hidden="true" viewBox="0 0 24 24" className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" /></svg>
-        <input value={q} onChange={(e) => setQ(e.target.value)} onBlur={() => { if (q) { rememberSearch(q); setRecent(readSearches()); } }} onKeyDown={(e) => { if (e.key === "Enter") { rememberSearch(q); setRecent(readSearches()); (e.target as HTMLInputElement).blur(); } }} placeholder="Search places, cities…" aria-label="Search places" className="w-full rounded-xl border-0 bg-slate-800 py-3 pl-11 pr-10 text-sm" />
+        <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} onBlur={() => { if (q) { rememberSearch(q); setRecent(readSearches()); } }} onKeyDown={(e) => { if (e.key === "Enter") { rememberSearch(q); setRecent(readSearches()); (e.target as HTMLInputElement).blur(); } }} placeholder="Search places, cities…  ( / )" aria-label="Search places" className="w-full rounded-xl border-0 bg-slate-800 py-3 pl-11 pr-10 text-sm" />
         {q && <button type="button" aria-label="Clear search" onClick={() => setQ("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">✕</button>}
       </div>
 
