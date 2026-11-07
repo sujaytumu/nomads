@@ -245,6 +245,26 @@ export default function ExplorePage() {
             <button type="button" aria-pressed={listView} onClick={() => setView(true)} className={`px-2.5 py-1 text-xs font-semibold ${listView ? "bg-slate-100 text-slate-950" : "text-slate-200"}`}>List</button>
           </span>
           {filtered && <button type="button" onClick={reset} className="ml-2 font-semibold text-[#0095f6]">Clear filters</button>}
+          {filtered && (
+            <button
+              type="button"
+              className="ml-3 font-semibold text-[#0095f6]"
+              onClick={async () => {
+                const url = window.location.href;
+                try {
+                  if (navigator.share) await navigator.share({ title: "Nomads search", url });
+                  else {
+                    await navigator.clipboard.writeText(url);
+                    toast("Search link copied", "success");
+                  }
+                } catch (e: any) {
+                  if (e?.name !== "AbortError") toast("Couldn't share this search.", "error");
+                }
+              }}
+            >
+              Share search
+            </button>
+          )}
         </p>
       )}
 
