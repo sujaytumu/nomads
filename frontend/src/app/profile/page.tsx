@@ -7,6 +7,7 @@ import AppStatus from "@/components/AppStatus";
 import ReminderToggle from "@/components/ReminderToggle";
 import ThemeToggle from "@/components/ThemeToggle";
 import TravelStats from "@/components/TravelStats";
+import ExportTrips from "@/components/ExportTrips";
 import PageHeader from "@/components/PageHeader";
 import ProtectedPage from "@/components/ProtectedPage";
 import { api } from "@/lib/api";
@@ -144,6 +145,8 @@ export default function ProfilePage() {
         <PageHeader title="Profile" subtitle="Set your city and style once. We plan the rest." />
 
         <TravelStats />
+
+        <ExportTrips />
 
         {loading && (
           <div className="space-y-3">
