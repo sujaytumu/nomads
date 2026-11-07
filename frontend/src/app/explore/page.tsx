@@ -195,6 +195,21 @@ export default function ExplorePage() {
         </button>
       )}
 
+      {filtered && (
+        <div className="flex flex-wrap items-center gap-2" aria-label="Active filters">
+          {([
+            q ? { k: "q", text: `“${q}”`, clear: () => setQ("") } : null,
+            city ? { k: "city", text: city, clear: () => setCity("") } : null,
+            category ? { k: "cat", text: label(category), clear: () => setCategory("") } : null,
+            minRating ? { k: "rating", text: `${minRating}★ and up`, clear: () => setMinRating("") } : null,
+          ].filter(Boolean) as { k: string; text: string; clear: () => void }[]).map((c) => (
+            <button key={c.k} type="button" onClick={c.clear} aria-label={`Remove filter ${c.text}`} className="chip-btn inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-100">
+              {c.text} <span aria-hidden="true" className="text-slate-400">✕</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {meta && !error && (
         <p className="text-xs text-slate-400">
           {meta.totalItems} {meta.totalItems === 1 ? "place" : "places"}
