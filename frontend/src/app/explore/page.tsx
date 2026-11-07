@@ -89,6 +89,14 @@ export default function ExplorePage() {
     fetchSavedPlaceIds().then(setSaved).catch(() => {});
   }, []);
 
+  const [listView, setListView] = useState(false);
+  useEffect(() => {
+    try { setListView(localStorage.getItem("nomad_explore_view") === "list"); } catch { /* ignore */ }
+  }, []);
+  const setView = (list: boolean) => {
+    setListView(list);
+    try { localStorage.setItem("nomad_explore_view", list ? "list" : "grid"); } catch { /* ignore */ }
+  };
   const [compare, setCompare] = useState<SearchItem[]>([]);
   const toggleCompare = (p: SearchItem) =>
     setCompare((cur) => (cur.some((x) => x.id === p.id) ? cur.filter((x) => x.id !== p.id) : cur.length >= 3 ? (toast("You can compare up to 3 places", "info"), cur) : [...cur, p]));
@@ -230,8 +238,12 @@ export default function ExplorePage() {
       )}
 
       {meta && !error && (
-        <p className="text-xs text-slate-400">
-          {meta.totalItems} {meta.totalItems === 1 ? "place" : "places"}
+        <p className="flex items-center text-xs text-slate-400">
+          <span className="mr-auto">{meta.totalItems} {meta.totalItems === 1 ? "place" : "places"}</span>
+          <span className="order-last ml-3 inline-flex overflow-hidden rounded-lg bg-slate-800" role="group" aria-label="View">
+            <button type="button" aria-pressed={!listView} onClick={() => setView(false)} className={`px-2.5 py-1 text-xs font-semibold ${!listView ? "bg-slate-100 text-slate-950" : "text-slate-200"}`}>Grid</button>
+            <button type="button" aria-pressed={listView} onClick={() => setView(true)} className={`px-2.5 py-1 text-xs font-semibold ${listView ? "bg-slate-100 text-slate-950" : "text-slate-200"}`}>List</button>
+          </span>
           {filtered && <button type="button" onClick={reset} className="ml-2 font-semibold text-[#0095f6]">Clear filters</button>}
         </p>
       )}
@@ -266,11 +278,11 @@ export default function ExplorePage() {
       )}
 
       {items.length > 0 && (
-        <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={`stagger grid gap-3 ${listView ? "" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
           {items.map((p) => (
-            <Link key={p.id} href={`/place/${p.id}`} className="card group block overflow-hidden transition-all hover:-translate-y-0.5">
-              <div className="relative">
-                <Cover src={p.imageUrl} alt={p.name} kind={p.category} className="h-36" />
+            <Link key={p.id} href={`/place/${p.id}`} className={`card group overflow-hidden transition-all hover:-translate-y-0.5 ${listView ? "flex" : "block"}`}>
+              <div className={`relative ${listView ? "w-36 shrink-0 sm:w-48" : ""}`}>
+                <Cover src={p.imageUrl} alt={p.name} kind={p.category} className={listView ? "h-full min-h-[9rem]" : "h-36"} />
                 <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-bold text-white ring-1 ring-white/10 backdrop-blur">★ {p.rating.toFixed(1)}</span>
                 <button
                   type="button"
