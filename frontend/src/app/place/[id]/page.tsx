@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "@/lib/toast";
 import { PlaceSkeleton } from "@/components/Skeleton";
+import DirectionsButton from "@/components/DirectionsButton";
 import SharePlaceButton from "@/components/SharePlaceButton";
 import SavedPlaceHeart from "@/components/SavedPlaceHeart";
 import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
@@ -87,8 +88,9 @@ export default function PlaceDetailsPage() {
               <h4 className="font-semibold">Timings</h4>
               <p className="text-sm text-slate-300 mt-1">{place.timing || "Open daily"}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button className="btn-primary" onClick={handleAdd}>Add to tour</button>
+              <DirectionsButton lat={place.latitude} lon={place.longitude} name={place.name} />
               <SharePlaceButton placeId={place.id} name={place.name} city={place.city} />
               <SavedPlaceHeart placeId={place.id} saved={saved} onChange={(_, on) => setSaved(on)} />
             </div>
