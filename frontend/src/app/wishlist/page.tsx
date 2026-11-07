@@ -15,6 +15,9 @@ function WishlistContent() {
   const [pkgs, setPkgs] = useState<any[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [places, setPlaces] = useState<SearchItem[] | null>(null);
+  const [cityFilter, setCityFilter] = useState("");
+  const savedCities = Array.from(new Set((places || []).map((p) => p.city).filter(Boolean))).sort();
+  const shownPlaces = (places || []).filter((p) => !cityFilter || p.city === cityFilter);
 
   useEffect(() => {
     fetchSavedPlaces().then(setPlaces).catch(() => setPlaces([]));
@@ -51,8 +54,16 @@ function WishlistContent() {
       {places && places.length > 0 && (
         <section className="space-y-3" aria-label="Saved places">
           <h2 className="font-display text-lg font-semibold">Saved places</h2>
+          {savedCities.length > 1 && (
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Filter by city">
+              <button type="button" onClick={() => setCityFilter("")} className={`chip-btn shrink-0 rounded-lg px-3 py-1 text-sm font-semibold ${cityFilter === "" ? "bg-slate-100 text-slate-950" : "bg-slate-800 text-slate-100"}`}>All</button>
+              {savedCities.map((c) => (
+                <button key={c} type="button" onClick={() => setCityFilter(cityFilter === c ? "" : c)} className={`chip-btn shrink-0 rounded-lg px-3 py-1 text-sm font-semibold ${cityFilter === c ? "bg-slate-100 text-slate-950" : "bg-slate-800 text-slate-100"}`}>{c}</button>
+              ))}
+            </div>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {places.map((p) => (
+            {shownPlaces.map((p) => (
               <Link key={p.id} href={`/place/${p.id}`} className="card group block overflow-hidden transition-all hover:-translate-y-0.5">
                 <div className="relative">
                   <Cover src={p.imageUrl} alt={p.name} kind={p.category} className="h-32" />
