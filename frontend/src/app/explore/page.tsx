@@ -9,6 +9,7 @@ import TrendingPlaces from "@/components/TrendingPlaces";
 import PageHeader from "@/components/PageHeader";
 import { Bone } from "@/components/Skeleton";
 import { toast } from "@/lib/toast";
+import { clearSearches, readSearches, rememberSearch } from "@/lib/recentSearches";
 import { fetchMe } from "@/lib/authApi";
 import SavedPlaceHeart from "@/components/SavedPlaceHeart";
 import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
@@ -25,6 +26,8 @@ export default function ExplorePage() {
   const [minRating, setMinRating] = useState("");
   const [sort, setSort] = useState<"relevance" | "rating" | "name" | "distance">("relevance");
   const [urlReady, setUrlReady] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
+  useEffect(() => setRecent(readSearches()), []);
 
   // Read filters from the address once (so a shared link opens the same search), then keep the address in step.
   useEffect(() => {
@@ -122,9 +125,19 @@ export default function ExplorePage() {
 
       <div className="relative">
         <svg aria-hidden="true" viewBox="0 0 24 24" className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" /></svg>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search places, cities…" aria-label="Search places" className="w-full rounded-xl border-0 bg-slate-800 py-3 pl-11 pr-10 text-sm" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} onBlur={() => { if (q) { rememberSearch(q); setRecent(readSearches()); } }} onKeyDown={(e) => { if (e.key === "Enter") { rememberSearch(q); setRecent(readSearches()); (e.target as HTMLInputElement).blur(); } }} placeholder="Search places, cities…" aria-label="Search places" className="w-full rounded-xl border-0 bg-slate-800 py-3 pl-11 pr-10 text-sm" />
         {q && <button type="button" aria-label="Clear search" onClick={() => setQ("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">✕</button>}
       </div>
+
+      {!q && recent.length > 0 && (
+        <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1" aria-label="Recent searches">
+          <span className="shrink-0 text-xs text-slate-400">Recent</span>
+          {recent.map((r) => (
+            <button key={r} type="button" onClick={() => setQ(r)} className="chip-btn shrink-0 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-100">{r}</button>
+          ))}
+          <button type="button" onClick={() => { clearSearches(); setRecent([]); }} className="shrink-0 text-xs text-slate-400 hover:text-slate-200">Clear</button>
+        </div>
+      )}
 
       {/* Category chips with how many places each has (counts follow the other filters) */}
       <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
