@@ -19,6 +19,16 @@ import lombok.RequiredArgsConstructor;
 public class PlaceSearchController {
 
     private final PlaceSearchService placeSearchService;
+    private final com.tripfactory.nomad.service.util.ReadCache cache;
+
+    @GetMapping("/suggest")
+    public ResponseEntity<java.util.List<com.tripfactory.nomad.api.dto.PlaceSuggestion>> suggest(@RequestParam(defaultValue = "") String q) {
+        String key = q.trim().toLowerCase();
+        if (key.length() < 2 || key.length() > 60) {
+            return ResponseEntity.ok(java.util.List.of());
+        }
+        return ResponseEntity.ok(cache.get("suggest:" + key, 60_000, () -> placeSearchService.suggest(key)));
+    }
 
     @GetMapping
     public ResponseEntity<PlaceSearchResponse> search(

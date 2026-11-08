@@ -19,7 +19,16 @@ export type SearchResult = {
   totalItems: number;
   totalPages: number;
   facets: { categories: Record<string, number>; cities: Record<string, number> };
+  /** Set when nothing matched what was typed and a nickname or typo fix found results instead. */
+  correctedQuery?: string | null;
 };
+
+export type Suggestion = { type: "CITY" | "PLACE"; label: string; subLabel: string; placeId?: number | null; city: string };
+
+export async function suggestPlaces(q: string): Promise<Suggestion[]> {
+  const { data } = await api.get("/api/places/search/suggest", { params: { q } });
+  return Array.isArray(data) ? data : [];
+}
 
 export type SearchParams = {
   q?: string;

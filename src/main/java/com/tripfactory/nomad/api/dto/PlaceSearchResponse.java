@@ -6,7 +6,7 @@ import java.util.Map;
 import com.tripfactory.nomad.domain.enums.InterestType;
 
 public record PlaceSearchResponse(List<Item> items, int page, int size, long totalItems, int totalPages,
-                                  Facets facets) {
+                                  Facets facets, String correctedQuery) {
 
     public record Item(Long id, String name, String city, double latitude, double longitude,
                        InterestType category, double rating, String imageUrl, Double distanceKm) {

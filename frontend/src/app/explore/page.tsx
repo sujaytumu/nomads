@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import Cover from "@/components/Cover";
@@ -15,13 +16,17 @@ import { clearSearches, readSearches, rememberSearch } from "@/lib/recentSearche
 import { fetchMe } from "@/lib/authApi";
 import SavedPlaceHeart from "@/components/SavedPlaceHeart";
 import { fetchSavedPlaceIds } from "@/lib/savedPlacesApi";
-import { searchPlaces, type SearchItem, type SearchResult } from "@/lib/placeSearchApi";
+import { searchPlaces, suggestPlaces, type SearchItem, type SearchResult, type Suggestion } from "@/lib/placeSearchApi";
 
 const ICONS: Record<string, string> = { FOOD: "🍜", CULTURE: "🏛️", NATURE: "🌿", ADVENTURE: "🧗", SHOPPING: "🛍️", NIGHTLIFE: "🌙", RELAXATION: "🧘" };
 const label = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 const PAGE = 12;
 
 export default function ExplorePage() {
+  const router = useRouter();
+  const [sug, setSug] = useState<Suggestion[]>([]);
+  const [sugOpen, setSugOpen] = useState(false);
+  const [sugActive, setSugActive] = useState(-1);
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
   const [category, setCategory] = useState("");
@@ -119,6 +124,34 @@ export default function ExplorePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlReady, q, city, category, minRating, sort, home]);
 
+  // Suggestions while typing: cities first, then places. Picking one jumps straight there.
+  useEffect(() => {
+    const text = q.trim();
+    if (text.length < 2) {
+      setSug([]);
+      return;
+    }
+    let live = true;
+    const t = setTimeout(() => {
+      suggestPlaces(text).then((r) => live && (setSug(r), setSugActive(-1))).catch(() => live && setSug([]));
+    }, 150);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+  }, [q]);
+
+  function pick(s: Suggestion) {
+    setSugOpen(false);
+    if (s.type === "PLACE" && s.placeId) {
+      rememberSearch(s.label);
+      router.push(`/place/${s.placeId}`);
+    } else {
+      setCity(s.city);
+      setQ("");
+    }
+  }
+
   function run(p: number) {
     const mine = ++seq.current;
     setLoading(true);
@@ -153,9 +186,28 @@ export default function ExplorePage() {
 
       <div className="relative">
         <svg aria-hidden="true" viewBox="0 0 24 24" className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" /></svg>
-        <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} onBlur={() => { if (q) { rememberSearch(q); setRecent(readSearches()); } }} onKeyDown={(e) => { if (e.key === "Enter") { rememberSearch(q); setRecent(readSearches()); (e.target as HTMLInputElement).blur(); } }} placeholder="Search places, cities…  ( / )" aria-label="Search places" className="w-full rounded-xl border-0 bg-slate-800 py-3 pl-11 pr-10 text-sm" />
+        <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} onBlur={() => { setTimeout(() => setSugOpen(false), 120); if (q) { rememberSearch(q); setRecent(readSearches()); } }} onFocus={() => setSugOpen(true)} role="combobox" aria-expanded={sugOpen && sug.length > 0} aria-controls="search-suggestions" aria-autocomplete="list" onKeyDown={(e) => { if (e.key === "ArrowDown" && sug.length) { e.preventDefault(); setSugOpen(true); setSugActive((i) => (i + 1) % sug.length); } else if (e.key === "ArrowUp" && sug.length) { e.preventDefault(); setSugActive((i) => (i <= 0 ? sug.length - 1 : i - 1)); } else if (e.key === "Escape") { setSugOpen(false); } else if (e.key === "Enter") { if (sugOpen && sugActive >= 0 && sug[sugActive]) { e.preventDefault(); pick(sug[sugActive]); return; } rememberSearch(q); setRecent(readSearches()); setSugOpen(false); (e.target as HTMLInputElement).blur(); } }} placeholder="Search places, cities…  ( / )" aria-label="Search places" className="w-full rounded-xl border-0 bg-slate-800 py-3 pl-11 pr-10 text-sm" />
         {q && <button type="button" aria-label="Clear search" onClick={() => setQ("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">✕</button>}
+        {sugOpen && sug.length > 0 && (
+          <ul id="search-suggestions" role="listbox" className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-auto rounded-xl border border-slate-700 bg-slate-900 py-1 shadow-lift">
+            {sug.map((s, i) => (
+              <li key={`${s.type}-${s.placeId ?? s.city}-${i}`} role="option" aria-selected={i === sugActive}>
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(s)} className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm ${i === sugActive ? "bg-slate-800" : "hover:bg-slate-800/60"}`}>
+                  <span aria-hidden="true">{s.type === "CITY" ? "📍" : "🔎"}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold">{s.label}</span>
+                    <span className="block truncate text-xs text-slate-400">{s.subLabel}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
+
+      {meta?.correctedQuery && q && (
+        <p className="text-sm text-slate-300">Showing results for <span className="font-semibold text-brand-300">{meta.correctedQuery}</span> <button type="button" className="underline" onClick={() => setQ(meta.correctedQuery || "")}>Use this</button></p>
+      )}
 
       {!q && recent.length > 0 && (
         <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1" aria-label="Recent searches">
