@@ -225,6 +225,11 @@ function TripSummaryPageInner() {
                   #{summary.tripRequestId} · {tripKind(summary)}{summary.days ? ` · ${summary.days} ${summary.days === 1 ? "day" : "days"}` : ""}
                 </p>
                 <p className="text-sm text-slate-300">{meta.hint}</p>
+                {Number(summary.routeSavedKm) >= 0.5 && (
+                  <p className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300">
+                    ⚡ Smart route saves about {Number(summary.routeSavedKm).toFixed(1)} km of driving
+                  </p>
+                )}
                 <TripDate trip={summary} onChange={(u: any) => setSummary((prev: any) => ({ ...prev, tripDate: u.tripDate }))} />
               </div>
 

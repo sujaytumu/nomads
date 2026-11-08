@@ -69,6 +69,9 @@ public class TripRequest {
     // How many days the trip lasts (1-7). Null on older trips, which fall back to weekendType.
     private Integer tripDays;
 
+    // Kilometres the route optimiser saved compared with visiting the stops in the order they were picked.
+    private Double routeSavedKm;
+
     // The server-computed cost of this trip - source of truth for the
     // payment amount, never trusted from the client. Set once at creation
     // (Trip Planner) or when a package is enrolled in.

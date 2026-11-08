@@ -27,6 +27,7 @@ public class TripResponse {
     private java.time.LocalDate tripDate;
     private String weekendType;
     private Integer days;
+    private Double routeSavedKm;
     private String interest;
     private String travelMode;
     private Boolean pickupRequired;

@@ -37,6 +37,7 @@ import com.tripfactory.nomad.service.NotificationService;
 import com.tripfactory.nomad.service.TripService;
 import com.tripfactory.nomad.service.exception.BadRequestException;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
+import com.tripfactory.nomad.service.engine.RouteOptimizer;
 import com.tripfactory.nomad.service.util.GeoUtils;
 import com.tripfactory.nomad.service.util.CityAliasResolver;
 
@@ -378,17 +379,9 @@ public class TripServiceImpl implements TripService {
         double homeLat = tripRequest.getUser().getLatitude();
         double homeLon = tripRequest.getUser().getLongitude();
 
-        List<Place> route = new ArrayList<>();
-        List<Place> left = new ArrayList<>(chosen);
-        double curLat = homeLat;
-        double curLon = homeLon;
-        while (!left.isEmpty()) {
-            Place next = findNearestPlace(curLat, curLon, left);
-            route.add(next);
-            left.remove(next);
-            curLat = next.getLatitude();
-            curLon = next.getLongitude();
-        }
+        List<Place> route = RouteOptimizer.optimize(homeLat, homeLon, chosen);
+        double saved = RouteOptimizer.pathKm(homeLat, homeLon, chosen) - RouteOptimizer.pathKm(homeLat, homeLon, route);
+        tripRequest.setRouteSavedKm(Math.round(Math.max(0, saved) * 10.0) / 10.0);
 
         int days = Math.min(dayCount, route.size());
         int base = route.size() / days;
@@ -421,13 +414,6 @@ public class TripServiceImpl implements TripService {
         return plans;
     }
 
-    private Place findNearestPlace(double currentLat, double currentLon, List<Place> places) {
-        return places.stream()
-                .min(Comparator.comparing(place -> GeoUtils.haversineKm(currentLat, currentLon,
-                        place.getLatitude(), place.getLongitude())))
-                .orElseThrow();
-    }
-
     private List<Place> reorderForTimeWindows(List<Place> places) {
         if (places.size() <= 1) {
             return places;
@@ -454,6 +440,7 @@ public class TripServiceImpl implements TripService {
         response.setShareToken(tripRequest.getShareToken());
         response.setWeekendType(tripRequest.getWeekendType() == null ? null : tripRequest.getWeekendType().name());
         response.setDays(dayCount(tripRequest));
+        response.setRouteSavedKm(tripRequest.getRouteSavedKm());
         response.setInterest(tripRequest.getInterest() == null ? null : tripRequest.getInterest().name());
         response.setTravelMode(tripRequest.getTravelMode() == null ? null : tripRequest.getTravelMode().name());
         response.setPickupRequired(tripRequest.getPickupRequired());
