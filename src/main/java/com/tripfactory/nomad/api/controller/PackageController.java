@@ -39,15 +39,16 @@ public class PackageController {
     private final TripRequestRepository tripRequestRepository;
     private final UserRepository userRepository;
     private final PaymentService paymentService;
+    private final com.tripfactory.nomad.service.util.ReadCache cache;
 
     @GetMapping("/homepage")
     public ResponseEntity<List<PackageSummaryResponse>> homepagePackages() {
-        return ResponseEntity.ok(packageService.getHomepagePackages());
+        return ResponseEntity.ok(cache.get("packages:home", 120_000, packageService::getHomepagePackages));
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<PackageSummaryResponse>> allPackages() {
-        return ResponseEntity.ok(packageService.getAllPackages());
+        return ResponseEntity.ok(cache.get("packages:all", 120_000, packageService::getAllPackages));
     }
 
     @GetMapping("/search")
@@ -61,7 +62,7 @@ public class PackageController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PackageDetailResponse> packageDetails(@PathVariable Long id) {
-        PackageDetailResponse d = packageService.getPackageById(id);
+        PackageDetailResponse d = cache.get("packages:" + id, 120_000, () -> packageService.getPackageById(id));
         if (d == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(d);
     }

@@ -20,9 +20,11 @@ import lombok.RequiredArgsConstructor;
 public class TrendingController {
 
     private final TrendingService trendingService;
+    private final com.tripfactory.nomad.service.util.ReadCache cache;
 
     @GetMapping
     public ResponseEntity<List<TrendingPlaceResponse>> trending(@RequestParam(defaultValue = "8") int limit) {
-        return ResponseEntity.ok(trendingService.trending(limit));
+        int capped = Math.max(1, Math.min(limit, 30));
+        return ResponseEntity.ok(cache.get("trending:" + capped, 60_000, () -> trendingService.trending(capped)));
     }
 }
