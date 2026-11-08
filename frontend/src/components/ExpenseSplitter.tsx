@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { addExpense, fetchExpenses, recordSettlement, undoSettlement, type ExpenseSummary } from "@/lib/expenseApi";
+import { postOrQueue, SYNCED_EVENT } from "@/lib/writeQueue";
+import { fetchExpenses, recordSettlement, undoSettlement, type ExpenseSummary } from "@/lib/expenseApi";
 import { errorText, toast } from "@/lib/toast";
 
 const inr = (n: number) =>
@@ -58,6 +59,13 @@ export default function ExpenseSplitter({ groupId }: { groupId: number }) {
       .catch(() => setError("Couldn't load expenses"));
   }, [groupId]);
 
+  // Expenses saved while offline appear once they reach the server.
+  useEffect(() => {
+    const reload = () => fetchExpenses(groupId).then(setSummary).catch(() => undefined);
+    window.addEventListener(SYNCED_EVENT, reload);
+    return () => window.removeEventListener(SYNCED_EVENT, reload);
+  }, [groupId]);
+
   const submit = async () => {
     const value = Number(amount);
     if (!description.trim() || !Number.isFinite(value) || value <= 0) {
@@ -67,7 +75,9 @@ export default function ExpenseSplitter({ groupId }: { groupId: number }) {
     setSaving(true);
     setError(null);
     try {
-      setSummary(await addExpense(groupId, description.trim(), value));
+      const r = await postOrQueue<ExpenseSummary>(`/api/groups/${groupId}/expenses`, { description: description.trim(), amount: value }, `expense ${description.trim()}`);
+      if (r.queued) toast("No signal. Saved on your phone and it will be added when you're back online.", "info");
+      else setSummary(r.data);
       setDescription("");
       setAmount("");
     } catch {

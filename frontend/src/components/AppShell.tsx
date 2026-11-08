@@ -11,6 +11,7 @@ import NetworkStatus from "@/components/NetworkStatus";
 import NotificationBell from "@/components/NotificationBell";
 import Reminders from "@/components/Reminders";
 import Toaster from "@/components/Toaster";
+import SyncStatus from "@/components/SyncStatus";
 import UpdateButton from "@/components/UpdateButton";
 import UpdatePrompt from "@/components/UpdatePrompt";
 import { useAppUpdate } from "@/lib/useAppUpdate";
@@ -595,6 +596,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <Toaster />
+      <SyncStatus />
       <NetworkStatus />
       <Reminders updateReady={updateReady} build={process.env.NEXT_PUBLIC_BUILD_ID || "dev"} />
       <main key={path} ref={mainRef} data-dir={navRef.current.dir ?? undefined} className="min-h-[calc(100vh-3rem)]">{children}</main>

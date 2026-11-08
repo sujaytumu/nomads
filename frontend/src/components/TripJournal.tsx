@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Bone } from "@/components/Skeleton";
+import { postOrQueue, SYNCED_EVENT } from "@/lib/writeQueue";
 import { addNote, deleteNote, downloadJournal, fetchNotes, updateNote, type JournalNote } from "@/lib/journalApi";
 import { errorText, toast } from "@/lib/toast";
 
@@ -26,6 +27,13 @@ export default function TripJournal({ tripId, days, city }: { tripId: number | s
     };
   }, [tripId]);
 
+  // When saved-offline notes reach the server, load the real list.
+  useEffect(() => {
+    const reload = () => fetchNotes(tripId).then(setNotes).catch(() => undefined);
+    window.addEventListener(SYNCED_EVENT, reload);
+    return () => window.removeEventListener(SYNCED_EVENT, reload);
+  }, [tripId]);
+
   const byDay = useMemo(() => {
     const m = new Map<number, JournalNote[]>();
     (notes || []).forEach((n) => m.set(n.dayNumber, [...(m.get(n.dayNumber) || []), n]));
@@ -42,9 +50,15 @@ export default function TripJournal({ tripId, days, city }: { tripId: number | s
         setNotes((cur) => (cur || []).map((n) => (n.id === u.id ? u : n)));
         toast("Note updated", "success");
       } else {
-        const c = await addNote(tripId, { text: t, dayNumber: day, mood });
-        setNotes((cur) => [...(cur || []), c]);
-        toast("Added to your journal", "success");
+        const r = await postOrQueue<JournalNote>(`/api/trips/${tripId}/notes`, { text: t, dayNumber: day, mood }, "journal note");
+        if (r.queued) {
+          // Show it straight away; it is sent when the connection is back.
+          setNotes((cur) => [...(cur || []), { id: -Date.now(), text: t, dayNumber: day, mood } as JournalNote]);
+          toast("No signal. Saved on your phone and it will be added when you're back online.", "info");
+        } else {
+          setNotes((cur) => [...(cur || []), r.data]);
+          toast("Added to your journal", "success");
+        }
       }
       setText("");
       setMood("");
