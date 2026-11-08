@@ -23,4 +23,9 @@ public interface TripRequestRepository extends JpaRepository<TripRequest, Long> 
 
     @Query("select tr from TripRequest tr join fetch tr.user where tr.group.id = :groupId order by tr.createdAt asc")
     List<TripRequest> findGroupMembers(@Param("groupId") Long groupId);
+
+    /** Locks the trip's row until the transaction ends, so two payment requests for one trip run one after the other. */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select t from TripRequest t where t.id = :id")
+    java.util.Optional<TripRequest> lockById(@org.springframework.data.repository.query.Param("id") Long id);
 }

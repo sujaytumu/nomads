@@ -61,6 +61,9 @@ class PaymentServiceImplTest {
     @Mock
     private ItineraryEmailService itineraryEmailService;
 
+    @Mock
+    private com.tripfactory.nomad.repository.PaymentEventRepository paymentEventRepository;
+
     @InjectMocks
     private PaymentServiceImpl paymentService;
 
@@ -188,6 +191,51 @@ class PaymentServiceImplTest {
         paymentService.cancelBooking(TRIP_ID);
 
         assertThat(trip.getStatus()).isEqualTo(TripStatus.CANCELLED);
+        verify(paymentRepository, never()).save(any(Payment.class));
+    }
+
+    @Test
+    void createOrder_secondTap_reusesTheOpenOrderInsteadOfCreatingAnother() {
+        TripRequest trip = trip(TripStatus.PAYMENT_PENDING);
+        Payment open = new Payment();
+        open.setId(77L);
+        open.setTripRequest(trip);
+        open.setAmount(new BigDecimal("1500"));
+        open.setRazorpayOrderId("dev_order_first");
+        open.setPaymentStatus(PaymentStatus.CREATED);
+        when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(trip));
+        when(authorizationService.canAccessTrip(TRIP_ID)).thenReturn(true);
+        when(paymentRepository.findFirstByTripRequestIdAndPaymentStatusOrderByIdDesc(TRIP_ID, PaymentStatus.CREATED))
+                .thenReturn(Optional.of(open));
+
+        PaymentCreateResponse response = paymentService.createOrder(request());
+
+        assertThat(response.getRazorpayOrderId()).isEqualTo("dev_order_first");
+        verify(paymentRepository, never()).save(any(Payment.class));
+    }
+
+    @Test
+    void verifyPayment_repeatedForAPaidOrder_doesNothingAgain() {
+        TripRequest trip = trip(TripStatus.CONFIRMED);
+        Payment paid = new Payment();
+        paid.setId(78L);
+        paid.setTripRequest(trip);
+        paid.setAmount(new BigDecimal("1500"));
+        paid.setRazorpayOrderId("dev_order_paid");
+        paid.setPaymentStatus(PaymentStatus.CAPTURED);
+        when(paymentRepository.findByRazorpayOrderId("dev_order_paid")).thenReturn(Optional.of(paid));
+        when(authorizationService.canAccessTrip(TRIP_ID)).thenReturn(true);
+
+        com.tripfactory.nomad.api.dto.PaymentVerifyRequest request = new com.tripfactory.nomad.api.dto.PaymentVerifyRequest();
+        request.setRazorpayOrderId("dev_order_paid");
+        request.setRazorpayPaymentId("pay_1");
+        request.setRazorpaySignature("sig");
+
+        PaymentCreateResponse response = paymentService.verifyPayment(request);
+
+        assertThat(response.getRazorpayOrderId()).isEqualTo("dev_order_paid");
+        verify(itineraryEmailService, never()).sendBookingEmail(any());
+        verify(notificationService, never()).sendSms(anyString(), anyString());
         verify(paymentRepository, never()).save(any(Payment.class));
     }
 }

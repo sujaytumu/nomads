@@ -47,6 +47,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final AuthorizationService authorizationService;
     private final ItineraryEmailService itineraryEmailService;
     private final InboxService inboxService;
+    private final com.tripfactory.nomad.repository.PaymentEventRepository paymentEventRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
     @Value("${nomad.dev-payments:false}")
@@ -55,6 +56,8 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentCreateResponse createOrder(PaymentCreateRequest request) {
+        // Lock the trip first: a double tap or a retry waits here and then sees the first request's result.
+        tripRequestRepository.lockById(request.getTripRequestId());
         TripRequest tripRequest = tripRequestRepository.findById(request.getTripRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
 
@@ -85,6 +88,19 @@ public class PaymentServiceImpl implements PaymentService {
         }
         BigDecimal amount = tripRequest.getEstimatedCost();
 
+        // An unfinished order for the same amount is reused instead of opening a second one.
+        Payment open = paymentRepository
+                .findFirstByTripRequestIdAndPaymentStatusOrderByIdDesc(tripRequest.getId(), PaymentStatus.CREATED)
+                .orElse(null);
+        if (open != null && open.getAmount() != null && open.getAmount().compareTo(amount) == 0) {
+            audit(tripRequest.getId(), open.getId(), "ORDER_REUSED", "Same unpaid order returned, amount " + amount);
+            if (tripRequest.getStatus() != TripStatus.PAYMENT_PENDING) {
+                tripRequest.setStatus(TripStatus.PAYMENT_PENDING);
+                tripRequestRepository.save(tripRequest);
+            }
+            return toResponse(open);
+        }
+
         long amountPaise = amount.multiply(new BigDecimal("100")).longValue();
         if (devPayments) {
             log.info("devPayments enabled - creating fake order for tripId={}", tripRequest.getId());
@@ -95,6 +111,7 @@ public class PaymentServiceImpl implements PaymentService {
             payment.setRazorpayOrderId(fakeOrderId);
             payment.setPaymentStatus(PaymentStatus.CREATED);
             Payment saved = paymentRepository.save(payment);
+            audit(tripRequest.getId(), saved.getId(), "ORDER_CREATED", "Dev order, amount " + amount);
 
             tripRequest.setStatus(TripStatus.PAYMENT_PENDING);
             tripRequestRepository.save(tripRequest);
@@ -110,6 +127,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setRazorpayOrderId(order.get("id"));
         payment.setPaymentStatus(PaymentStatus.CREATED);
         Payment saved = paymentRepository.save(payment);
+        audit(tripRequest.getId(), saved.getId(), "ORDER_CREATED", "Order " + saved.getRazorpayOrderId() + ", amount " + amount);
 
         tripRequest.setStatus(TripStatus.PAYMENT_PENDING);
         tripRequestRepository.save(tripRequest);
@@ -127,6 +145,12 @@ public class PaymentServiceImpl implements PaymentService {
             throw new AccessDeniedException("Not authorized to verify this payment");
         }
 
+        // Verifying twice (a retry, a slow network) must not email or text the person again.
+        if (payment.getPaymentStatus() == PaymentStatus.CAPTURED) {
+            audit(payment.getTripRequest().getId(), payment.getId(), "VERIFY_DUPLICATE", "Already paid, nothing repeated");
+            return toResponse(payment);
+        }
+
         boolean valid;
         if (devPayments && payment.getRazorpayOrderId() != null && payment.getRazorpayOrderId().startsWith("dev_order_")) {
             log.info("devPayments enabled - skipping real signature check for fake order {}", payment.getRazorpayOrderId());
@@ -138,12 +162,14 @@ public class PaymentServiceImpl implements PaymentService {
         if (!valid) {
             payment.setPaymentStatus(PaymentStatus.FAILED);
             paymentRepository.save(payment);
+            audit(payment.getTripRequest().getId(), payment.getId(), "VERIFY_FAILED", "Signature did not match");
             throw new BadRequestException("Payment verification failed");
         }
 
         payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
         payment.setPaymentStatus(PaymentStatus.CAPTURED);
         Payment saved = paymentRepository.save(payment);
+        audit(saved.getTripRequest().getId(), saved.getId(), "VERIFIED", "Paid " + saved.getAmount());
 
         TripRequest tripRequest = saved.getTripRequest();
         boolean firstConfirmation = tripRequest.getStatus() != TripStatus.CONFIRMED;
@@ -160,6 +186,20 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         return toResponse(saved);
+    }
+
+    /** Writes one line to the payment trail. Best effort: the trail must never break a payment. */
+    private void audit(Long tripId, Long paymentId, String type, String detail) {
+        try {
+            com.tripfactory.nomad.domain.entity.PaymentEvent e = new com.tripfactory.nomad.domain.entity.PaymentEvent();
+            e.setTripRequestId(tripId);
+            e.setPaymentId(paymentId);
+            e.setType(type);
+            e.setDetail(detail != null && detail.length() > 300 ? detail.substring(0, 300) : detail);
+            paymentEventRepository.save(e);
+        } catch (Exception ex) {
+            log.warn("Could not record payment event {} for trip {}: {}", type, tripId, ex.getMessage());
+        }
     }
 
     private void notifyBooked(TripRequest tripRequest) {
@@ -214,7 +254,11 @@ public class PaymentServiceImpl implements PaymentService {
             Payment payment = paymentRepository.findByRazorpayOrderId(orderId)
                     .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
 
-            if ("payment.captured".equals(event)) {
+            if ("payment.captured".equals(event) && payment.getPaymentStatus() == PaymentStatus.CAPTURED) {
+                // Razorpay sends the same event more than once, and the app may have verified it already.
+                audit(payment.getTripRequest().getId(), payment.getId(), "WEBHOOK_DUPLICATE", event);
+            } else if ("payment.captured".equals(event)) {
+                audit(payment.getTripRequest().getId(), payment.getId(), "WEBHOOK_CAPTURED", "Paid " + payment.getAmount());
                 payment.setPaymentStatus(PaymentStatus.CAPTURED);
                 payment.setRazorpayPaymentId(paymentId);
                 paymentRepository.save(payment);
@@ -233,12 +277,20 @@ public class PaymentServiceImpl implements PaymentService {
                 if (firstConfirmation) {
                     notifyBooked(tripRequest);
                 }
+            } else if ("payment.failed".equals(event) && payment.getPaymentStatus() == PaymentStatus.CAPTURED) {
+                // A failed attempt that arrives after a successful one must never undo a paid booking.
+                audit(payment.getTripRequest().getId(), payment.getId(), "WEBHOOK_FAILED_IGNORED", "Payment was already captured");
             } else if ("payment.failed".equals(event)) {
                 payment.setPaymentStatus(PaymentStatus.FAILED);
                 payment.setRazorpayPaymentId(paymentId);
                 paymentRepository.save(payment);
+                audit(payment.getTripRequest().getId(), payment.getId(), "WEBHOOK_FAILED", "Payment failed");
 
                 TripRequest tripRequest = payment.getTripRequest();
+                if (tripRequest.getStatus() == TripStatus.CONFIRMED) {
+                    // Another attempt for this trip was paid: keep the booking.
+                    return;
+                }
                 tripRequest.setStatus(TripStatus.CANCELLED);
                 tripRequestRepository.save(tripRequest);
                 String phone = tripRequest.getUser().getPhoneNumber();
