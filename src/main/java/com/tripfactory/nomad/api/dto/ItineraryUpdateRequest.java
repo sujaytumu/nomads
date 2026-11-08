@@ -17,4 +17,8 @@ public class ItineraryUpdateRequest {
     // schedules them into days and orders the stops by proximity.
     @NotEmpty
     private List<Long> placeIds;
+
+    // The revision the editor started from (from the itinerary options). Optional: if it is sent and the trip
+    // has changed since, the save is refused so nobody's change is silently overwritten.
+    private Integer expectedRevision;
 }

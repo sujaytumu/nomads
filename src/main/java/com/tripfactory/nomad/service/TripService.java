@@ -16,7 +16,11 @@ public interface TripService {
 
     ItineraryOptionsResponse getItineraryOptions(Long tripRequestId);
 
-    TripResponse updateItinerary(Long tripRequestId, List<Long> placeIds);
+    default TripResponse updateItinerary(Long tripRequestId, List<Long> placeIds) {
+        return updateItinerary(tripRequestId, placeIds, null);
+    }
+
+    TripResponse updateItinerary(Long tripRequestId, List<Long> placeIds, Integer expectedRevision);
 
     TripResponse updateTripDate(Long tripRequestId, java.time.LocalDate tripDate);
 

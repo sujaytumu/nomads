@@ -40,6 +40,7 @@ export type ItineraryOptions = {
   editable: boolean;
   minPlaces: number;
   maxPlaces: number;
+  revision?: number;
   costPerPlace: number;
   pickupCost: number;
   pickupRequired: boolean;
@@ -53,8 +54,8 @@ export async function fetchItineraryOptions(tripId: number): Promise<ItineraryOp
 }
 
 /** Rebuilds the trip's day-by-day plan and price from the chosen places. */
-export async function saveItinerary(tripId: number, placeIds: number[]) {
-  const { data } = await api.put(`/api/trips/${tripId}/itinerary`, { placeIds });
+export async function saveItinerary(tripId: number, placeIds: number[], expectedRevision?: number) {
+  const { data } = await api.put(`/api/trips/${tripId}/itinerary`, { placeIds, expectedRevision });
   return data;
 }
 

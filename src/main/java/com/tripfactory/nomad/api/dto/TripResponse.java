@@ -28,6 +28,7 @@ public class TripResponse {
     private String weekendType;
     private Integer days;
     private Double routeSavedKm;
+    private Integer itineraryRevision;
     private String interest;
     private String travelMode;
     private Boolean pickupRequired;

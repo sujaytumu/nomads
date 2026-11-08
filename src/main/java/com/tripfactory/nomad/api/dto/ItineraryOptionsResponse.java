@@ -16,6 +16,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ItineraryOptionsResponse {
+
+    /** The itinerary version these options were read from. Send it back when saving. */
+    private Integer revision;
     private Long tripRequestId;
     // Only a planned (unpaid) trip with a day-by-day itinerary can be edited.
     private boolean editable;

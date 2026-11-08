@@ -161,6 +161,35 @@ class TripServiceImplTest {
     }
 
     @Test
+    void updateItinerary_staleRevision_isRefusedAndChangesNothing() {
+        TripRequest trip = trip(TripStatus.PLANNED, WeekendType.TWO_DAY);
+        trip.setItineraryRevision(3);
+        when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(trip));
+
+        org.junit.jupiter.api.Assertions.assertThrows(com.tripfactory.nomad.service.exception.ConflictException.class,
+                () -> tripService.updateItinerary(TRIP_ID, List.of(1L), 2));
+
+        verify(tripPlanRepository, org.mockito.Mockito.never()).deleteByTripRequestId(TRIP_ID);
+        assertThat(trip.getItineraryRevision()).isEqualTo(3);
+    }
+
+    @Test
+    void updateItinerary_matchingRevision_savesAndMovesTheRevisionOn() {
+        TripRequest trip = trip(TripStatus.PLANNED, WeekendType.ONE_DAY);
+        trip.setItineraryRevision(3);
+        Place a = place(1L, "Lalbagh", "Bengaluru", 12.95, 77.58);
+        when(tripRequestRepository.findById(TRIP_ID)).thenReturn(Optional.of(trip));
+        when(tripPlanRepository.findByTripRequestIdOrderByDayNumberAscStartTimeAsc(TRIP_ID)).thenReturn(List.of(planFor(a)));
+        when(placeRepository.findAllById(List.of(1L))).thenReturn(List.of(a));
+        when(tripRequestRepository.save(any(TripRequest.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TripResponse response = tripService.updateItinerary(TRIP_ID, List.of(1L), 3);
+
+        assertThat(response.getItineraryRevision()).isEqualTo(4);
+        assertThat(trip.getItineraryRevision()).isEqualTo(4);
+    }
+
+    @Test
     void updateItinerary_addsThePickupFeeWhenPickupWasRequested() {
         TripRequest trip = trip(TripStatus.PLANNED, WeekendType.ONE_DAY);
         trip.setPickupRequired(Boolean.TRUE);

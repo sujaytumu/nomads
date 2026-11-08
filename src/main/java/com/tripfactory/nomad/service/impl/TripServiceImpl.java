@@ -36,6 +36,7 @@ import com.tripfactory.nomad.repository.UserRepository;
 import com.tripfactory.nomad.service.NotificationService;
 import com.tripfactory.nomad.service.TripService;
 import com.tripfactory.nomad.service.exception.BadRequestException;
+import com.tripfactory.nomad.service.exception.ConflictException;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
 import com.tripfactory.nomad.service.engine.RouteOptimizer;
 import com.tripfactory.nomad.service.util.GeoUtils;
@@ -186,6 +187,7 @@ public class TripServiceImpl implements TripService {
         response.setCostPerPlace(BASE_COST_PER_PLACE);
         response.setPickupCost(PICKUP_COST);
         response.setPickupRequired(Boolean.TRUE.equals(trip.getPickupRequired()));
+        response.setRevision(revisionOf(trip));
 
         // Once payment has started the price is fixed, and package trips have
         // no day-by-day itinerary at all - so there is nothing to choose.
@@ -226,8 +228,13 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Transactional
-    public TripResponse updateItinerary(Long tripRequestId, List<Long> placeIds) {
+    public TripResponse updateItinerary(Long tripRequestId, List<Long> placeIds, Integer expectedRevision) {
+        // Two people saving at once take turns: the second one waits, then sees the first one's new revision.
+        tripRequestRepository.lockById(tripRequestId);
         TripRequest trip = findTrip(tripRequestId);
+        if (expectedRevision != null && expectedRevision != revisionOf(trip)) {
+            throw new ConflictException("Someone changed this itinerary while you were editing. Reload to see the latest version, then make your change again.");
+        }
 
         // Changing the stops changes the price. Once an order exists for the
         // old price it could still be paid, so only unpaid, not-yet-started
@@ -276,6 +283,7 @@ public class TripServiceImpl implements TripService {
         tripPlanRepository.saveAll(plans);
 
         trip.setEstimatedCost(estimateCost(plans.size(), Boolean.TRUE.equals(trip.getPickupRequired())));
+        trip.setItineraryRevision(revisionOf(trip) + 1);
         TripRequest saved = tripRequestRepository.save(trip);
 
         TripResponse response = toResponse(saved, plans);
@@ -323,6 +331,10 @@ public class TripServiceImpl implements TripService {
     private TripRequest findTrip(Long tripRequestId) {
         return tripRequestRepository.findById(tripRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
+    }
+
+    private static int revisionOf(TripRequest trip) {
+        return trip.getItineraryRevision() == null ? 0 : trip.getItineraryRevision();
     }
 
     private int dayCount(TripRequest trip) {
@@ -441,6 +453,7 @@ public class TripServiceImpl implements TripService {
         response.setWeekendType(tripRequest.getWeekendType() == null ? null : tripRequest.getWeekendType().name());
         response.setDays(dayCount(tripRequest));
         response.setRouteSavedKm(tripRequest.getRouteSavedKm());
+        response.setItineraryRevision(revisionOf(tripRequest));
         response.setInterest(tripRequest.getInterest() == null ? null : tripRequest.getInterest().name());
         response.setTravelMode(tripRequest.getTravelMode() == null ? null : tripRequest.getTravelMode().name());
         response.setPickupRequired(tripRequest.getPickupRequired());

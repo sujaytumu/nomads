@@ -48,6 +48,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(com.tripfactory.nomad.service.exception.ConflictException.class)
+    public ResponseEntity<Object> handleConflict(com.tripfactory.nomad.service.exception.ConflictException ex) {
+        log.info("Conflict: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("status", 409);
+        body.put("timestamp", LocalDateTime.now().toString());
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Object> handleNotFound(ResourceNotFoundException ex) {
         log.warn("Not found: {}", ex.getMessage(), ex);

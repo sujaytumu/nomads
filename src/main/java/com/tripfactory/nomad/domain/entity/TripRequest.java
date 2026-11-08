@@ -72,6 +72,10 @@ public class TripRequest {
     // Kilometres the route optimiser saved compared with visiting the stops in the order they were picked.
     private Double routeSavedKm;
 
+    // Goes up by one every time the itinerary is rebuilt. Editors send the revision they started from,
+    // so a change made on top of an older version can be detected. Null on older trips means 0.
+    private Integer itineraryRevision;
+
     // The server-computed cost of this trip - source of truth for the
     // payment amount, never trusted from the client. Set once at creation
     // (Trip Planner) or when a package is enrolled in.

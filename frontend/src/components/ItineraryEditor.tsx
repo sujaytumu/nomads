@@ -19,6 +19,7 @@ export default function ItineraryEditor({ tripId, onSaved, onCancel }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [conflict, setConflict] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -68,9 +69,10 @@ export default function ItineraryEditor({ tripId, onSaved, onCancel }: Props) {
     setSaving(true);
     setError(null);
     try {
-      const updated = await saveItinerary(tripId, Array.from(selected));
+      const updated = await saveItinerary(tripId, Array.from(selected), options?.revision);
       onSaved(updated);
     } catch (err: any) {
+      if (err?.response?.status === 409) setConflict(true);
       setError(err?.response?.data?.message || "Couldn't save your itinerary. Please try again.");
       setSaving(false);
     }
@@ -159,6 +161,9 @@ export default function ItineraryEditor({ tripId, onSaved, onCancel }: Props) {
       {error && (
         <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3" role="alert">
           {error}
+          {conflict && (
+            <button type="button" className="btn btn-secondary mt-3 block" onClick={() => window.location.reload()}>Reload the latest version</button>
+          )}
         </p>
       )}
     </div>

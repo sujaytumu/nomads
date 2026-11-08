@@ -84,7 +84,7 @@ public class TripController {
     @PreAuthorize("@authz.canAccessTrip(#id)")
     public ResponseEntity<TripResponse> updateItinerary(@PathVariable Long id,
             @Valid @RequestBody ItineraryUpdateRequest request) {
-        return ResponseEntity.ok(tripService.updateItinerary(id, request.getPlaceIds()));
+        return ResponseEntity.ok(tripService.updateItinerary(id, request.getPlaceIds(), request.getExpectedRevision()));
     }
 
     // Re-sends the "booking complete" email (with the itinerary PDF) for a booked trip.
