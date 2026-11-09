@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import Cover from "@/components/Cover";
-import { fetchTrending, type TrendingPlace } from "@/lib/trendingApi";
+import { peekCached } from "@/lib/api";
+import { fetchTrending, TRENDING_URL, type TrendingPlace } from "@/lib/trendingApi";
 
 /** Places that recent bookings are heading to. Hidden when there is nothing to show (or the server is older). */
 export default function TrendingPlaces() {
@@ -12,6 +13,8 @@ export default function TrendingPlaces() {
 
   useEffect(() => {
     let live = true;
+    const last = peekCached<TrendingPlace[]>(TRENDING_URL);
+    if (Array.isArray(last)) setItems(last);
     fetchTrending(8).then((d) => live && Array.isArray(d) && setItems(d)).catch(() => undefined);
     return () => { live = false; };
   }, []);

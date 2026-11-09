@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { getCached } from "./api";
 
 export type Badge = { code: string; title: string; description: string; icon: string; current: number; target: number; earned: boolean };
 export type Level = { level: number; title: string; xp: number; xpIntoLevel: number; xpForNextLevel: number; percentToNext: number };
@@ -22,7 +22,8 @@ export type TravelStats = {
   nextBadge: Badge | null;
 };
 
+export const STATS_URL = "/api/me/stats";
+
 export async function fetchTravelStats(): Promise<TravelStats> {
-  const { data } = await api.get("/api/me/stats");
-  return data as TravelStats;
+  return getCached<TravelStats>(STATS_URL, { ttl: 30000, persist: true });
 }

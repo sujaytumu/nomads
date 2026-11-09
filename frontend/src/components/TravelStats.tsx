@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { Bone } from "@/components/Skeleton";
-import { fetchTravelStats, type TravelStats as Stats } from "@/lib/statsApi";
+import { peekCached } from "@/lib/api";
+import { fetchTravelStats, STATS_URL, type TravelStats as Stats } from "@/lib/statsApi";
 
 const money = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 
@@ -14,6 +15,8 @@ export default function TravelStats() {
 
   useEffect(() => {
     let live = true;
+    const last = peekCached<Stats>(STATS_URL);
+    if (last) setS(last);
     fetchTravelStats().then((d) => live && setS(d)).catch(() => live && setFailed(true));
     return () => {
       live = false;

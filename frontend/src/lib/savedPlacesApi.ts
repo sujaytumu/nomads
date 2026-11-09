@@ -1,9 +1,8 @@
-import { api } from "./api";
+import { api, getCached } from "./api";
 import type { SearchItem } from "./placeSearchApi";
 
 export async function fetchSavedPlaceIds(): Promise<number[]> {
-  const { data } = await api.get("/api/me/saved-places/ids");
-  return data as number[];
+  return getCached<number[]>("/api/me/saved-places/ids", { ttl: 30000 });
 }
 
 export async function fetchSavedPlaces(): Promise<SearchItem[]> {

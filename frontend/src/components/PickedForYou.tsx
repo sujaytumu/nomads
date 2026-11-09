@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import Cover from "@/components/Cover";
-import { api, getCached } from "@/lib/api";
+import { api, getCached, peekCached } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
 import { Bone } from "@/components/Skeleton";
 
@@ -17,6 +17,8 @@ const label = (s?: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : "");
  * then rating and closeness. Places already in one of their trips are left out so the
  * list is always something new.
  */
+const RECS_URL = "/api/recommendations/places?limit=6";
+
 export default function PickedForYou() {
   const [picks, setPicks] = useState<Pick[] | null>(null);
 
@@ -26,7 +28,9 @@ export default function PickedForYou() {
       try {
         // The server ranks places for this traveller (taste, rating, closeness, novelty, variety) and says why.
         try {
-          const { data } = await api.get("/api/recommendations/places", { params: { limit: 6 } });
+          const last = peekCached<any[]>(RECS_URL);
+          if (Array.isArray(last) && last.length > 0 && live) setPicks(last.map((p: any) => ({ place: p, why: (p.reasons && p.reasons[0]) || "Picked for you", score: p.score })));
+          const data = await getCached<any[]>(RECS_URL, { ttl: 60000, persist: true });
           if (Array.isArray(data) && data.length > 0) {
             if (live) setPicks(data.map((p: any) => ({ place: p, why: (p.reasons && p.reasons[0]) || "Picked for you", score: p.score })));
             return;
