@@ -152,6 +152,19 @@ export default function ExplorePage() {
     }
   }
 
+  // Load the next page when the "Show more" spot scrolls into view (the button stays as a fallback).
+  const moreRef = useRef<HTMLDivElement>(null);
+  const loadNext = useRef<() => void>(() => undefined);
+  useEffect(() => {
+    const el = moreRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) loadNext.current();
+    }, { rootMargin: "300px" });
+    io.observe(el);
+    return () => io.disconnect();
+  });
+
   function run(p: number) {
     const mine = ++seq.current;
     setLoading(true);
@@ -171,6 +184,9 @@ export default function ExplorePage() {
   const cities = meta ? Object.entries(meta.facets.cities) : [];
   const filtered = !!(q || city || category || minRating);
   const more = meta ? page + 1 < meta.totalPages : false;
+  loadNext.current = () => {
+    if (more && !loading && !error) run(page + 1);
+  };
 
   function reset() {
     setQ("");
@@ -381,7 +397,7 @@ export default function ExplorePage() {
       <ComparePlaces picked={compare} onRemove={(id) => setCompare((c) => c.filter((x) => x.id !== id))} onClear={() => setCompare([])} />
 
       {more && (
-        <div className="text-center">
+        <div ref={moreRef} className="text-center">
           <button type="button" className="btn btn-secondary" disabled={loading} data-loading={loading} onClick={() => run(page + 1)}>Show more</button>
         </div>
       )}
