@@ -15,6 +15,7 @@ import TripJournal from "@/components/TripJournal";
 import TripPhotos from "@/components/TripPhotos";
 import TripEssentials from "@/components/TripEssentials";
 import TripBudget from "@/components/TripBudget";
+import TripAlternates from "@/components/TripAlternates";
 import TripHealthCard from "@/components/TripHealthCard";
 import TripDate from "@/components/TripDate";
 import ProtectedPage from "@/components/ProtectedPage";
@@ -292,6 +293,10 @@ function TripSummaryPageInner() {
 
             {summary.status !== "CANCELLED" && hasPlans && (
               <TripHealthCard tripId={Number(summary.tripRequestId)} version={`${summary.itineraryRevision ?? 0}`} />
+            )}
+
+            {summary.status !== "CANCELLED" && hasPlans && (
+              <TripAlternates tripId={Number(summary.tripRequestId)} version={`${summary.itineraryRevision ?? 0}`} />
             )}
 
             {summary.status !== "CANCELLED" && hasPlans && (
