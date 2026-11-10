@@ -24,6 +24,7 @@ import com.tripfactory.nomad.repository.TripPlanRepository;
 import com.tripfactory.nomad.repository.TripRequestRepository;
 import com.tripfactory.nomad.service.WeatherService;
 import com.tripfactory.nomad.service.engine.AlternatesEngine;
+import com.tripfactory.nomad.service.engine.ForecastAlign;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
@@ -64,15 +65,16 @@ public class TripAlternatesController {
             }
         }
 
-        // The forecast is an extra: without it every day counts as dry and only like-for-like swaps are offered.
+        // The forecast is an extra, and it only covers the next few days: it is matched to the trip's own dates.
+        // Without a forecast for the trip days, no day is called rainy and the screen says the forecast is unknown.
+        int tripDays = Math.max(1, plans.stream().map(TripPlan::getDayNumber).filter(java.util.Objects::nonNull).max(Integer::compare).orElse(1));
         Map<Integer, Integer> rain = new HashMap<>();
         try {
             WeatherForecastResponse w = weatherService.getForecastForTrip(tripId);
             if (w != null && w.getDays() != null) {
-                for (int i = 0; i < w.getDays().size(); i++) {
-                    Integer chance = w.getDays().get(i).getPrecipitationChance();
-                    if (chance != null) rain.put(i + 1, chance);
-                }
+                List<ForecastAlign.Day> forecast = new ArrayList<>();
+                w.getDays().forEach(d -> forecast.add(new ForecastAlign.Day(d.getDate(), d.getPrecipitationChance())));
+                rain = ForecastAlign.rainByTripDay(trip.getTripDate(), forecast, tripDays);
             }
         } catch (Exception ex) {
             log.debug("No forecast for trip {} alternates: {}", tripId, ex.getMessage());

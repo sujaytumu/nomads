@@ -35,7 +35,9 @@ export default function TripAlternates({ tripId, version }: { tripId: number; ve
         <p className="text-sm text-slate-400">
           {urgent.length > 0
             ? `Rain is likely on day ${data.rainyDays.join(", ")}. Here are indoor backups for your outdoor stops.`
-            : "No rain expected. If a place is closed or crowded, here are similar ones nearby."}
+            : data.forecastKnown === false
+              ? "We can only see the forecast a few days ahead, so it isn't known for your dates yet. If a place is closed, crowded or it rains, here are similar ones nearby."
+              : "No rain expected. If a place is closed or crowded, here are similar ones nearby."}
         </p>
       </div>
       <ul className="space-y-2">

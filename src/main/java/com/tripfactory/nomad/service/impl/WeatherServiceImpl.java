@@ -42,6 +42,7 @@ public class WeatherServiceImpl implements WeatherService {
             "Vishakapatnam", new double[] { 17.6868, 83.2185 });
 
     private final TripRequestRepository tripRequestRepository;
+    private final com.tripfactory.nomad.repository.PlaceRepository placeRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -50,7 +51,7 @@ public class WeatherServiceImpl implements WeatherService {
         TripRequest tripRequest = tripRequestRepository.findById(tripRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
 
-        double[] coords = CITY_COORDINATES.getOrDefault(tripRequest.getCity(), CITY_COORDINATES.get("Bengaluru"));
+        double[] coords = coordinatesFor(tripRequest.getCity());
 
         String url = String.format(
                 "%s?latitude=%s&longitude=%s&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=auto&forecast_days=3",
@@ -90,6 +91,33 @@ public class WeatherServiceImpl implements WeatherService {
         }
 
         return response;
+    }
+
+    /**
+     * Known cities use their fixed centre. Any other city uses the average position of its places, so a trip to
+     * Chennai or Kolkata gets that city's weather, not Bengaluru's. Only when nothing is known does it fall back.
+     */
+    private double[] coordinatesFor(String city) {
+        if (city != null) {
+            double[] known = CITY_COORDINATES.get(city);
+            if (known != null) {
+                return known;
+            }
+            double lat = 0;
+            double lon = 0;
+            int n = 0;
+            for (com.tripfactory.nomad.domain.entity.Place p : placeRepository.findByCityIgnoreCase(city)) {
+                if (p.getLatitude() != null && p.getLongitude() != null) {
+                    lat += p.getLatitude();
+                    lon += p.getLongitude();
+                    n++;
+                }
+            }
+            if (n > 0) {
+                return new double[] { lat / n, lon / n };
+            }
+        }
+        return CITY_COORDINATES.get("Bengaluru");
     }
 
     // Maps Open-Meteo's WMO weather codes to plain descriptions.

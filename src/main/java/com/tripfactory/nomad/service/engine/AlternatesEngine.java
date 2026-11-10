@@ -38,7 +38,8 @@ public final class AlternatesEngine {
                                  boolean needsBackup, String headline, List<Option> options) {
     }
 
-    public record Result(List<Integer> rainyDays, List<StopAlternates> stops) {
+    /** {@code forecastKnown} is false when no forecast covers the trip days, so the screen can say so instead of claiming dry weather. */
+    public record Result(List<Integer> rainyDays, boolean forecastKnown, List<StopAlternates> stops) {
     }
 
     public static boolean isOutdoor(String category) {
@@ -82,7 +83,7 @@ public final class AlternatesEngine {
             out.add(new StopAlternates(s.day(), s.spot().placeId(), s.spot().name(), s.spot().category(),
                     chance, needsBackup, headline, options));
         }
-        return new Result(rainy, out);
+        return new Result(rainy, !rainChanceByDay.isEmpty(), out);
     }
 
     private static boolean sameKind(Spot a, Spot b) {

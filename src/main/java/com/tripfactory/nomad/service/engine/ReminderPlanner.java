@@ -75,6 +75,40 @@ public final class ReminderPlanner {
         return out;
     }
 
+    /** Rain chance (percent) at which a booked trip gets a heads-up. */
+    public static final int WEATHER_ALERT_CHANCE = 70;
+
+    /**
+     * A one-off heads-up when the forecast for a booked trip's own days turns wet. Called only when a forecast
+     * covers the trip. The key includes the trip date, so changing the date can warn again, but a trip never
+     * gets the same warning twice.
+     *
+     * @param rainByTripDay trip day (1-based) to chance of rain, only for days the forecast covers
+     */
+    public static Reminder weatherAlert(TripFacts t, java.util.Map<Integer, Integer> rainByTripDay, LocalDate today) {
+        if (t.status() != TripStatus.CONFIRMED || t.tripDate() == null || rainByTripDay == null || rainByTripDay.isEmpty()) {
+            return null;
+        }
+        long daysTo = ChronoUnit.DAYS.between(today, t.tripDate());
+        if (daysTo < 0 || daysTo > 3) return null;
+        int worstDay = -1;
+        int worst = -1;
+        for (java.util.Map.Entry<Integer, Integer> e : new java.util.TreeMap<>(rainByTripDay).entrySet()) {
+            if (e.getValue() != null && e.getValue() > worst) {
+                worst = e.getValue();
+                worstDay = e.getKey();
+            }
+        }
+        if (worst < WEATHER_ALERT_CHANCE) return null;
+        String id = String.valueOf(t.tripId());
+        String day = t.tripDate().plusDays(worstDay - 1L).getDayOfWeek().getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH);
+        String where = t.city() == null || t.city().isBlank() ? "your trip" : "your " + t.city() + " trip";
+        return new Reminder("WEATHER_ALERT:" + id + ":" + t.tripDate(), "WEATHER_ALERT",
+                "Rain likely on " + day + " (" + worst + "%)",
+                "Heads-up for " + where + ". Open Plan B for indoor backups to your outdoor stops.",
+                "/trip-summary?tripId=" + id);
+    }
+
     private static String cap(String s) {
         return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }

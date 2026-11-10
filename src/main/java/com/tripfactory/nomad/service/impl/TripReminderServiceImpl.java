@@ -30,6 +30,7 @@ public class TripReminderServiceImpl implements TripReminderService {
     private final TripPlanRepository tripPlanRepository;
     private final ReviewRepository reviewRepository;
     private final InboxService inboxService;
+    private final com.tripfactory.nomad.service.WeatherService weatherService;
 
     @Override
     @Transactional(readOnly = true)
@@ -54,7 +55,12 @@ public class TripReminderServiceImpl implements TripReminderService {
                 ReminderPlanner.TripFacts facts = new ReminderPlanner.TripFacts(trip.getId(), trip.getCity(),
                         trip.getStatus(), trip.getTripDate(), lastDay, createdOn, hasReview);
 
-                for (ReminderPlanner.Reminder r : ReminderPlanner.plan(facts, today)) {
+                List<ReminderPlanner.Reminder> due = new java.util.ArrayList<>(ReminderPlanner.plan(facts, today));
+                ReminderPlanner.Reminder wet = weatherReminder(trip, facts, lastDay, today);
+                if (wet != null) {
+                    due.add(wet);
+                }
+                for (ReminderPlanner.Reminder r : due) {
                     if (inboxService.pushOnce(trip.getUser().getId(), r.dedupeKey(), r.type(), r.title(), r.body(), r.link())) {
                         added++;
                     }
@@ -68,5 +74,29 @@ public class TripReminderServiceImpl implements TripReminderService {
             log.info("Trip reminders: {} new notification(s) added", added);
         }
         return added;
+    }
+
+    /** Only trips starting within the next few days are checked, so the forecast service is not called for every trip. */
+    private ReminderPlanner.Reminder weatherReminder(TripRequest trip, ReminderPlanner.TripFacts facts, int lastDay, LocalDate today) {
+        if (trip.getStatus() != TripStatus.CONFIRMED || trip.getTripDate() == null) {
+            return null;
+        }
+        long daysTo = java.time.temporal.ChronoUnit.DAYS.between(today, trip.getTripDate());
+        if (daysTo < 0 || daysTo > 3) {
+            return null;
+        }
+        try {
+            com.tripfactory.nomad.api.dto.WeatherForecastResponse w = weatherService.getForecastForTrip(trip.getId());
+            if (w == null || w.getDays() == null) {
+                return null;
+            }
+            List<com.tripfactory.nomad.service.engine.ForecastAlign.Day> forecast = new java.util.ArrayList<>();
+            w.getDays().forEach(d -> forecast.add(new com.tripfactory.nomad.service.engine.ForecastAlign.Day(d.getDate(), d.getPrecipitationChance())));
+            return ReminderPlanner.weatherAlert(facts,
+                    com.tripfactory.nomad.service.engine.ForecastAlign.rainByTripDay(trip.getTripDate(), forecast, lastDay), today);
+        } catch (Exception ex) {
+            log.debug("No weather check for trip {}: {}", trip.getId(), ex.getMessage());
+            return null;
+        }
     }
 }

@@ -110,4 +110,26 @@ class ReminderPlannerTest {
         List<Reminder> b = ReminderPlanner.plan(confirmed(TODAY.plusDays(1), 2, false), TODAY);
         assertEquals(keys(a), keys(b));
     }
+
+    @Test
+    void weatherAlertFiresOncePerTripDateForWetTripDays() {
+        LocalDate today = LocalDate.of(2026, 11, 10);
+        ReminderPlanner.TripFacts t = new ReminderPlanner.TripFacts(7, "Goa", TripStatus.CONFIRMED, LocalDate.of(2026, 11, 12), 2, today.minusDays(5), false);
+        ReminderPlanner.Reminder r = ReminderPlanner.weatherAlert(t, java.util.Map.of(1, 20, 2, 85), today);
+        assertEquals("WEATHER_ALERT:7:2026-11-12", r.dedupeKey());
+        assertTrue(r.title().contains("Friday"));        // trip day 2 is 13 Nov 2026, a Friday
+        assertTrue(r.title().contains("85%"));
+    }
+
+    @Test
+    void weatherAlertStaysQuietWhenDryUnknownFarOffOrNotBooked() {
+        LocalDate today = LocalDate.of(2026, 11, 10);
+        ReminderPlanner.TripFacts booked = new ReminderPlanner.TripFacts(7, "Goa", TripStatus.CONFIRMED, LocalDate.of(2026, 11, 12), 2, today, false);
+        assertEquals(null, ReminderPlanner.weatherAlert(booked, java.util.Map.of(1, 69, 2, 10), today));
+        assertEquals(null, ReminderPlanner.weatherAlert(booked, java.util.Map.of(), today));
+        ReminderPlanner.TripFacts far = new ReminderPlanner.TripFacts(7, "Goa", TripStatus.CONFIRMED, LocalDate.of(2026, 11, 20), 2, today, false);
+        assertEquals(null, ReminderPlanner.weatherAlert(far, java.util.Map.of(1, 95), today));
+        ReminderPlanner.TripFacts unpaid = new ReminderPlanner.TripFacts(7, "Goa", TripStatus.PLANNED, LocalDate.of(2026, 11, 12), 2, today, false);
+        assertEquals(null, ReminderPlanner.weatherAlert(unpaid, java.util.Map.of(1, 95), today));
+    }
 }

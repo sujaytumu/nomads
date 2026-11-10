@@ -19,6 +19,7 @@ import com.tripfactory.nomad.domain.entity.TripRequest;
 import com.tripfactory.nomad.repository.TripPlanRepository;
 import com.tripfactory.nomad.repository.TripRequestRepository;
 import com.tripfactory.nomad.service.WeatherService;
+import com.tripfactory.nomad.service.engine.ForecastAlign;
 import com.tripfactory.nomad.service.engine.TripHealthScorer;
 import com.tripfactory.nomad.service.exception.ResourceNotFoundException;
 
@@ -57,11 +58,9 @@ public class TripHealthController {
         try {
             WeatherForecastResponse w = weatherService.getForecastForTrip(tripId);
             if (w != null && w.getDays() != null) {
-                w.getDays().forEach(d -> {
-                    if (d.getPrecipitationChance() != null) {
-                        rain.add(d.getPrecipitationChance());
-                    }
-                });
+                List<ForecastAlign.Day> forecast = new ArrayList<>();
+                w.getDays().forEach(d -> forecast.add(new ForecastAlign.Day(d.getDate(), d.getPrecipitationChance())));
+                new java.util.TreeMap<>(ForecastAlign.rainByTripDay(trip.getTripDate(), forecast, days)).values().forEach(rain::add);
             }
         } catch (Exception ex) {
             log.debug("No forecast for trip {} health score: {}", tripId, ex.getMessage());
