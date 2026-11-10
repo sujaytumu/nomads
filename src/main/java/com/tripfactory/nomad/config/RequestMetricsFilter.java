@@ -2,6 +2,7 @@ package com.tripfactory.nomad.config;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,7 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RequestMetricsFilter extends OncePerRequestFilter {
 
-    private final RequestMetrics metrics;
+    // ObjectProvider so web-layer slice tests, which do not create RequestMetrics, can still load this filter.
+    private final ObjectProvider<RequestMetrics> metricsProvider;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -32,6 +34,11 @@ public class RequestMetricsFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
+        RequestMetrics metrics = metricsProvider.getIfAvailable();
+        if (metrics == null) {
+            chain.doFilter(request, response);
+            return;
+        }
         long start = System.nanoTime();
         int status = 500;
         try {
