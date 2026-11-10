@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import HeroScene, { useGreeting } from "@/components/HeroScene";
 import StoryChips from "@/components/StoryChips";
 import TripProgress from "@/components/TripProgress";
+import WeekendCard from "@/components/WeekendCard";
 import UpcomingTrip from "@/components/UpcomingTrip";
 import { getCached } from "@/lib/api";
 import { fetchMe } from "@/lib/authApi";
@@ -53,6 +54,8 @@ export default function HomeDashboard() {
         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" /></svg>
         Search places, cities…
       </Link>
+
+      <WeekendCard />
 
       {trips && <UpcomingTrip trips={trips} />}
 
