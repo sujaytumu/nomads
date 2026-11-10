@@ -3,14 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchEssentials, Stay } from "@/lib/essentialsApi";
 import { formatCost } from "@/lib/tripStatus";
+import { adviseCap, computeBudget, TIER_LABEL, TIERS, type BudgetInput, type Tier } from "@/lib/budgetModel";
 
 type Plan = { dayNumber: number; distanceFromPrevious?: number | null };
-type Tier = "NONE" | "BUDGET" | "COMFORT" | "PREMIUM";
-
-const FOOD_PER_DAY: Record<Tier, number> = { NONE: 350, BUDGET: 350, COMFORT: 650, PREMIUM: 1200 };
-const TIER_LABEL: Record<Tier, string> = { NONE: "No stay", BUDGET: "Budget", COMFORT: "Comfort", PREMIUM: "Premium" };
-const CAB_PER_KM = 14; // a typical city cab fare per km
-const ROAD_FACTOR = 1.3; // roads are longer than the straight line between two places
 const rupees = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 
 function read(key: string): any {
@@ -28,20 +23,22 @@ export default function TripBudget({ tripId, days, plans, nomadCost }: { tripId:
   const [people, setPeople] = useState(1);
   const [tier, setTier] = useState<Tier>("COMFORT");
   const [stays, setStays] = useState<Stay[]>([]);
+  const [cap, setCap] = useState("");
 
   useEffect(() => {
     const saved = read(key);
     if (saved?.people) setPeople(Math.max(1, Math.min(8, Number(saved.people) || 1)));
     if (saved?.tier && saved.tier in TIER_LABEL) setTier(saved.tier);
+    if (saved?.cap) setCap(String(saved.cap));
   }, [key]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(key, JSON.stringify({ people, tier }));
+      localStorage.setItem(key, JSON.stringify({ people, tier, cap }));
     } catch {
       /* ignore */
     }
-  }, [key, people, tier]);
+  }, [key, people, tier, cap]);
 
   useEffect(() => {
     let active = true;
@@ -51,12 +48,7 @@ export default function TripBudget({ tripId, days, plans, nomadCost }: { tripId:
     };
   }, [tripId]);
 
-  const calc = useMemo(() => {
-    const nights = Math.max(0, days - 1);
-    const rooms = Math.ceil(people / 2);
-    const rate = tier === "NONE" ? 0 : stays.find((s) => s.tier === tier)?.pricePerNight ?? { BUDGET: 1500, COMFORT: 3200, PREMIUM: 6500 }[tier];
-    const stay = nights * rooms * rate;
-    const food = days * people * FOOD_PER_DAY[tier];
+  const input: BudgetInput = useMemo(() => {
     // Route length, plus the trip back from the last stop of each day
     const byDay = new Map<number, number[]>();
     plans.forEach((p) => byDay.set(p.dayNumber, [...(byDay.get(p.dayNumber) ?? []), Number(p.distanceFromPrevious) || 0]));
@@ -64,18 +56,22 @@ export default function TripBudget({ tripId, days, plans, nomadCost }: { tripId:
     byDay.forEach((legs) => {
       km += legs.reduce((a, b) => a + b, 0) + (legs[0] || 0);
     });
-    const cabs = Math.ceil(people / 4);
-    const travel = km * ROAD_FACTOR * CAB_PER_KM * cabs;
-    const nomad = Number(nomadCost) || 0;
-    const total = nomad + stay + food + travel;
-    return { nights, rooms, stay, food, travel, km: km * ROAD_FACTOR, cabs, nomad, total };
+    const rates: BudgetInput["rates"] = {};
+    stays.forEach((st) => {
+      if (st.tier === "BUDGET" || st.tier === "COMFORT" || st.tier === "PREMIUM") rates[st.tier] = st.pricePerNight;
+    });
+    return { days, people, tier, rates, km, nomad: Number(nomadCost) || 0 };
   }, [days, people, tier, stays, plans, nomadCost]);
+
+  const calc = useMemo(() => computeBudget(input), [input]);
+  const capNumber = Number(cap) > 0 ? Number(cap) : null;
+  const advice = useMemo(() => adviseCap(input, capNumber), [input, capNumber]);
 
   const rows: [string, string, number][] = [
     ["NOMAD itinerary", "Your stops, as priced above", calc.nomad],
     ["Stay", tier === "NONE" || calc.nights === 0 ? "Not needed" : `${calc.nights} night${calc.nights > 1 ? "s" : ""} × ${calc.rooms} room${calc.rooms > 1 ? "s" : ""}`, calc.stay],
     ["Food", `${days} day${days > 1 ? "s" : ""} × ${people} ${people > 1 ? "people" : "person"}`, calc.food],
-    ["Getting around", `about ${Math.round(calc.km)} km by cab${calc.cabs > 1 ? `, ${calc.cabs} cabs` : ""}`, calc.travel],
+    ["Getting around", `about ${Math.round(calc.roadKm)} km by cab${calc.cabs > 1 ? `, ${calc.cabs} cabs` : ""}`, calc.travel],
   ];
 
   return (
@@ -97,7 +93,7 @@ export default function TripBudget({ tripId, days, plans, nomadCost }: { tripId:
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Comfort level</p>
           <div className="flex flex-wrap gap-2">
-            {(Object.keys(TIER_LABEL) as Tier[]).map((t) => (
+            {TIERS.map((t) => (
               <button
                 key={t}
                 type="button"
@@ -131,6 +127,25 @@ export default function TripBudget({ tripId, days, plans, nomadCost }: { tripId:
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-brand-600/10 px-4 py-3">
         <p className="text-sm text-slate-300">{people > 1 ? "Each person pays about" : "You'll spend about"}</p>
         <p className="text-2xl font-bold text-brand-300">{rupees(calc.total / people)}</p>
+      </div>
+      <div className="space-y-2">
+        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="budget-cap">My limit per person (optional)</label>
+        <input id="budget-cap" inputMode="numeric" value={cap} onChange={(e) => setCap(e.target.value.replace(/[^0-9]/g, "").slice(0, 7))} placeholder="e.g. 5000" className="w-full max-w-[12rem] rounded-xl border px-3 py-2 text-sm" />
+        {advice.state !== "none" && (
+          <div role="status" className={`rounded-2xl px-4 py-3 text-sm ${advice.state === "within" ? "bg-emerald-500/10 text-emerald-200" : "bg-amber-500/10 text-amber-200"}`}>
+            <p>{advice.message}</p>
+            {advice.state === "over" && advice.savings.length > 0 && (
+              <ul className="mt-2 space-y-1.5">
+                {advice.savings.map((sv) => (
+                  <li key={sv.tier} className="flex items-center justify-between gap-2">
+                    <span>{TIER_LABEL[sv.tier]} stay saves {rupees(sv.saves)}{sv.fits ? " · fits" : ""}</span>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setTier(sv.tier)}>Use this</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
       <p className="text-xs text-slate-500">Only the NOMAD itinerary ({formatCost(calc.nomad)}) is charged here. Stay, food and cab costs are rough estimates to help you plan, and you pay them directly.</p>
     </section>
